@@ -1,5 +1,6 @@
 // Unit conversion logic
 import { unitConversions, variables } from './constants'
+import { SCALE_SUFFIX, SCALED_NUM_RE, applyScale } from './scales'
 import { evaluateMath } from './math'
 
 export const findUnitCategory = (unitName) => {
@@ -86,11 +87,12 @@ export const parseUnitExpression = (expr, category) => {
     }
   }
 
-  // Try simple "N unit" first
-  const simpleMatch = expr.match(/^(-?\d+(?:\.\d+)?)\s+(.+)$/)
+  // Try simple "N unit" first (with optional scale: "2k km", "1.5M meters")
+  const simpleRe = new RegExp(`^${SCALED_NUM_RE}\\s+(.+)$`)
+  const simpleMatch = expr.match(simpleRe)
   if (simpleMatch) {
-    const value = parseFloat(simpleMatch[1])
-    const unitStr = simpleMatch[2].trim()
+    const value = applyScale(simpleMatch[1], simpleMatch[2])
+    const unitStr = simpleMatch[3].trim()
     const unitInfo = findUnitCategory(unitStr)
     if (unitInfo && unitInfo.category === category) {
       return value * unitInfo.factor
@@ -104,10 +106,11 @@ export const parseUnitExpression = (expr, category) => {
     let op = '+'
     for (const part of parts) {
       if (part === '+' || part === '-') { op = part; continue }
-      const m = part.trim().match(/^(-?\d+(?:\.\d+)?)\s+(.+)$/)
+      const partRe = new RegExp(`^${SCALED_NUM_RE}\\s+(.+)$`)
+      const m = part.trim().match(partRe)
       if (m) {
-        const val = parseFloat(m[1])
-        const unitStr = m[2].trim()
+        const val = applyScale(m[1], m[2])
+        const unitStr = m[3].trim()
         const unitInfo = findUnitCategory(unitStr)
         if (unitInfo && unitInfo.category === category) {
           const baseVal = val * unitInfo.factor
@@ -175,11 +178,12 @@ export const handleCSSBridge = (sourceExpr, targetUnit) => {
   const ppi = variables.value._ppi || 96 // default 96 ppi
   const targetLower = targetUnit.toLowerCase()
 
-  const srcMatch = sourceExpr.match(/^(-?\d+(?:\.\d+)?)\s+(.+)$/)
+  const srcRe = new RegExp(`^${SCALED_NUM_RE}\\s+(.+)$`)
+  const srcMatch = sourceExpr.match(srcRe)
   if (!srcMatch) return null
 
-  const value = parseFloat(srcMatch[1])
-  const srcUnit = srcMatch[2].trim().toLowerCase()
+  const value = applyScale(srcMatch[1], srcMatch[2])
+  const srcUnit = srcMatch[3].trim().toLowerCase()
 
   const lengthUnits = unitConversions.length
   const cssUnits = unitConversions.css
@@ -220,10 +224,11 @@ export const handleUnitExpression = (input) => {
 
     // Temperature special case
     if (unitConversions.temperature[targetUnitStr.toLowerCase()]) {
-      const srcMatch = sourceExpr.match(/^(-?\d+(?:\.\d+)?)\s+(.+)$/)
+      const srcTempRe = new RegExp(`^${SCALED_NUM_RE}\\s+(.+)$`)
+      const srcMatch = sourceExpr.match(srcTempRe)
       if (srcMatch) {
-        const value = parseFloat(srcMatch[1])
-        const srcUnit = srcMatch[2].trim()
+        const value = applyScale(srcMatch[1], srcMatch[2])
+        const srcUnit = srcMatch[3].trim()
         if (unitConversions.temperature[srcUnit.toLowerCase()]) {
           const result = convertTemperature(value, srcUnit, targetUnitStr)
           if (result !== null) return { value: result, unit: targetUnitStr, hasUnit: true, isConverted: true }
@@ -252,11 +257,12 @@ export const handleUnitExpression = (input) => {
   const compoundResult = parseCompoundUnits(normalized)
   if (compoundResult) return compoundResult
 
-  // Simple "N unit" (no conversion)
-  const simpleMatch = normalized.match(/^(-?\d+(?:\.\d+)?)\s+(.+)$/)
+  // Simple "N unit" (no conversion), with optional scale
+  const simpleEndRe = new RegExp(`^${SCALED_NUM_RE}\\s+(.+)$`)
+  const simpleMatch = normalized.match(simpleEndRe)
   if (simpleMatch) {
-    const value = parseFloat(simpleMatch[1])
-    const unitStr = simpleMatch[2].trim()
+    const value = applyScale(simpleMatch[1], simpleMatch[2])
+    const unitStr = simpleMatch[3].trim()
     const unitInfo = findUnitCategory(unitStr)
     if (unitInfo) {
       return { value, unit: unitStr, hasUnit: true, isConverted: false }

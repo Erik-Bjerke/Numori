@@ -109,3 +109,21 @@ describe('SI Prefixes', () => {
   it('1 kilogram in grams = 1000', () => { expect(calcNum('1 kilogram in grams')).toBeCloseTo(1000, 0) })
   it('1 millimeter in meters = 0.001', () => { expect(calcNum('1 millimeter in meters')).toBeCloseTo(0.001, 5) })
 })
+
+describe('Units with Scales', () => {
+  it('2k meters in km = 2', () => { expect(calcNum('2k meters in km')).toBeCloseTo(2, 5) })
+  it('1.5k km in miles ≈ 932', () => {
+    const val = calcNum('1.5k km in miles')
+    expect(val).toBeGreaterThan(930)
+    expect(val).toBeLessThan(935)
+  })
+  it('5k seconds in hours ≈ 1.389', () => { expect(calcNum('5k seconds in hours')).toBeCloseTo(5000 / 3600, 2) })
+  it('2k grams in kg = 2', () => { expect(calcNum('2k grams in kg')).toBeCloseTo(2, 5) })
+  it('1 million seconds in days ≈ 11.57', () => { expect(calcNum('1 million seconds in days')).toBeCloseTo(1000000 / 86400, 1) })
+  it('10k feet in miles ≈ 1.894', () => { expect(calcNum('10k feet in miles')).toBeCloseTo(10000 * 0.3048 / 1609.344, 2) })
+  it('2k meters displays value without conversion', () => {
+    const result = calc('2k meters')
+    expect(result).toMatch(/2000/)
+  })
+  it('500k bytes in MB = 0.5', () => { expect(calcNum('500k bytes in MB')).toBeCloseTo(0.5, 2) })
+})

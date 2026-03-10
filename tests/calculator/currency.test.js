@@ -86,3 +86,68 @@ describe('Currency', () => {
     expect(gbpValue).toBeLessThan(95)
   })
 })
+
+describe('Currency with Scales', () => {
+  // Symbol prefix + scale suffix
+  it('$2k = 2000 USD', () => {
+    const result = calc('$2k')
+    expect(parseFloat(result)).toBe(2000)
+    expect(result).toMatch(/USD/)
+  })
+  it('$1.5k = 1500 USD', () => { expect(parseFloat(calc('$1.5k'))).toBe(1500) })
+  it('€3M = 3000000 EUR', () => {
+    const result = calc('€3M')
+    expect(parseFloat(result)).toBe(3000000)
+    expect(result).toMatch(/EUR/)
+  })
+  it('£1 million = 1000000 GBP', () => {
+    const result = calc('£1 million')
+    expect(parseFloat(result)).toBe(1000000)
+    expect(result).toMatch(/GBP/)
+  })
+  it('$500k displays USD', () => { expect(calc('$500k')).toMatch(/USD/) })
+
+  // Code suffix + scale
+  it('2k eur = 2000 EUR', () => {
+    const result = calc('2k eur')
+    expect(result).toMatch(/2000/)
+    expect(result).toMatch(/EUR/)
+  })
+  it('2M eur = 2000000 EUR', () => {
+    const result = calc('2M eur')
+    expect(result).toMatch(/2000000/)
+    expect(result).toMatch(/EUR/)
+  })
+  it('1.5 million usd = 1500000 USD', () => {
+    const result = calc('1.5 million usd')
+    expect(result).toMatch(/1500000/)
+    expect(result).toMatch(/USD/)
+  })
+
+  // Conversion with scales
+  it('$2k in EUR converts correctly', () => {
+    const result = calc('$2k in EUR')
+    expect(result).toMatch(/EUR/)
+    const val = parseFloat(result)
+    expect(val).toBeGreaterThan(1500)
+    expect(val).toBeLessThan(2000)
+  })
+
+  // Arithmetic with scales
+  it('$1k + €500 mixed currency arithmetic', () => {
+    const result = calc('$1k + €500')
+    expect(result).toBeTruthy()
+    expect(result).toMatch(/USD/)
+  })
+  it('$2k - €500 mixed currency arithmetic', () => {
+    const result = calc('$2k - €500')
+    expect(result).toBeTruthy()
+    expect(result).toMatch(/USD/)
+  })
+
+  // Scale with variable assignment
+  it('variable with scaled currency: v = $5k, v + $500', () => {
+    const results = calcLines(['v = $5k', 'v + $500'])
+    expect(parseFloat(results[1])).toBe(5500)
+  })
+})

@@ -1,5 +1,5 @@
 // Math evaluation, functions, percentages, and formatting
-import { constants, variables, previousResult, scales, unitConversions } from './constants'
+import { constants, variables, previousResult, scales } from './constants'
 import { handleUnitExpression } from './units'
 
 // ---- Format result ----

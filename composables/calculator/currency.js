@@ -1,5 +1,6 @@
 // Currency parsing, conversion, and exchange rate fetching
 import { currencyMap, exchangeRates, ratesFetched, variables } from './constants'
+import { SCALE_SUFFIX, SCALED_NUM_RE, applyScale } from './scales'
 import { evaluateMath } from './math'
 
 // Fetch live exchange rates
@@ -51,21 +52,23 @@ export const fetchExchangeRates = async () => {
 }
 
 export const parseCurrency = (input) => {
-  // "$30", "€50", "£100"
-  const symbolMatch = input.match(/^([€$£¥₹₽])\s*(\d+(?:\.\d+)?)(.*)$/)
+  // "$30", "€50", "£100", "$2k", "€1.5M", "$3 million"
+  const symbolScaleRe = new RegExp(`^([€$£¥₹₽])\\s*${SCALED_NUM_RE}(.*)$`)
+  const symbolMatch = input.match(symbolScaleRe)
   if (symbolMatch) {
     const currency = currencyMap[symbolMatch[1]]
-    const value = parseFloat(symbolMatch[2])
-    const rest = symbolMatch[3].trim()
+    const value = applyScale(symbolMatch[2], symbolMatch[3])
+    const rest = symbolMatch[4].trim()
     return { value, currency, rest }
   }
 
-  // "100 USD", "50 EUR"
-  const codeMatch = input.match(/^(\d+(?:\.\d+)?)\s+([a-zA-Z]+)(.*)$/)
+  // "100 USD", "50 EUR", "2k EUR", "1.5M usd", "3 million eur"
+  const codeScaleRe = new RegExp(`^(\\d+(?:\\.\\d+)?)\\s*(${SCALE_SUFFIX})?\\s+([a-zA-Z]+)(.*)$`)
+  const codeMatch = input.match(codeScaleRe)
   if (codeMatch) {
-    const value = parseFloat(codeMatch[1])
-    const code = codeMatch[2].trim()
-    const rest = codeMatch[3].trim()
+    const value = applyScale(codeMatch[1], codeMatch[2])
+    const code = codeMatch[3].trim()
+    const rest = codeMatch[4].trim()
     const currency = currencyMap[code.toLowerCase()] || code.toUpperCase()
     if (exchangeRates.value[currency]) {
       return { value, currency, rest }
@@ -116,9 +119,9 @@ export const handleCurrencyExpression = (input) => {
 
       if (hasCurrencySymbols || hasCurrencyVars) {
         let expr = sourceExpr
-        expr = expr.replace(/([€$£¥₹₽])\s*(\d+(?:\.\d+)?)/g, (_, symbol, num) => {
+        expr = expr.replace(/([€$£¥₹₽])\s*(\d+(?:\.\d+)?)\s*([kK]|M|thousand|thousands|million|millions|billion|billions|trillion|trillions)?/g, (_, symbol, num, scale) => {
           const cur = currencyMap[symbol]
-          const val = parseFloat(num)
+          const val = applyScale(num, scale)
           const usdVal = val / exchangeRates.value[cur]
           return `(${usdVal})`
         })
@@ -142,14 +145,14 @@ export const handleCurrencyExpression = (input) => {
     }
   }
 
-  // Currency arithmetic: "$30 + €20"
-  const currencyArithMatch = input.match(/^([€$£¥₹₽])\s*(\d+(?:\.\d+)?)\s*([+\-*/])\s*([€$£¥₹₽])\s*(\d+(?:\.\d+)?)$/)
-  if (currencyArithMatch) {
-    const cur1 = currencyMap[currencyArithMatch[1]]
-    const val1 = parseFloat(currencyArithMatch[2])
-    const op = currencyArithMatch[3]
-    const cur2 = currencyMap[currencyArithMatch[4]]
-    const val2 = parseFloat(currencyArithMatch[5])
+  // Currency arithmetic: "$30 + €20", "$2k + €500", "$1.5M - €200k"
+  const currArithMatch = input.match(/^([€$£¥₹₽])\s*(\d+(?:\.\d+)?)\s*([kK]|M|thousand|thousands|million|millions|billion|billions|trillion|trillions)?\s*([+\-*/])\s*([€$£¥₹₽])\s*(\d+(?:\.\d+)?)\s*([kK]|M|thousand|thousands|million|millions|billion|billions|trillion|trillions)?$/)
+  if (currArithMatch) {
+    const cur1 = currencyMap[currArithMatch[1]]
+    const val1 = applyScale(currArithMatch[2], currArithMatch[3])
+    const op = currArithMatch[4]
+    const cur2 = currencyMap[currArithMatch[5]]
+    const val2 = applyScale(currArithMatch[6], currArithMatch[7])
 
     const usd1 = val1 / exchangeRates.value[cur1]
     const usd2 = val2 / exchangeRates.value[cur2]
@@ -182,10 +185,10 @@ export const handleCurrencyExpression = (input) => {
   }
 
   const symbolMatches = []
-  const symbolRegex = /([€$£¥₹₽])\s*(\d+(?:\.\d+)?)/g
+  const symbolRegex = /([€$£¥₹₽])\s*(\d+(?:\.\d+)?)\s*([kK]|M|thousand|thousands|million|millions|billion|billions|trillion|trillions)?/g
   let sMatch
   while ((sMatch = symbolRegex.exec(input)) !== null) {
-    symbolMatches.push({ symbol: sMatch[1], value: parseFloat(sMatch[2]), currency: currencyMap[sMatch[1]] })
+    symbolMatches.push({ symbol: sMatch[1], value: applyScale(sMatch[2], sMatch[3]), currency: currencyMap[sMatch[1]] })
   }
 
   const hasCurrencyContext = currencyVarsInExpr.length > 0 || symbolMatches.length > 0
@@ -197,9 +200,9 @@ export const handleCurrencyExpression = (input) => {
 
     let expr = input
 
-    expr = expr.replace(/([€$£¥₹₽])\s*(\d+(?:\.\d+)?)/g, (_, symbol, num) => {
+    expr = expr.replace(/([€$£¥₹₽])\s*(\d+(?:\.\d+)?)\s*([kK]|M|thousand|thousands|million|millions|billion|billions|trillion|trillions)?/g, (_, symbol, num, scale) => {
       const cur = currencyMap[symbol]
-      const val = parseFloat(num)
+      const val = applyScale(num, scale)
       const usdVal = val / exchangeRates.value[cur]
       return `(${usdVal})`
     })
