@@ -928,6 +928,47 @@ describe('Currency', () => {
     const results = calcLines(['v = $20', 'v + $10'])
     expect(parseFloat(results[1])).toBe(30)
   })
+
+  it('variable with EUR + USD: a = €1, a + $4 should convert correctly', () => {
+    const results = calcLines(['a = €1', 'a + $4'])
+    // €1 in USD = 1/0.87 ≈ 1.149, plus $4 = ~5.149 USD, then back to EUR ≈ 4.48 EUR
+    // The result should be in EUR (the variable's currency) and NOT simply 5
+    expect(results[1]).toMatch(/EUR/)
+    // The numeric value should NOT be 5 (that would mean no conversion happened)
+    expect(parseFloat(results[1])).not.toBeCloseTo(5, 1)
+  })
+
+  it('variable with USD + EUR: a = $10, a + €5 should convert correctly', () => {
+    const results = calcLines(['a = $10', 'a + €5'])
+    // $10 + €5 (€5 in USD = 5/0.87 ≈ 5.747) = ~15.747 USD
+    expect(results[1]).toMatch(/USD/)
+    expect(parseFloat(results[1])).not.toBeCloseTo(15, 1)
+  })
+
+  it('variable with EUR currency used in conversion: a = €100, a in GBP', () => {
+    const results = calcLines(['a = €100', 'a in GBP'])
+    expect(results[1]).toMatch(/GBP/)
+    // Should convert €100 to GBP, not treat as 100 USD to GBP
+    // €100 → USD = 100/0.87 ≈ 114.94, → GBP = 114.94 * 0.75 ≈ 86.21
+    const gbpValue = parseFloat(results[1])
+    expect(gbpValue).toBeGreaterThan(80)
+    expect(gbpValue).toBeLessThan(95)
+  })
+
+  it('two currency variables: a = €10, b = $10, a + b should convert', () => {
+    const results = calcLines(['a = €10', 'b = $10', 'a + b'])
+    // a is EUR, b is USD. Result should be in EUR (first variable's currency)
+    // $10 in EUR = 10 * 0.87 = 8.7, so €10 + €8.7 = €18.7
+    expect(results[2]).toMatch(/EUR/)
+    const eurValue = parseFloat(results[2])
+    expect(eurValue).toBeCloseTo(18.7, 0)
+  })
+
+  it('currency variable multiplied by number: a = €50, a * 3', () => {
+    const results = calcLines(['a = €50', 'a * 3'])
+    expect(parseFloat(results[1])).toBe(150)
+    expect(results[1]).toMatch(/EUR/)
+  })
 })
 
 // ============================================================

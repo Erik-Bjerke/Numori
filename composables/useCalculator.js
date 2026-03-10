@@ -1246,23 +1246,58 @@ export const useCalculator = () => {
       return { value: parsed.value, currency: parsed.currency, hasCurrency: true, isConverted: false }
     }
 
-    // Currency with arithmetic: "$30 + $10" or "$20 * 3"
-    if (/[€$£¥₹₽]/.test(input)) {
-      let expr = input
-      let detectedCurrency = null
+    // Check if expression involves currency variables (with or without currency symbols)
+    const currencyVarsInExpr = []
+    for (const [varName, varVal] of Object.entries(variables.value)) {
+      if (varName.startsWith('_')) continue
+      if (typeof varVal === 'object' && varVal.currency) {
+        const regex = new RegExp(`\\b${varName}\\b`, 'i')
+        if (regex.test(input)) {
+          currencyVarsInExpr.push({ name: varName, value: varVal.value, currency: varVal.currency })
+        }
+      }
+    }
 
-      // Replace currency symbols with their values
+    // Collect currency symbols in the expression
+    const symbolMatches = []
+    const symbolRegex = /([€$£¥₹₽])\s*(\d+(?:\.\d+)?)/g
+    let sMatch
+    while ((sMatch = symbolRegex.exec(input)) !== null) {
+      symbolMatches.push({ symbol: sMatch[1], value: parseFloat(sMatch[2]), currency: currencyMap[sMatch[1]] })
+    }
+
+    const hasCurrencyContext = currencyVarsInExpr.length > 0 || symbolMatches.length > 0
+
+    if (hasCurrencyContext) {
+      // Determine the primary currency: first currency variable, or first symbol
+      const primaryCurrency = currencyVarsInExpr.length > 0
+        ? currencyVarsInExpr[0].currency
+        : symbolMatches[0].currency
+
+      // Build expression converting everything to USD for calculation
+      let expr = input
+
+      // Replace currency symbols with USD-converted values
       expr = expr.replace(/([€$£¥₹₽])\s*(\d+(?:\.\d+)?)/g, (_, symbol, num) => {
-        if (!detectedCurrency) detectedCurrency = currencyMap[symbol]
-        return num
+        const cur = currencyMap[symbol]
+        const val = parseFloat(num)
+        const usdVal = val / exchangeRates.value[cur]
+        return `(${usdVal})`
       })
 
-      if (detectedCurrency) {
-        try {
-          const value = evaluateMath(expr)
-          return { value, currency: detectedCurrency, hasCurrency: true, isConverted: false }
-        } catch (e) { /* fall through */ }
+      // Replace currency variables with USD-converted values
+      for (const cv of currencyVarsInExpr) {
+        const regex = new RegExp(`\\b${cv.name}\\b`, 'gi')
+        const usdVal = cv.value / exchangeRates.value[cv.currency]
+        expr = expr.replace(regex, `(${usdVal})`)
       }
+
+      try {
+        const usdResult = evaluateMath(expr)
+        // Convert from USD to primary currency
+        const finalValue = usdResult * exchangeRates.value[primaryCurrency]
+        return { value: finalValue, currency: primaryCurrency, hasCurrency: true, isConverted: false }
+      } catch (e) { /* fall through */ }
     }
 
     return noResult
