@@ -21,8 +21,9 @@ export const handleTimezoneExpression = (input) => {
     }
   }
 
-  // "time in <City>"
+  // "time in <City>" or "<City> time"
   const timeInCityMatch = input.match(new RegExp(`^time\\s+in\\s+(${cityNames})`, 'i'))
+    || input.match(new RegExp(`^(${cityNames})\\s+time`, 'i'))
   if (timeInCityMatch) {
     const city = timeInCityMatch[1].toLowerCase()
     const iana = cityTimezones[city]
