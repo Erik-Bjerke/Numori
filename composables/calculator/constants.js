@@ -1,0 +1,212 @@
+// Constants and data maps for the calculator engine
+// ref is provided globally by Nuxt auto-imports (or mocked in tests)
+
+// Mathematical constants
+export const constants = {
+  pi: Math.PI,
+  e: Math.E,
+  tau: Math.PI * 2,
+  phi: (1 + Math.sqrt(5)) / 2,
+  c: 299792458,
+}
+
+// Shared reactive state
+export const variables = ref({})
+export const previousResult = ref(null)
+
+// Currency symbols and codes mapping
+export const currencyMap = {
+  // Symbols
+  '$': 'USD', '€': 'EUR', '£': 'GBP', '¥': 'JPY', '₹': 'INR', '₽': 'RUB',
+  '₩': 'KRW', '₺': 'TRY', '₴': 'UAH', '₿': 'BTC', '₫': 'VND',
+  '₱': 'PHP', '₸': 'KZT', '₮': 'MNT', '฿': 'THB', '₦': 'NGN',
+  'R$': 'BRL', 'C$': 'CAD', 'A$': 'AUD', 'NZ$': 'NZD', 'HK$': 'HKD',
+  'S$': 'SGD', 'NT$': 'TWD', 'kr': 'SEK', 'zł': 'PLN', 'Kč': 'CZK',
+  'RM': 'MYR', 'Rp': 'IDR',
+  // ISO codes (lowercase)
+  'usd': 'USD', 'eur': 'EUR', 'euro': 'EUR', 'euros': 'EUR',
+  'gbp': 'GBP', 'pound': 'GBP', 'pounds': 'GBP',
+  'jpy': 'JPY', 'yen': 'JPY',
+  'krw': 'KRW', 'won': 'KRW',
+  'inr': 'INR', 'rupee': 'INR', 'rupees': 'INR',
+  'rub': 'RUB', 'rouble': 'RUB', 'roubles': 'RUB', 'ruble': 'RUB', 'rubles': 'RUB',
+  'cad': 'CAD', 'aud': 'AUD', 'chf': 'CHF', 'franc': 'CHF', 'francs': 'CHF',
+  'cny': 'CNY', 'yuan': 'CNY', 'rmb': 'CNY',
+  'brl': 'BRL', 'real': 'BRL', 'reais': 'BRL',
+  'mxn': 'MXN', 'peso': 'MXN', 'pesos': 'MXN',
+  'sek': 'SEK', 'nok': 'NOK', 'dkk': 'DKK', 'krone': 'NOK', 'krona': 'SEK',
+  'pln': 'PLN', 'zloty': 'PLN',
+  'czk': 'CZK', 'koruna': 'CZK',
+  'huf': 'HUF', 'forint': 'HUF',
+  'try': 'TRY', 'lira': 'TRY',
+  'zar': 'ZAR', 'rand': 'ZAR',
+  'thb': 'THB', 'baht': 'THB',
+  'sgd': 'SGD', 'hkd': 'HKD', 'twd': 'TWD',
+  'nzd': 'NZD', 'php': 'PHP',
+  'idr': 'IDR', 'rupiah': 'IDR',
+  'myr': 'MYR', 'ringgit': 'MYR',
+  'vnd': 'VND', 'dong': 'VND',
+  'sar': 'SAR', 'riyal': 'SAR',
+  'aed': 'AED', 'dirham': 'AED', 'dirhams': 'AED',
+  'ils': 'ILS', 'shekel': 'ILS', 'shekels': 'ILS',
+  'egp': 'EGP', 'clp': 'CLP', 'cop': 'COP', 'ars': 'ARS',
+  'pen': 'PEN', 'uah': 'UAH', 'ngn': 'NGN', 'kzt': 'KZT',
+  'qar': 'QAR', 'kwd': 'KWD', 'bhd': 'BHD', 'omr': 'OMR',
+  'btc': 'BTC', 'bitcoin': 'BTC', 'eth': 'ETH', 'ethereum': 'ETH',
+}
+
+// Exchange rates (base: USD) — fallback values, updated live from API
+export const exchangeRates = ref({
+  USD: 1, EUR: 0.87, GBP: 0.75, JPY: 158.65, INR: 92.31,
+  RUB: 79.63, CAD: 1.36, AUD: 1.43, CHF: 0.78, CNY: 6.92,
+  KRW: 1493.63, BRL: 5.26, MXN: 17.98, SEK: 9.28, NOK: 9.63,
+  DKK: 6.48, PLN: 3.73, CZK: 21.19, HUF: 343.08, TRY: 44.11,
+  ZAR: 16.82, THB: 32.10, SGD: 1.28, HKD: 7.82, TWD: 31.88,
+  NZD: 1.70, PHP: 59.67, IDR: 16973.23, MYR: 3.97, VND: 26196.37,
+  SAR: 3.75, AED: 3.67, ILS: 3.12, EGP: 50.81, CLP: 920.56,
+  COP: 3773.51, ARS: 1412.50, PEN: 3.44, UAH: 43.80, NGN: 1391.61,
+  KZT: 496.19, QAR: 3.64, KWD: 0.31, BHD: 0.38, OMR: 0.38,
+  BTC: 0.000015, ETH: 0.00051,
+})
+export const ratesFetched = ref(false)
+
+// Unit conversion factors (to base unit)
+export const unitConversions = {
+  length: {
+    m: 1, meter: 1, meters: 1, metre: 1, metres: 1,
+    km: 1000, kilometer: 1000, kilometers: 1000,
+    cm: 0.01, centimeter: 0.01, centimeters: 0.01,
+    mm: 0.001, millimeter: 0.001, millimeters: 0.001,
+    ft: 0.3048, foot: 0.3048, feet: 0.3048,
+    inch: 0.0254, inches: 0.0254,
+    yd: 0.9144, yard: 0.9144, yards: 0.9144,
+    mi: 1609.344, mile: 1609.344, miles: 1609.344,
+  },
+  weight: {
+    kg: 1, kilogram: 1, kilograms: 1,
+    g: 0.001, gram: 0.001, grams: 0.001,
+    mg: 0.000001, milligram: 0.000001, milligrams: 0.000001,
+    lb: 0.453592, lbs: 0.453592, pound: 0.453592, pounds: 0.453592,
+    oz: 0.0283495, ounce: 0.0283495, ounces: 0.0283495,
+    ton: 1000, tons: 1000, tonne: 1000, tonnes: 1000,
+    stone: 6.35029, stones: 6.35029,
+    carat: 0.0002, carats: 0.0002,
+  },
+  volume: {
+    l: 1, liter: 1, liters: 1, litre: 1, litres: 1,
+    ml: 0.001, milliliter: 0.001, milliliters: 0.001,
+    gal: 3.78541, gallon: 3.78541, gallons: 3.78541,
+    qt: 0.946353, quart: 0.946353, quarts: 0.946353,
+    pint: 0.473176, pints: 0.473176,
+    cup: 0.236588, cups: 0.236588,
+    floz: 0.0295735,
+    tbsp: 0.0147868, tablespoon: 0.0147868,
+    tsp: 0.00492892, teaspoon: 0.00492892,
+    'cu cm': 0.001, 'cu m': 1000, 'cbm': 1000,
+    'cubic inch': 0.0163871, 'cubic inches': 0.0163871,
+    'cubic meter': 1000, 'cubic meters': 1000,
+    'cubic cm': 0.001,
+  },
+  temperature: {
+    celsius: 'C', c: 'C', fahrenheit: 'F', f: 'F', kelvin: 'K', k: 'K',
+  },
+  time: {
+    s: 1, sec: 1, second: 1, seconds: 1,
+    min: 60, minute: 60, minutes: 60,
+    h: 3600, hr: 3600, hour: 3600, hours: 3600,
+    day: 86400, days: 86400,
+    week: 604800, weeks: 604800,
+    month: 2592000, months: 2592000,
+    year: 31536000, years: 31536000,
+  },
+  area: {
+    'm2': 1, 'sqm': 1,
+    'km2': 1000000,
+    'cm2': 0.0001, 'sqcm': 0.0001,
+    'ft2': 0.092903, 'sqft': 0.092903,
+    'in2': 0.00064516, 'sqin': 0.00064516,
+    'yd2': 0.836127,
+    'mi2': 2589988,
+    'acre': 4046.86, 'acres': 4046.86,
+    'hectare': 10000, 'hectares': 10000,
+    'sq cm': 0.0001, 'sq m': 1, 'sq ft': 0.092903, 'sq in': 0.00064516,
+    'sq km': 1000000, 'sq mi': 2589988, 'sq yd': 0.836127,
+    'square inch': 0.00064516, 'square inches': 0.00064516,
+    'square foot': 0.092903, 'square feet': 0.092903,
+    'square meter': 1, 'square meters': 1,
+    'square cm': 0.0001,
+  },
+  speed: {
+    'mps': 1, 'm/s': 1,
+    'kph': 0.277778, 'km/h': 0.277778,
+    'mph': 0.44704, 'mi/h': 0.44704,
+    'fps': 0.3048, 'ft/s': 0.3048,
+    'knot': 0.514444, 'knots': 0.514444,
+  },
+  data: {
+    'bit': 0.125, 'bits': 0.125,
+    'B': 1, 'byte': 1, 'bytes': 1,
+    'KB': 1000, 'kilobyte': 1000, 'kilobytes': 1000,
+    'MB': 1000000, 'megabyte': 1000000, 'megabytes': 1000000,
+    'GB': 1000000000, 'gigabyte': 1000000000, 'gigabytes': 1000000000,
+    'TB': 1000000000000, 'terabyte': 1000000000000, 'terabytes': 1000000000000,
+    'PB': 1000000000000000, 'petabyte': 1000000000000000, 'petabytes': 1000000000000000,
+    'KiB': 1024, 'kibibyte': 1024, 'kibibytes': 1024,
+    'MiB': 1048576, 'mebibyte': 1048576, 'mebibytes': 1048576,
+    'GiB': 1073741824, 'gibibyte': 1073741824, 'gibibytes': 1073741824,
+    'TiB': 1099511627776, 'tebibyte': 1099511627776, 'tebibytes': 1099511627776,
+  },
+  css: {
+    'px': 1, 'pixel': 1, 'pixels': 1,
+    'pt': 1.333333, 'point': 1.333333, 'points': 1.333333,
+    'em': 16, 'rem': 16,
+  },
+  angular: {
+    'radian': 1, 'radians': 1, 'rad': 1,
+    'degree': Math.PI / 180, 'degrees': Math.PI / 180, '°': Math.PI / 180,
+  },
+}
+
+// Scales for big numbers
+export const scales = {
+  'k': 1e3, 'thousand': 1e3, 'thousands': 1e3,
+  'M': 1e6, 'million': 1e6, 'millions': 1e6,
+  'billion': 1e9, 'billions': 1e9,
+  'trillion': 1e12, 'trillions': 1e12,
+}
+
+// Timezone offsets (UTC offset in hours)
+export const timezoneOffsets = {
+  'PST': -8, 'PDT': -7, 'MST': -7, 'MDT': -6, 'CST': -6, 'CDT': -5,
+  'EST': -5, 'EDT': -4, 'GMT': 0, 'UTC': 0, 'CET': 1, 'CEST': 2,
+  'EET': 2, 'EEST': 3, 'IST': 5.5, 'JST': 9, 'KST': 9, 'CST_CN': 8,
+  'HKT': 8, 'SGT': 8, 'AEST': 10, 'AEDT': 11, 'NZST': 12, 'NZDT': 13,
+}
+
+// City to timezone mapping
+export const cityTimezones = {
+  'new york': 'America/New_York', 'los angeles': 'America/Los_Angeles',
+  'chicago': 'America/Chicago', 'london': 'Europe/London',
+  'paris': 'Europe/Paris', 'berlin': 'Europe/Berlin',
+  'madrid': 'Europe/Madrid', 'tokyo': 'Asia/Tokyo',
+  'beijing': 'Asia/Shanghai', 'shanghai': 'Asia/Shanghai',
+  'hong kong': 'Asia/Hong_Kong', 'singapore': 'Asia/Singapore',
+  'sydney': 'Australia/Sydney', 'moscow': 'Europe/Moscow',
+  'dubai': 'Asia/Dubai', 'mumbai': 'Asia/Kolkata',
+  'delhi': 'Asia/Kolkata', 'seoul': 'Asia/Seoul',
+  'toronto': 'America/Toronto', 'vancouver': 'America/Vancouver',
+}
+
+// Timezone abbreviation to IANA mapping
+export const tzAbbrToIANA = {
+  'PST': 'America/Los_Angeles', 'PDT': 'America/Los_Angeles',
+  'MST': 'America/Denver', 'MDT': 'America/Denver',
+  'CST': 'America/Chicago', 'CDT': 'America/Chicago',
+  'EST': 'America/New_York', 'EDT': 'America/New_York',
+  'GMT': 'Europe/London', 'UTC': 'UTC',
+  'CET': 'Europe/Paris', 'CEST': 'Europe/Paris',
+  'EET': 'Europe/Athens', 'EEST': 'Europe/Athens',
+  'IST': 'Asia/Kolkata', 'JST': 'Asia/Tokyo', 'KST': 'Asia/Seoul',
+  'HKT': 'Asia/Hong_Kong', 'SGT': 'Asia/Singapore',
+  'AEST': 'Australia/Sydney', 'AEDT': 'Australia/Sydney',
+}

@@ -1,0 +1,220 @@
+// Core calculator composable — orchestrates all modules
+import { variables, previousResult, exchangeRates, ratesFetched, currencyMap, unitConversions } from './constants'
+import { evaluateMath, handleFunctions, formatResult } from './math'
+import { handleUnitExpression } from './units'
+import { handleCurrencyExpression, fetchExchangeRates } from './currency'
+import { handleTimezoneExpression, handleDateExpression } from './datetime'
+import { calculateSum, calculateAverage, detectSumCurrency, calculateSumWithCurrency } from './aggregation'
+
+// Auto-fetch rates once (non-blocking)
+if (typeof window !== 'undefined') {
+  fetchExchangeRates()
+}
+
+export const useCalculator = () => {
+
+  const evaluateLines = (inputLines) => {
+    variables.value = {}
+    previousResult.value = null
+    const results = []
+    inputLines.forEach((input, index) => {
+      const line = { input: input.trim(), result: null, error: null, type: 'calculation' }
+      evaluateLine(line, index, results)
+      results.push(line)
+    })
+    return results
+  }
+
+  const evaluateLine = (line, index, allResults) => {
+    const input = line.input
+    if (!input) return
+
+    if (input.startsWith('#')) { line.type = 'header'; return }
+    if (input.startsWith('//')) { line.type = 'comment'; return }
+
+    // Label with calculation (but not time format like "2:30")
+    const labelMatch = input.match(/^([^:]+):\s*(.+)$/)
+    if (labelMatch && labelMatch[2] && !/^\d+$/.test(labelMatch[1].trim())) {
+      line.type = 'label'
+      try {
+        const result = evaluateExpression(labelMatch[2].trim(), index, allResults)
+        line.result = result.display
+        previousResult.value = result.value
+      } catch (error) { /* silent */ }
+      return
+    }
+
+    if (input.endsWith(':')) { line.type = 'label'; return }
+
+    line.type = 'calculation'
+    try {
+      const result = evaluateExpression(input, index, allResults)
+      line.result = result.display
+      previousResult.value = result.value
+    } catch (error) { /* silent */ }
+  }
+
+  const evaluateExpression = (input, index, allResults) => {
+    // Strip inline comments (double-quoted text)
+    let cleanInput = input.replace(/"[^"]*"/g, '').trim()
+    if (!cleanInput) cleanInput = input
+    cleanInput = cleanInput.replace(/\bfor\s+the\b/gi, '').trim()
+    const cleanLower = cleanInput.toLowerCase().trim()
+
+    // Variable assignment — check BEFORE sum/total to avoid "total = X" being caught as sum
+    if (cleanInput.includes('=') && !cleanInput.includes('==') && !cleanInput.includes('<=') && !cleanInput.includes('>=')) {
+      const eqIdx = cleanInput.indexOf('=')
+      const varName = cleanInput.substring(0, eqIdx).trim()
+      const expression = cleanInput.substring(eqIdx + 1).trim()
+
+      if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(varName)) {
+        const percentMatch = expression.match(/^(\d+(?:\.\d+)?)\s*%$/)
+        if (percentMatch) {
+          const percentValue = parseFloat(percentMatch[1])
+          variables.value[varName] = `${percentValue}%`
+          return { value: percentValue, display: `${percentValue}%` }
+        }
+
+        const result = evaluateExpression(expression, index, allResults)
+
+        // Store with currency metadata if applicable
+        if (result.display && typeof result.display === 'string' && result.display.includes(' ')) {
+          const parts = result.display.split(' ')
+          const lastPart = parts[parts.length - 1]
+          if (exchangeRates.value[lastPart]) {
+            variables.value[varName] = { value: result.value, currency: lastPart }
+          } else {
+            variables.value[varName] = result.value
+          }
+        } else {
+          variables.value[varName] = result.value
+        }
+
+        if (varName === 'em' || varName === 'rem') {
+          unitConversions.css[varName] = result.value
+        }
+        if (varName === 'ppi') {
+          variables.value._ppi = result.value
+        }
+
+        return result
+      }
+    }
+
+    // Sum / total (only if not a defined variable)
+    const isSumKeyword = cleanLower === 'sum' && !variables.value['sum']
+    if (isSumKeyword) {
+      const currency = detectSumCurrency(index, allResults)
+      if (currency) {
+        const sum = calculateSumWithCurrency(index, allResults, currency)
+        return { value: sum, display: `${formatResult(sum)} ${currency}` }
+      }
+      const sum = calculateSum(index, allResults)
+      return { value: sum, display: formatResult(sum) }
+    }
+
+    const isSumWithOp = cleanLower.startsWith('sum ') && !variables.value['sum']
+    if (isSumWithOp) {
+      const sumConvMatch = cleanInput.match(/^sum\s+(in|as)\s+([a-zA-Z€$£¥₹₽]+\d?|m\/s|km\/h|mi\/h|ft\/s)/i)
+      if (sumConvMatch) {
+        const targetStr = sumConvMatch[2].trim()
+        const targetCurrency = currencyMap[targetStr.toLowerCase()] || targetStr.toUpperCase()
+        if (exchangeRates.value[targetCurrency]) {
+          const sum = calculateSumWithCurrency(index, allResults, targetCurrency)
+          return { value: sum, display: `${formatResult(sum)} ${targetCurrency}` }
+        }
+        const sum = calculateSum(index, allResults)
+        return { value: sum, display: `${formatResult(sum)} ${targetStr}` }
+      }
+      const sum = calculateSum(index, allResults)
+      const expression = cleanInput.replace(/^sum\s+/i, `${sum} `)
+      const result = evaluateMath(expression)
+      return { value: result, display: formatResult(result) }
+    }
+
+    // Average
+    if (cleanLower === 'average' || cleanLower === 'avg') {
+      const avg = calculateAverage(index, allResults)
+      return { value: avg, display: formatResult(avg) }
+    }
+    if (cleanLower.startsWith('average ') || cleanLower.startsWith('avg ')) {
+      const avg = calculateAverage(index, allResults)
+      const expression = cleanInput.replace(/^(average|avg)\s+/i, `${avg} `)
+      const result = evaluateMath(expression)
+      return { value: result, display: formatResult(result) }
+    }
+
+    // Timezone conversion
+    const tzResult = handleTimezoneExpression(cleanInput)
+    if (tzResult) return tzResult
+
+    // Date/time handling
+    const dateResult = handleDateExpression(cleanInput)
+    if (dateResult) return dateResult
+
+    // fromunix
+    const fromunixMatch = cleanInput.match(/fromunix\s*\(([^)]+)\)/i)
+    if (fromunixMatch) {
+      const timestamp = parseFloat(fromunixMatch[1])
+      const date = new Date(timestamp * 1000)
+      return { value: timestamp, display: date.toLocaleString() }
+    }
+
+    // Number format conversion: "X in hex/bin/oct/sci"
+    const formatConvMatch = cleanInput.match(/^(.+?)\s+in\s+(hex|bin|oct|binary|octal|hexadecimal|sci|scientific)$/i)
+    if (formatConvMatch) {
+      const sourceExpr = formatConvMatch[1].trim()
+      const targetFormat = formatConvMatch[2].toLowerCase()
+      try {
+        let value
+        try { value = evaluateMath(sourceExpr) } catch (e) {
+          const unitResult = handleUnitExpression(sourceExpr)
+          if (unitResult.hasUnit || unitResult.isConverted) value = unitResult.value
+          else {
+            const currResult = handleCurrencyExpression(sourceExpr)
+            value = currResult.hasCurrency ? currResult.value : evaluateMath(sourceExpr)
+          }
+        }
+        const intValue = Math.round(value)
+        if (targetFormat === 'hex' || targetFormat === 'hexadecimal')
+          return { value, display: `0x${intValue.toString(16).toUpperCase()}` }
+        if (targetFormat === 'bin' || targetFormat === 'binary')
+          return { value, display: `0b${intValue.toString(2)}` }
+        if (targetFormat === 'oct' || targetFormat === 'octal')
+          return { value, display: `0o${intValue.toString(8)}` }
+        if (targetFormat === 'sci' || targetFormat === 'scientific')
+          return { value, display: value.toExponential() }
+      } catch (e) { /* fall through */ }
+    }
+
+    // Unit conversion (try before currency since some overlap)
+    const unitResult = handleUnitExpression(cleanInput)
+    if (unitResult.isConverted || unitResult.hasUnit) {
+      return {
+        value: unitResult.value,
+        display: unitResult.unit ? `${formatResult(unitResult.value)} ${unitResult.unit}` : formatResult(unitResult.value)
+      }
+    }
+
+    // Currency
+    const currencyResult = handleCurrencyExpression(cleanInput)
+    if (currencyResult.isConverted || currencyResult.hasCurrency) {
+      return {
+        value: currencyResult.value,
+        display: currencyResult.currency ? `${formatResult(currencyResult.value)} ${currencyResult.currency}` : formatResult(currencyResult.value)
+      }
+    }
+
+    // Regular math
+    let expression = handleFunctions(cleanInput)
+    const value = evaluateMath(expression)
+    return { value, display: formatResult(value) }
+  }
+
+  const clearAll = () => {
+    variables.value = {}
+    previousResult.value = null
+  }
+
+  return { evaluateLines, clearAll, fetchExchangeRates, ratesFetched, exchangeRates }
+}
