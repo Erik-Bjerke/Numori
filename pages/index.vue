@@ -1,5 +1,18 @@
 <template>
   <div class="h-screen flex flex-col bg-white dark:bg-gray-925">
+    <!-- Alpha Warning Banner -->
+    <div v-if="showAlphaWarning"
+      class="bg-amber-50 dark:bg-amber-900/30 border-b border-amber-200 dark:border-amber-800 px-4 py-2.5 flex items-center justify-between gap-3 text-sm text-amber-800 dark:text-amber-200">
+      <p class="flex-1 text-center">
+        ⚠️ This app is in very early alpha. Expect bugs, partially implemented features, and missing functionality.
+      </p>
+      <button @click="dismissAlphaWarning"
+        class="flex-shrink-0 p-1 rounded hover:bg-amber-200/50 dark:hover:bg-amber-800/50 transition-colors"
+        aria-label="Dismiss warning">
+        <Icon name="mdi:close" class="w-4 h-4" />
+      </button>
+    </div>
+
     <!-- Mobile-friendly Toolbar -->
     <AppHeader :current-note="currentNote" :show-results="showResults" @toggle-sidebar="showSidebar = !showSidebar"
       @show-meta="currentNote && (showMetaModal = true)" @apply-format="applyFormat" @toggle-results="showResults = !showResults"
@@ -55,13 +68,20 @@ const showTemplates = ref(false)
 const showLanguageModal = ref(false)
 const showResults = ref(true)
 const editorRef = ref(null)
+const showAlphaWarning = ref(false)
 
-// Hide sidebar on mobile by default
+// Hide sidebar on mobile by default + check alpha warning
 onMounted(() => {
   if (window.innerWidth < 1024) {
     showSidebar.value = false
   }
+  showAlphaWarning.value = !localStorage.getItem('alpha-warning-dismissed')
 })
+
+const dismissAlphaWarning = () => {
+  showAlphaWarning.value = false
+  localStorage.setItem('alpha-warning-dismissed', '1')
+}
 
 const selectNote = (id) => {
   currentNoteId.value = id

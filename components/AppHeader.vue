@@ -66,6 +66,11 @@
 
       <!-- Right: Actions -->
       <div class="flex items-center gap-1">
+        <!-- Alpha ribbon -->
+        <span class="alpha-ribbon relative px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-amber-400 text-amber-900 mr-2">
+          alpha
+        </span>
+
         <!-- Toggle Results -->
         <button @click="$emit('toggle-results')"
           class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors"
@@ -107,3 +112,9 @@ defineEmits([
   'show-language'
 ])
 </script>
+
+<style scoped>
+.alpha-ribbon {
+  clip-path: polygon(8px 0%, calc(100% - 8px) 0%, 100% 50%, calc(100% - 8px) 100%, 8px 100%, 0% 50%);
+}
+</style>
