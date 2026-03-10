@@ -355,6 +355,11 @@ export const useCalculator = () => {
     // Sum / total (only if not a defined variable)
     const isSumKeyword = (cleanLower === 'sum' || cleanLower === 'total') && !variables.value[cleanLower]
     if (isSumKeyword) {
+      const currency = detectSumCurrency(index, allResults)
+      if (currency) {
+        const sum = calculateSumWithCurrency(index, allResults, currency)
+        return { value: sum, display: `${formatResult(sum)} ${currency}` }
+      }
       const sum = calculateSum(index, allResults)
       return { value: sum, display: formatResult(sum) }
     }
@@ -637,6 +642,22 @@ export const useCalculator = () => {
       if (line.result && !isNaN(parseFloat(line.result))) sum += parseFloat(line.result)
     }
     return sum
+  }
+
+  // Detect the common currency from consecutive non-empty lines above
+  const detectSumCurrency = (currentIndex, allResults) => {
+    let firstCurrency = null
+    for (let i = currentIndex - 1; i >= 0; i--) {
+      const line = allResults[i]
+      if (!line || !line.input.trim()) break
+      if (line.result) {
+        const currMatch = line.result.match(/^[\d.,]+\s+([A-Z]{3})$/)
+        if (currMatch) {
+          if (!firstCurrency) firstCurrency = currMatch[1]
+        }
+      }
+    }
+    return firstCurrency
   }
 
   const calculateSumWithCurrency = (currentIndex, allResults, targetCurrency) => {

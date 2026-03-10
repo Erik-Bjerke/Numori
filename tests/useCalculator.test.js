@@ -1136,6 +1136,25 @@ describe('Sum & Total', () => {
     const results = calcLines(['Item 1: 10', 'Item 2: 20', 'Total: sum'])
     expect(parseFloat(results[2])).toBe(30)
   })
+
+  it('sum preserves currency from lines above', () => {
+    const results = calcLines(['Cuba: £263 + £57', 'House: £730', 'Debts: £360', 'Expenses: sum'])
+    expect(parseFloat(results[3])).toBe(1410)
+    expect(results[3]).toMatch(/GBP/)
+  })
+
+  it('total preserves currency from lines above', () => {
+    const results = calcLines(['€100', '€200', '€50', 'total'])
+    expect(parseFloat(results[3])).toBe(350)
+    expect(results[3]).toMatch(/EUR/)
+  })
+
+  it('sum with mixed currencies converts to common currency', () => {
+    const results = calcLines(['$100', '€50', 'sum'])
+    // Should detect mixed currencies and sum in the first currency (USD)
+    expect(results[2]).toBeTruthy()
+    expect(parseFloat(results[2])).not.toBe(150) // not a naive sum
+  })
 })
 
 // ============================================================
