@@ -87,7 +87,7 @@
               <p>{{ $t('help.variables.desc') }}</p>
               <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded font-mono text-xs space-y-1">
                 <div>price = 100 <span class="text-primary-600 dark:text-primary-400">= 100</span></div>
-                <div>tax = price * 0.2 <span class="text-primary-600 dark:text-primary-400">= 20</span></div>
+                <div>tax = price * 20% <span class="text-primary-600 dark:text-primary-400">= 20</span></div>
                 <div>total = price + tax <span class="text-primary-600 dark:text-primary-400">= 120</span></div>
               </div>
             </div>

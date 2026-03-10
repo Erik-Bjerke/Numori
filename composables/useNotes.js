@@ -42,7 +42,7 @@ This is a note-taking app with built-in calculator features.
 ## Try some calculations:
 10 + 20
 price = 100
-tax = price * 0.2
+tax = price * 20%
 total = price + tax
 
 ## Markdown formatting works too:
