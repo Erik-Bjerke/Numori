@@ -67,40 +67,53 @@ const exchangeRates = ref({
 })
 const ratesFetched = ref(false)
 
-// Fetch live exchange rates from fawazahmed0/exchange-api
+// Fetch live exchange rates
+// Primary: ExchangeRate-API (Open Access), Secondary: fawazahmed0/exchange-api
 const fetchExchangeRates = async () => {
-  const primaryUrl = 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.min.json'
-  const fallbackUrl = 'https://latest.currency-api.pages.dev/v1/currencies/usd.min.json'
-
   const tryFetch = async (url) => {
     const res = await fetch(url)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     return res.json()
   }
 
+  const applyRates = (rates) => {
+    rates.USD = 1
+    exchangeRates.value = rates
+    ratesFetched.value = true
+  }
+
+  // Primary: ExchangeRate-API (base USD)
+  try {
+    const data = await tryFetch('https://open.er-api.com/v6/latest/USD')
+    if (data?.result === 'success' && data?.rates) {
+      applyRates({ ...data.rates })
+      return
+    }
+  } catch { /* fall through to secondary */ }
+
+  // Secondary: fawazahmed0/exchange-api
+  const fawazPrimary = 'https://latest.currency-api.pages.dev/v1/currencies/usd.min.json'
+  const fawazFallback = 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.min.json'
+
   try {
     let data
     try {
-      data = await tryFetch(primaryUrl)
+      data = await tryFetch(fawazPrimary)
     } catch {
-      data = await tryFetch(fallbackUrl)
+      data = await tryFetch(fawazFallback)
     }
 
     if (data?.usd) {
       const rates = {}
-      // Map lowercase API codes to uppercase internal codes
       for (const [code, rate] of Object.entries(data.usd)) {
         rates[code.toUpperCase()] = rate
       }
-      // Ensure USD is always 1
-      rates.USD = 1
-      exchangeRates.value = rates
-      ratesFetched.value = true
+      applyRates(rates)
+      return
     }
-  } catch (e) {
-    // Silently fall back to hardcoded rates
-    console.warn('Failed to fetch exchange rates, using fallback values:', e.message)
-  }
+  } catch { /* fall through */ }
+
+  console.warn('Failed to fetch exchange rates from all providers, using hardcoded fallback values')
 }
 
 // Auto-fetch rates once (non-blocking)
