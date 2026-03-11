@@ -15,8 +15,8 @@
         </button>
       </div>
 
-      <!-- Center: Markdown formatting -->
-      <div class="flex-1 flex items-center justify-center gap-1 overflow-x-auto">
+      <!-- Center: Markdown formatting (desktop only) -->
+      <div class="hidden lg:flex flex-1 items-center justify-center gap-1 overflow-x-auto">
         <button @click="$emit('apply-format', '**', '**')"
           class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors"
           title="Bold">
@@ -64,12 +64,22 @@
         </button>
       </div>
 
+      <!-- Spacer on mobile to push right actions to the end -->
+      <div class="flex-1 lg:hidden"></div>
+
       <!-- Right: Actions -->
       <div class="flex items-center gap-1">
         <!-- Alpha ribbon -->
         <span class="alpha-ribbon relative px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-amber-400 text-amber-900 mr-2">
           alpha
         </span>
+
+        <!-- Toggle Mobile Formatting Toolbar -->
+        <button @click="$emit('toggle-mobile-toolbar')"
+          class="lg:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors"
+          :title="showMobileToolbar ? 'Hide formatting toolbar' : 'Show formatting toolbar'">
+          <Icon name="mdi:format-text" class="w-5 h-5" :class="showMobileToolbar ? 'text-primary-500' : ''" />
+        </button>
 
         <!-- Toggle Results -->
         <button @click="$emit('toggle-results')"
@@ -92,6 +102,10 @@ defineProps({
   showResults: {
     type: Boolean,
     default: true
+  },
+  showMobileToolbar: {
+    type: Boolean,
+    default: true
   }
 })
 
@@ -100,6 +114,7 @@ defineEmits([
   'show-meta',
   'apply-format',
   'toggle-results',
+  'toggle-mobile-toolbar',
 ])
 </script>
 

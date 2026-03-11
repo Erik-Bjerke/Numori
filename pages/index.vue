@@ -14,8 +14,10 @@
     </div>
 
     <!-- Mobile-friendly Toolbar -->
-    <AppHeader :current-note="currentNote" :show-results="showResults" @toggle-sidebar="showSidebar = !showSidebar"
-      @show-meta="currentNote && (showMetaModal = true)" @apply-format="applyFormat" @toggle-results="showResults = !showResults" />
+    <AppHeader :current-note="currentNote" :show-results="showResults" :show-mobile-toolbar="showMobileToolbar"
+      @toggle-sidebar="showSidebar = !showSidebar"
+      @show-meta="currentNote && (showMetaModal = true)" @apply-format="applyFormat"
+      @toggle-results="showResults = !showResults" @toggle-mobile-toolbar="showMobileToolbar = !showMobileToolbar" />
 
     <!-- Main Content Area -->
     <div class="flex-1 flex overflow-hidden">
@@ -44,6 +46,57 @@
           <p>Select a note or create a new one</p>
         </div>
       </main>
+    </div>
+
+    <!-- Mobile bottom formatting toolbar -->
+    <div v-if="currentNote && showMobileToolbar" class="lg:hidden sticky bottom-0 z-10 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800">
+      <div class="flex items-center justify-center gap-1 px-2 py-1.5 overflow-x-auto">
+        <button @click="applyFormat('**', '**')"
+          class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors flex-shrink-0"
+          title="Bold">
+          <Icon name="mdi:format-bold" class="w-5 h-5" />
+        </button>
+        <button @click="applyFormat('*', '*')"
+          class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors flex-shrink-0"
+          title="Italic">
+          <Icon name="mdi:format-italic" class="w-5 h-5" />
+        </button>
+        <button @click="applyFormat('~~', '~~')"
+          class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors flex-shrink-0"
+          title="Strikethrough">
+          <Icon name="mdi:format-strikethrough" class="w-5 h-5" />
+        </button>
+        <button @click="applyFormat('# ', '')"
+          class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors flex-shrink-0"
+          title="Heading">
+          <Icon name="mdi:format-header-1" class="w-5 h-5" />
+        </button>
+        <button @click="applyFormat('- ', '')"
+          class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors flex-shrink-0"
+          title="List">
+          <Icon name="mdi:format-list-bulleted" class="w-5 h-5" />
+        </button>
+        <button @click="applyFormat('- [ ] ', '')"
+          class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors flex-shrink-0"
+          title="Checklist">
+          <Icon name="mdi:checkbox-marked-outline" class="w-5 h-5" />
+        </button>
+        <button @click="applyFormat('> ', '')"
+          class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors flex-shrink-0"
+          title="Quote">
+          <Icon name="mdi:format-quote-close" class="w-5 h-5" />
+        </button>
+        <button @click="applyFormat('`', '`')"
+          class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors flex-shrink-0"
+          title="Code">
+          <Icon name="mdi:code-tags" class="w-5 h-5" />
+        </button>
+        <button @click="applyFormat('[', '](url)')"
+          class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors flex-shrink-0"
+          title="Link">
+          <Icon name="mdi:link-variant" class="w-5 h-5" />
+        </button>
+      </div>
     </div>
 
     <!-- Modals -->
@@ -76,6 +129,7 @@ const showTemplates = ref(false)
 const showLanguageModal = ref(false)
 const showLocaleSettings = ref(false)
 const showResults = ref(true)
+const showMobileToolbar = ref(true)
 const editorRef = ref(null)
 const showAlphaWarning = ref(false)
 
