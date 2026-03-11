@@ -15,7 +15,7 @@
             <span class="text-sm">Loading editor…</span>
           </div>
         </template>
-        <MonacoEditor ref="editorRef" v-model="localContent" :options="editorOptions" lang="calcnotes" class="h-full" />
+        <MonacoEditor ref="editorRef" v-model="localContent" :options="editorOptions" lang="calcnotes" class="h-full" @load="onEditorLoad" />
       </ClientOnly>
     </div>
 
@@ -69,6 +69,12 @@ const localContent = ref(props.content)
 const editorRef = ref(null)
 const copiedIndex = ref(null)
 let copiedTimeout = null
+
+// Inline result decorations
+let monacoEditorInstance = null
+let decorationsCollection = null
+let monacoInstance = null
+let inlineStylesInjected = false
 
 const { evaluateLines } = useCalculator()
 const { registerCalcLanguage } = useMonacoCalcLanguage()
@@ -160,40 +166,20 @@ const editorOptions = computed(() => ({
   accessibilitySupport: 'off',
 }))
 
-// Try to setup Monaco after mount
-onMounted(async () => {
+// Compute initial results on mount
+onMounted(() => {
   updateLines(props.content)
-
-  // Wait for Monaco to be available
-  await nextTick()
-
-  // Try multiple times to find Monaco
-  let attempts = 0
-  const maxAttempts = 20
-
-  const trySetupMonaco = () => {
-    attempts++
-
-    // Try to import monaco-editor directly
-    import('monaco-editor').then((monaco) => {
-      setupMonaco(monaco)
-    }).catch(() => {
-      // Try window.monaco
-      if (window.monaco) {
-        setupMonaco(window.monaco)
-      } else if (attempts < maxAttempts) {
-        setTimeout(trySetupMonaco, 200)
-      }
-    })
-  }
-
-  setTimeout(trySetupMonaco, 500)
 })
 
-const setupMonaco = (monaco) => {
-  try {
+// Called by nuxt-monaco-editor @load event — receives the raw IStandaloneCodeEditor
+const onEditorLoad = (editor) => {
+  useMonaco().then((monaco) => {
+    monacoInstance = monaco
+    monacoEditorInstance = editor
+
+    injectInlineStyles()
+
     // Firefox workaround: Monaco crashes when caretPositionFromPoint returns null
-    // during hit-testing (e.g. text selection). Patch it to return a safe fallback.
     if (typeof document.caretPositionFromPoint === 'function') {
       const original = document.caretPositionFromPoint.bind(document)
       document.caretPositionFromPoint = (x, y) => {
@@ -205,78 +191,42 @@ const setupMonaco = (monaco) => {
       }
     }
 
-    // Register language first
+    // Register language and set theme
     registerCalcLanguage(monaco)
-
-    // Set theme
     const themeName = colorMode.value === 'dark' ? 'calcnotes-dark' : 'calcnotes-light'
     monaco.editor.setTheme(themeName)
 
-    // Get the editor instance - try multiple times if needed
-    const attachListeners = () => {
-      if (!editorRef.value) return false
-
-      const editorComponent = editorRef.value
-
-      // Try different ways to access the editor
-      const editor = editorComponent.editor ||
-        editorComponent.$editor ||
-        editorComponent._editor ||
-        editorComponent
-
-      if (editor && editor.getModel && typeof editor.onDidChangeCursorPosition === 'function') {
-        const currentModel = editor.getModel()
-
-        if (currentModel) {
-          // Get current content
-          const content = currentModel.getValue()
-
-          // Dispose old model
-          currentModel.dispose()
-
-          // Create new model with calcnotes language
-          const newModel = monaco.editor.createModel(content, 'calcnotes')
-
-          // Set the new model
-          editor.setModel(newModel)
-        }
-
-        // Listen for cursor position changes
-        editor.onDidChangeCursorPosition((e) => {
-          currentLine.value = e.position.lineNumber - 1 // Monaco uses 1-based line numbers
-        })
-
-        // Listen for scroll changes to sync results column
-        editor.onDidScrollChange((e) => {
-          scrollTop.value = e.scrollTop
-        })
-
-        // Set initial cursor position
-        const position = editor.getPosition()
-        if (position) {
-          currentLine.value = position.lineNumber - 1
-        }
-
-        return true
-      }
-
-      return false
+    // Set language on the existing model (don't dispose — the component owns it)
+    const model = editor.getModel()
+    if (model) {
+      monaco.editor.setModelLanguage(model, 'calcnotes')
     }
 
-    // Try to attach listeners immediately
-    if (!attachListeners()) {
-      // If it fails, try again after a delay
-      let retries = 0
-      const retryInterval = setInterval(() => {
-        if (attachListeners() || retries++ > 10) {
-          clearInterval(retryInterval)
-        }
-      }, 200)
+    // Listen for cursor position changes
+    editor.onDidChangeCursorPosition((e) => {
+      currentLine.value = e.position.lineNumber - 1
+    })
+
+    // Listen for scroll changes to sync results column
+    editor.onDidScrollChange((e) => {
+      scrollTop.value = e.scrollTop
+    })
+
+    // Set initial cursor position
+    const position = editor.getPosition()
+    if (position) {
+      currentLine.value = position.lineNumber - 1
     }
-  } catch (e) {
-    console.error('Error setting up Monaco:', e)
-  }
+
+    // Apply real decorations
+    updateInlineDecorations()
+  })
 }
+
+// Re-apply decorations whenever displayLines changes (handles race with editor load)
+watch(displayLines, () => {
+  updateInlineDecorations()
+})
 
 // Watch for external content changes (e.g. switching notes, inserting templates)
 watch(() => props.content, (newContent) => {
@@ -296,6 +246,7 @@ const updateLines = (text) => {
   if (!text) {
     rawLines.value = []
     displayLines.value = []
+    if (decorationsCollection) decorationsCollection.clear()
     return
   }
   const lines = text.split('\n')
@@ -314,6 +265,74 @@ const reformatDisplay = () => {
     if (!line.result) return line
     return { ...line, result: formatDisplay(line.result, null, prefs) }
   })
+}
+
+// Inject CSS for inline result decorations (once)
+const injectInlineStyles = () => {
+  if (inlineStylesInjected) return
+  inlineStylesInjected = true
+  const style = document.createElement('style')
+  style.textContent = `
+    .calcnotes-inline-result { color: #0062a3; font-style: italic; opacity: 0.85; }
+    .vs-dark .calcnotes-inline-result { color: #4fc1ff; }
+    .calcnotes-inline-error { color: #f44336; font-style: italic; opacity: 0.75; }
+    .vs-dark .calcnotes-inline-error { color: #ef5350; }
+  `
+  document.head.appendChild(style)
+}
+
+// Update Monaco inline decorations from displayLines
+const updateInlineDecorations = () => {
+  if (!monacoEditorInstance || !monacoInstance) return
+
+  const lines = displayLines.value
+  const model = monacoEditorInstance.getModel()
+  if (!model) return
+
+  let modelLineCount
+  try {
+    modelLineCount = model.getLineCount()
+  } catch {
+    return
+  }
+  if (!modelLineCount || modelLineCount < 1) return
+
+  const maxLine = Math.min(lines.length, modelLineCount)
+  const newDecorations = []
+  for (let i = 0; i < maxLine; i++) {
+    const line = lines[i]
+    if (!line.result && !line.error) continue
+
+    const lineNumber = i + 1
+    let lineLength
+    try {
+      lineLength = model.getLineLength(lineNumber)
+    } catch {
+      continue
+    }
+
+    const text = line.result
+      ? `  = ${line.result}`
+      : `  ⚠ ${line.error}`
+
+    newDecorations.push({
+      range: new monacoInstance.Range(lineNumber, lineLength + 1, lineNumber, lineLength + 1),
+      options: {
+        description: 'calcnotes-inline-result',
+        after: {
+          content: text,
+          inlineClassName: line.result ? 'calcnotes-inline-result' : 'calcnotes-inline-error',
+        },
+        showIfCollapsed: true,
+      }
+    })
+  }
+
+  if (decorationsCollection) {
+    decorationsCollection.set(newDecorations)
+  } else {
+    decorationsCollection = monacoEditorInstance.createDecorationsCollection(newDecorations)
+  }
 }
 
 const copyResult = async (result, index) => {
@@ -353,9 +372,13 @@ watch(() => colorMode.value, (newMode) => {
   }
 })
 
+// Helper to get the Monaco editor instance
+const getEditor = () => monacoEditorInstance
+
 // Expose methods for toolbar actions
 const insertText = (text) => {
-  if (!editorRef.value) {
+  const editor = getEditor()
+  if (!editor) {
     // Fallback: append to content
     const newContent = localContent.value + text
     localContent.value = newContent
@@ -363,13 +386,7 @@ const insertText = (text) => {
     return
   }
 
-  const editorComponent = editorRef.value
-  const editor = editorComponent.editor ||
-    editorComponent.$editor ||
-    editorComponent._editor ||
-    editorComponent
-
-  if (editor && editor.getModel && typeof editor.executeEdits === 'function') {
+  if (typeof editor.executeEdits === 'function') {
     const position = editor.getPosition()
     const range = {
       startLineNumber: position.lineNumber,
@@ -400,7 +417,8 @@ const insertText = (text) => {
 }
 
 const wrapSelection = (before, after = before) => {
-  if (!editorRef.value) {
+  const editor = getEditor()
+  if (!editor) {
     // Fallback: append to content
     const newContent = localContent.value + before + after
     localContent.value = newContent
@@ -408,13 +426,7 @@ const wrapSelection = (before, after = before) => {
     return
   }
 
-  const editorComponent = editorRef.value
-  const editor = editorComponent.editor ||
-    editorComponent.$editor ||
-    editorComponent._editor ||
-    editorComponent
-
-  if (editor && editor.getModel && typeof editor.executeEdits === 'function') {
+  if (typeof editor.executeEdits === 'function') {
     const selection = editor.getSelection()
     const selectedText = editor.getModel().getValueInRange(selection)
 
