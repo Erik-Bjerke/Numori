@@ -15,14 +15,12 @@
             <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
               <div class="flex items-center gap-3">
                 <div class="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
-                  <Icon name="mdi:earth" class="w-6 h-6 text-primary-600 dark:text-primary-400" />
+                  <Icon name="mdi:cog-outline" class="w-6 h-6 text-primary-600 dark:text-primary-400" />
                 </div>
                 <div>
-                  <h2 class="text-xl font-bold text-gray-900 dark:text-gray-400">
-                    Locale Settings
-                  </h2>
+                  <h2 class="text-xl font-bold text-gray-900 dark:text-gray-400">Settings</h2>
                   <p class="text-sm text-gray-500 dark:text-gray-400-muted">
-                    Units, date formats, and number formats
+                    Regional, formatting, and precision options
                   </p>
                 </div>
               </div>
@@ -32,158 +30,159 @@
               </button>
             </div>
 
-            <!-- Content -->
+            <!-- Tabs -->
+            <div class="flex border-b border-gray-200 dark:border-gray-800 px-6">
+              <button v-for="tab in tabs" :key="tab.id" @click="activeTab = tab.id"
+                class="px-4 py-3 text-sm font-medium transition-colors relative"
+                :class="activeTab === tab.id
+                  ? 'text-primary-600 dark:text-primary-400'
+                  : 'text-gray-500 dark:text-gray-400-muted hover:text-gray-700 dark:hover:text-gray-300'">
+                {{ tab.label }}
+                <div v-if="activeTab === tab.id"
+                  class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-500 dark:bg-primary-400 rounded-full" />
+              </button>
+            </div>
+
+            <!-- Tab Content -->
             <div class="overflow-y-auto p-6 space-y-6">
-              <!-- Preset Selector -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
-                  Regional Preset
-                </label>
-                <div class="grid grid-cols-3 gap-2">
-                  <button v-for="(preset, name) in presets" :key="name"
-                    @click="selectPreset(name)"
-                    class="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 border-2"
-                    :class="activePreset === name
-                      ? 'bg-primary-50 dark:bg-gray-800 border-primary-500 dark:border-primary-400 text-primary-700 dark:text-primary-400'
-                      : 'bg-gray-50 dark:bg-gray-925 border-transparent hover:border-gray-300 dark:hover:border-gray-700 text-gray-700 dark:text-gray-400'">
-                    {{ presetLabels[name] || name }}
-                  </button>
-                </div>
-                <p v-if="activePreset === 'Custom'" class="mt-1 text-xs text-gray-500 dark:text-gray-400-muted">
-                  Custom settings — doesn't match any preset
-                </p>
-              </div>
 
-              <div class="border-t border-gray-200 dark:border-gray-800"></div>
-
-              <!-- Granular Settings -->
-              <div class="space-y-4">
-                <!-- Volume -->
+              <!-- ===== Locales Tab ===== -->
+              <template v-if="activeTab === 'locales'">
+                <!-- Preset Selector -->
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Volume</label>
-                  <select v-model="preferences.volume" @change="onSettingChange"
-                    class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                    <option value="litre">Litres</option>
-                    <option value="us_gallon">US Gallons</option>
-                    <option value="uk_gallon">UK Gallons (Imperial)</option>
-                  </select>
-                </div>
-
-                <!-- Fuel Economy -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Fuel Economy</label>
-                  <select v-model="preferences.fuelEconomy" @change="onSettingChange"
-                    class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                    <option value="mpg">Miles per gallon (US)</option>
-                    <option value="mpg_uk">Miles per gallon (UK)</option>
-                    <option value="kpl">Km per litre</option>
-                    <option value="l/100km">Litres per 100 km</option>
-                    <option value="mpl">Miles per litre</option>
-                    <option value="kpg">Km per gallon (US)</option>
-                  </select>
-                </div>
-
-                <!-- Distance -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Distance</label>
-                  <select v-model="preferences.distance" @change="onSettingChange"
-                    class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                    <option value="km">Kilometres</option>
-                    <option value="miles">Miles</option>
-                  </select>
-                </div>
-
-                <!-- Temperature -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Temperature</label>
-                  <select v-model="preferences.temperature" @change="onSettingChange"
-                    class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                    <option value="celsius">Celsius (°C)</option>
-                    <option value="fahrenheit">Fahrenheit (°F)</option>
-                    <option value="kelvin">Kelvin (K)</option>
-                  </select>
-                </div>
-
-                <!-- Date Format -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Date Format</label>
-                  <select v-model="preferences.dateFormat" @change="onSettingChange"
-                    class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                    <option value="DD/MM/YYYY">DD/MM/YYYY (31/12/2025)</option>
-                    <option value="MM/DD/YYYY">MM/DD/YYYY (12/31/2025)</option>
-                    <option value="YYYY/MM/DD">YYYY/MM/DD (2025/12/31)</option>
-                    <option value="DD.MM.YYYY">DD.MM.YYYY (31.12.2025)</option>
-                    <option value="YYYY-MM-DD">YYYY-MM-DD (2025-12-31)</option>
-                  </select>
-                </div>
-
-                <!-- Time Format -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Time Format</label>
-                  <select v-model="preferences.timeFormat" @change="onSettingChange"
-                    class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                    <option value="12h">12-hour (3:30 PM)</option>
-                    <option value="24h">24-hour (15:30)</option>
-                  </select>
-                </div>
-
-                <!-- Number Format -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Number Format</label>
-                  <select v-model="preferences.numberFormat" @change="onSettingChange"
-                    class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                    <option value="comma_dot">1,000.00 (US/UK)</option>
-                    <option value="dot_comma">1.000,00 (DE/ES)</option>
-                    <option value="space_comma">1 000,00 (FR)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="border-t border-gray-200 dark:border-gray-800"></div>
-
-              <!-- Precision Settings -->
-              <div class="space-y-4">
-                <p class="text-sm font-medium text-gray-700 dark:text-gray-400">Result Precision</p>
-
-                <!-- Precision Mode -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Mode</label>
-                  <select v-model="preferences.precisionMode" @change="onSettingChange"
-                    class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                    <option value="auto">Auto (smart formatting)</option>
-                    <option value="decimals">Fixed decimal places</option>
-                    <option value="significant">Significant figures</option>
-                  </select>
-                </div>
-
-                <!-- Decimal Places (shown when mode is 'decimals') -->
-                <div v-if="preferences.precisionMode === 'decimals'">
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">
-                    Decimal Places: {{ preferences.decimalPlaces }}
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+                    Preset
                   </label>
-                  <input type="range" min="0" max="15" step="1" v-model.number="preferences.decimalPlaces"
-                    @input="onSettingChange"
-                    class="w-full accent-primary-500" />
-                  <div class="flex justify-between text-xs text-gray-400 mt-1">
-                    <span>0</span>
-                    <span>15</span>
+                  <div class="grid grid-cols-3 gap-2">
+                    <button v-for="(preset, name) in presets" :key="name"
+                      @click="selectPreset(name)"
+                      class="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 border-2"
+                      :class="activePreset === name
+                        ? 'bg-primary-50 dark:bg-gray-800 border-primary-500 dark:border-primary-400 text-primary-700 dark:text-primary-400'
+                        : 'bg-gray-50 dark:bg-gray-925 border-transparent hover:border-gray-300 dark:hover:border-gray-700 text-gray-700 dark:text-gray-400'">
+                      {{ presetLabels[name] || name }}
+                    </button>
+                  </div>
+                  <p v-if="activePreset === 'Custom'" class="mt-1 text-xs text-gray-500 dark:text-gray-400-muted">
+                    Custom settings — doesn't match any preset
+                  </p>
+                </div>
+
+                <div class="border-t border-gray-200 dark:border-gray-800"></div>
+
+                <!-- Language -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Language</label>
+                  <select :value="currentLocaleCode" @change="changeLocale($event.target.value)" :class="selectClass">
+                    <option v-for="locale in availableLocales" :key="locale.code" :value="locale.code">
+                      {{ getLanguageEmoji(locale.code) }} {{ locale.name }}
+                    </option>
+                  </select>
+                </div>
+
+                <div class="border-t border-gray-200 dark:border-gray-800"></div>
+
+                <div class="space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Volume</label>
+                    <select v-model="preferences.volume" @change="onSettingChange" :class="selectClass">
+                      <option value="litre">Litres</option>
+                      <option value="us_gallon">US Gallons</option>
+                      <option value="uk_gallon">UK Gallons (Imperial)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Fuel Economy</label>
+                    <select v-model="preferences.fuelEconomy" @change="onSettingChange" :class="selectClass">
+                      <option value="mpg">Miles per gallon (US)</option>
+                      <option value="mpg_uk">Miles per gallon (UK)</option>
+                      <option value="kpl">Km per litre</option>
+                      <option value="l/100km">Litres per 100 km</option>
+                      <option value="mpl">Miles per litre</option>
+                      <option value="kpg">Km per gallon (US)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Distance</label>
+                    <select v-model="preferences.distance" @change="onSettingChange" :class="selectClass">
+                      <option value="km">Kilometres</option>
+                      <option value="miles">Miles</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Temperature</label>
+                    <select v-model="preferences.temperature" @change="onSettingChange" :class="selectClass">
+                      <option value="celsius">Celsius (°C)</option>
+                      <option value="fahrenheit">Fahrenheit (°F)</option>
+                      <option value="kelvin">Kelvin (K)</option>
+                    </select>
+                  </div>
+
+                  <div class="border-t border-gray-200 dark:border-gray-800"></div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Date Format</label>
+                    <select v-model="preferences.dateFormat" @change="onSettingChange" :class="selectClass">
+                      <option value="DD/MM/YYYY">DD/MM/YYYY (31/12/2025)</option>
+                      <option value="MM/DD/YYYY">MM/DD/YYYY (12/31/2025)</option>
+                      <option value="YYYY/MM/DD">YYYY/MM/DD (2025/12/31)</option>
+                      <option value="DD.MM.YYYY">DD.MM.YYYY (31.12.2025)</option>
+                      <option value="YYYY-MM-DD">YYYY-MM-DD (2025-12-31)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Time Format</label>
+                    <select v-model="preferences.timeFormat" @change="onSettingChange" :class="selectClass">
+                      <option value="12h">12-hour (3:30 PM)</option>
+                      <option value="24h">24-hour (15:30)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Number Format</label>
+                    <select v-model="preferences.numberFormat" @change="onSettingChange" :class="selectClass">
+                      <option value="comma_dot">1,000.00 (US/UK)</option>
+                      <option value="dot_comma">1.000,00 (DE/ES)</option>
+                      <option value="space_comma">1 000,00 (FR)</option>
+                    </select>
                   </div>
                 </div>
+              </template>
 
-                <!-- Significant Figures (shown when mode is 'significant') -->
-                <div v-if="preferences.precisionMode === 'significant'">
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">
-                    Significant Figures: {{ preferences.significantFigures }}
-                  </label>
-                  <input type="range" min="1" max="15" step="1" v-model.number="preferences.significantFigures"
-                    @input="onSettingChange"
-                    class="w-full accent-primary-500" />
-                  <div class="flex justify-between text-xs text-gray-400 mt-1">
-                    <span>1</span>
-                    <span>15</span>
+              <!-- ===== Formatting Tab ===== -->
+              <template v-if="activeTab === 'formatting'">
+                <div class="space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Precision Mode</label>
+                    <select v-model="preferences.precisionMode" @change="onSettingChange" :class="selectClass">
+                      <option value="auto">Auto (smart formatting)</option>
+                      <option value="decimals">Fixed decimal places</option>
+                      <option value="significant">Significant figures</option>
+                    </select>
+                  </div>
+                  <div v-if="preferences.precisionMode === 'decimals'">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">
+                      Decimal Places: {{ preferences.decimalPlaces }}
+                    </label>
+                    <input type="range" min="0" max="15" step="1" v-model.number="preferences.decimalPlaces"
+                      @input="onSettingChange" class="w-full accent-primary-500" />
+                    <div class="flex justify-between text-xs text-gray-400 mt-1">
+                      <span>0</span>
+                      <span>15</span>
+                    </div>
+                  </div>
+                  <div v-if="preferences.precisionMode === 'significant'">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">
+                      Significant Figures: {{ preferences.significantFigures }}
+                    </label>
+                    <input type="range" min="1" max="15" step="1" v-model.number="preferences.significantFigures"
+                      @input="onSettingChange" class="w-full accent-primary-500" />
+                    <div class="flex justify-between text-xs text-gray-400 mt-1">
+                      <span>1</span>
+                      <span>15</span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </template>
             </div>
 
             <!-- Footer -->
@@ -218,6 +217,14 @@ const props = defineProps({
 
 const emit = defineEmits(['close'])
 
+const tabs = [
+  { id: 'locales', label: 'Locales' },
+  { id: 'formatting', label: 'Formatting' },
+]
+const activeTab = ref('locales')
+
+const selectClass = 'w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500'
+
 const presets = LOCALE_PRESETS
 
 const presetLabels = {
@@ -229,10 +236,38 @@ const presetLabels = {
   JP: '🇯🇵 Japan',
 }
 
+const presetLocaleMap = {
+  UK: 'en-GB',
+  US: 'en-GB',  // no en-US locale available, fall back to en-GB
+  ES: 'es-ES',
+  FR: 'en-GB',  // no fr-FR locale yet
+  DE: 'en-GB',  // no de-DE locale yet
+  JP: 'en-GB',  // no ja-JP locale yet
+}
+
 const activePreset = computed(() => props.getActivePreset())
+
+// Language
+const { $getLocale, $getLocales, $switchLocale } = useI18n()
+const availableLocales = computed(() => $getLocales())
+const currentLocaleCode = computed(() => $getLocale())
+
+const changeLocale = (code) => {
+  $switchLocale(code)
+}
+
+const getLanguageEmoji = (code) => {
+  const map = { 'en-GB': '🇬🇧', 'en-US': '🇺🇸', 'es-ES': '🇪🇸', 'fr-FR': '🇫🇷', 'de-DE': '🇩🇪', 'ja-JP': '🇯🇵', 'it-IT': '🇮🇹', 'pt-PT': '🇵🇹', 'pt-BR': '🇧🇷', 'zh-CN': '🇨🇳', 'ko-KR': '🇰🇷', 'ru-RU': '🇷🇺' }
+  return map[code] || '🌐'
+}
 
 const selectPreset = (name) => {
   props.applyPreset(name)
+  // Switch language if a matching locale is available
+  const targetLocale = presetLocaleMap[name]
+  if (targetLocale && availableLocales.value.some(l => l.code === targetLocale)) {
+    $switchLocale(targetLocale)
+  }
   props.save()
 }
 

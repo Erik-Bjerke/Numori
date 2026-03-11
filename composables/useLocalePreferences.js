@@ -61,18 +61,18 @@ export const LOCALE_PRESETS = {
   },
 }
 
-// Default preferences (metric)
+// Default preferences (UK)
 const DEFAULT_PREFERENCES = {
-  volume: 'litre',
-  fuelEconomy: 'kpl',
-  distance: 'km',
+  volume: 'uk_gallon',
+  fuelEconomy: 'mpg_uk',
+  distance: 'miles',
   temperature: 'celsius',
   dateFormat: 'DD/MM/YYYY',
   numberFormat: 'comma_dot',
-  timeFormat: '24h',            // '12h' | '24h'
-  precisionMode: 'auto',       // 'auto' | 'decimals' | 'significant'
-  decimalPlaces: 6,             // used when precisionMode === 'decimals'
-  significantFigures: 6,        // used when precisionMode === 'significant'
+  timeFormat: '24h',
+  precisionMode: 'auto',
+  decimalPlaces: 6,
+  significantFigures: 6,
 }
 
 export const useLocalePreferences = () => {
