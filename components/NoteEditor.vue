@@ -172,6 +172,19 @@ onMounted(async () => {
 
 const setupMonaco = (monaco) => {
   try {
+    // Firefox workaround: Monaco crashes when caretPositionFromPoint returns null
+    // during hit-testing (e.g. text selection). Patch it to return a safe fallback.
+    if (typeof document.caretPositionFromPoint === 'function') {
+      const original = document.caretPositionFromPoint.bind(document)
+      document.caretPositionFromPoint = (x, y) => {
+        const result = original(x, y)
+        if (!result) {
+          return { offsetNode: document.body, offset: 0 }
+        }
+        return result
+      }
+    }
+
     // Register language first
     registerCalcLanguage(monaco)
 
