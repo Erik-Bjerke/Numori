@@ -148,7 +148,7 @@
                 </div>
               </div>
 
-              <!-- ===== Formatting Tab ===== -->
+              <!-- ===== Customisation Tab ===== -->
               <div v-else-if="activeTab === 'formatting'" key="formatting" class="space-y-6">
                 <div class="space-y-4">
                   <div>
@@ -179,6 +179,21 @@
                     <div class="flex justify-between text-xs text-gray-400 mt-1">
                       <span>1</span>
                       <span>15</span>
+                    </div>
+                  </div>
+
+                  <div class="border-t border-gray-200 dark:border-gray-800"></div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">
+                      Results Sidebar Width: {{ preferences.resultsSidebarWidth }}px
+                    </label>
+                    <input type="range" :min="SIDEBAR_MIN_WIDTH" :max="SIDEBAR_MAX_WIDTH" step="8"
+                      v-model.number="preferences.resultsSidebarWidth"
+                      @input="onSettingChange" class="w-full accent-primary-500" />
+                    <div class="flex justify-between text-xs text-gray-400 mt-1">
+                      <span>{{ SIDEBAR_MIN_WIDTH }}px</span>
+                      <span>{{ SIDEBAR_MAX_WIDTH }}px</span>
                     </div>
                   </div>
                 </div>
@@ -218,9 +233,12 @@ const props = defineProps({
 
 const emit = defineEmits(['close'])
 
+const SIDEBAR_MIN_WIDTH = 128
+const SIDEBAR_MAX_WIDTH = 480
+
 const tabs = [
   { id: 'locales', label: 'Locales' },
-  { id: 'formatting', label: 'Formatting' },
+  { id: 'formatting', label: 'Customisation' },
 ]
 const activeTab = ref('locales')
 

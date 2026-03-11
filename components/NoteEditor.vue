@@ -18,10 +18,10 @@
     <!-- Results column (separate, synced scroll) -->
     <div :class="[
       'flex-shrink-0 overflow-hidden bg-white dark:bg-gray-925 transition-all duration-200 ease-in-out',
-      props.showResults ? 'w-64 opacity-100 border-l border-gray-200 dark:border-gray-800' : 'w-0 opacity-0',
+      props.showResults ? 'opacity-100 border-l border-gray-200 dark:border-gray-800' : 'w-0 opacity-0',
       bordered && props.showResults ? 'ml-2 rounded-lg' : ''
-    ]">
-      <div class="w-64" :style="{ transform: `translateY(-${scrollTop}px)` }">
+    ]" :style="props.showResults ? { width: sidebarWidth + 'px' } : {}">
+      <div :style="{ width: sidebarWidth + 'px', transform: `translateY(-${scrollTop}px)` }">
         <div class="p-0">
           <div v-for="(line, index) in displayLines" :key="index" :class="[
             'text-right whitespace-nowrap leading-6 flex items-center justify-end gap-2',
@@ -77,6 +77,8 @@ const { evaluateLines } = useCalculator()
 const { registerCalcLanguage } = useMonacoCalcLanguage()
 const colorMode = useColorMode()
 import { formatDisplay } from '~/composables/useDisplayFormatter'
+
+const sidebarWidth = computed(() => props.localePreferences?.resultsSidebarWidth ?? 256)
 
 // Re-format display when locale preferences change (no recalculation)
 watch(() => props.localePreferences, () => {
