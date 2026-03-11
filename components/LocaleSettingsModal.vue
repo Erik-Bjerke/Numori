@@ -38,9 +38,16 @@
 
             <!-- Tab Content -->
             <div class="overflow-y-auto p-6 space-y-6">
+              <Transition
+                enter-active-class="transition-all duration-150 ease-out"
+                enter-from-class="opacity-0 translate-x-2"
+                enter-to-class="opacity-100 translate-x-0"
+                leave-active-class="transition-all duration-100 ease-in"
+                leave-from-class="opacity-100 translate-x-0"
+                leave-to-class="opacity-0 -translate-x-2"
+                mode="out-in">
 
-              <!-- ===== Locales Tab ===== -->
-              <template v-if="activeTab === 'locales'">
+              <div v-if="activeTab === 'locales'" key="locales" class="space-y-6">
                 <!-- Preset Selector -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
@@ -139,10 +146,10 @@
                     </select>
                   </div>
                 </div>
-              </template>
+              </div>
 
               <!-- ===== Formatting Tab ===== -->
-              <template v-if="activeTab === 'formatting'">
+              <div v-else-if="activeTab === 'formatting'" key="formatting" class="space-y-6">
                 <div class="space-y-4">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Precision Mode</label>
@@ -175,7 +182,8 @@
                     </div>
                   </div>
                 </div>
-              </template>
+              </div>
+              </Transition>
             </div>
 
             <!-- Footer -->

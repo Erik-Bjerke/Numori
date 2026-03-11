@@ -1,9 +1,10 @@
 <template>
   <Teleport to="body">
-    <Transition name="modal">
+    <Transition name="modal-backdrop">
       <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
         @click.self="$emit('close')">
-        <div class="bg-white dark:bg-gray-925 rounded-lg max-w-md w-full p-4">
+        <Transition name="modal-panel" appear>
+          <div v-if="isOpen" class="bg-white dark:bg-gray-925 rounded-lg max-w-md w-full p-4">
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">
               Note Details
@@ -48,7 +49,8 @@
               Save
             </button>
           </div>
-        </div>
+          </div>
+        </Transition>
       </div>
     </Transition>
   </Teleport>
@@ -104,13 +106,24 @@ const handleDelete = () => {
 </script>
 
 <style scoped>
-.modal-enter-active,
-.modal-leave-active {
+.modal-backdrop-enter-active,
+.modal-backdrop-leave-active {
   transition: opacity 0.2s ease;
 }
-
-.modal-enter-from,
-.modal-leave-to {
+.modal-backdrop-enter-from,
+.modal-backdrop-leave-to {
   opacity: 0;
+}
+
+.modal-panel-enter-active {
+  transition: all 0.2s ease-out;
+}
+.modal-panel-leave-active {
+  transition: all 0.15s ease-in;
+}
+.modal-panel-enter-from,
+.modal-panel-leave-to {
+  opacity: 0;
+  transform: scale(0.95);
 }
 </style>

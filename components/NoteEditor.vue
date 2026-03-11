@@ -2,7 +2,7 @@
   <div class="h-full flex">
     <!-- Monaco Editor -->
     <div :class="[
-      'flex-1 overflow-hidden',
+      'flex-1 overflow-hidden transition-all duration-200 ease-in-out',
       bordered ? 'border border-gray-200 dark:border-gray-700 rounded-lg' : ''
     ]">
       <ClientOnly>
@@ -16,11 +16,12 @@
     </div>
 
     <!-- Results column (separate, synced scroll) -->
-    <div v-if="props.showResults" :class="[
-      'flex-shrink-0 w-64 overflow-hidden bg-white dark:bg-gray-925 border-l border-gray-200 dark:border-gray-800',
-      bordered ? 'ml-2 rounded-lg' : ''
+    <div :class="[
+      'flex-shrink-0 overflow-hidden bg-white dark:bg-gray-925 transition-all duration-200 ease-in-out',
+      props.showResults ? 'w-64 opacity-100 border-l border-gray-200 dark:border-gray-800' : 'w-0 opacity-0',
+      bordered && props.showResults ? 'ml-2 rounded-lg' : ''
     ]">
-      <div :style="{ transform: `translateY(-${scrollTop}px)` }">
+      <div class="w-64" :style="{ transform: `translateY(-${scrollTop}px)` }">
         <div class="p-0">
           <div v-for="(line, index) in displayLines" :key="index" :class="[
             'text-right whitespace-nowrap leading-6 flex items-center justify-end gap-2',

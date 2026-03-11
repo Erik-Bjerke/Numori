@@ -1,8 +1,18 @@
 <template>
-  <div v-if="isOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 md:p-4"
-    @click="close">
-    <div class="bg-white dark:bg-gray-925 md:rounded-lg max-w-4xl w-full h-full md:h-[600px] overflow-hidden"
-      @click.stop>
+  <Teleport to="body">
+    <Transition enter-active-class="transition ease-out duration-200" enter-from-class="opacity-0"
+      enter-to-class="opacity-100" leave-active-class="transition ease-in duration-150" leave-from-class="opacity-100"
+      leave-to-class="opacity-0">
+      <div v-if="isOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-end md:items-center justify-center z-50 md:p-4"
+        @click="close">
+        <Transition enter-active-class="transition ease-out duration-300"
+          enter-from-class="translate-y-full md:translate-y-0 md:opacity-0 md:scale-95"
+          enter-to-class="translate-y-0 md:opacity-100 md:scale-100"
+          leave-active-class="transition ease-in duration-200"
+          leave-from-class="translate-y-0 md:opacity-100 md:scale-100"
+          leave-to-class="translate-y-full md:translate-y-0 md:opacity-0 md:scale-95">
+          <div v-if="isOpen" class="bg-white dark:bg-gray-925 rounded-t-xl md:rounded-lg max-w-4xl w-full h-[95vh] md:h-[600px] overflow-hidden"
+            @click.stop>
       <div class="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-800">
         <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">{{ $t('templates.title') }}</h2>
         <button @click="close" class="flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
@@ -34,19 +44,31 @@
       </div>
 
       <div class="overflow-y-auto p-4 h-[calc(100%-200px)] md:h-auto md:max-h-[380px]">
-        <div v-if="filteredTemplates.length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400-muted">
-          {{ $t('templates.noResults') }}
-        </div>
-        <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <button v-for="template in filteredTemplates" :key="template.id" @click="insertTemplate(template)"
-            class="text-left p-4 border border-gray-200 dark:border-gray-800 rounded-lg hover:border-primary-500 dark:hover:border-primary-400 hover:bg-gray-50 dark:hover:bg-gray-850 transition-colors">
-            <h3 class="font-semibold text-gray-900 dark:text-gray-400 mb-1">{{ template.name }}</h3>
-            <p class="text-sm text-gray-600 dark:text-gray-400-muted">{{ template.description }}</p>
-          </button>
-        </div>
+        <Transition
+          enter-active-class="transition-all duration-150 ease-out"
+          enter-from-class="opacity-0 translate-y-1"
+          enter-to-class="opacity-100 translate-y-0"
+          leave-active-class="transition-all duration-100 ease-in"
+          leave-from-class="opacity-100 translate-y-0"
+          leave-to-class="opacity-0 -translate-y-1"
+          mode="out-in">
+          <div v-if="filteredTemplates.length === 0" key="empty" class="text-center py-8 text-gray-500 dark:text-gray-400-muted">
+            {{ $t('templates.noResults') }}
+          </div>
+          <div v-else :key="selectedCategory" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button v-for="template in filteredTemplates" :key="template.id" @click="insertTemplate(template)"
+              class="text-left p-4 border border-gray-200 dark:border-gray-800 rounded-lg hover:border-primary-500 dark:hover:border-primary-400 hover:bg-gray-50 dark:hover:bg-gray-850 transition-colors">
+              <h3 class="font-semibold text-gray-900 dark:text-gray-400 mb-1">{{ template.name }}</h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400-muted">{{ template.description }}</p>
+            </button>
+          </div>
+        </Transition>
       </div>
-    </div>
-  </div>
+      </div>
+        </Transition>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup>
