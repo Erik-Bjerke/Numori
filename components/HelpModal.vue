@@ -23,9 +23,29 @@
           </button>
           <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">{{ $t('help.title') }}</h2>
         </div>
-        <button @click="close" class="flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
-          <Icon name="mdi:close" class="block w-5 h-5" />
-        </button>
+        <div class="flex items-center gap-2">
+          <div class="relative">
+            <Icon name="mdi:magnify" class="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <input
+              ref="searchInputRef"
+              v-model="searchQuery"
+              type="text"
+              placeholder="Search..."
+              class="w-40 md:w-56 pl-7 pr-7 py-1 text-sm bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+              @keydown.escape="searchQuery = ''"
+            />
+            <button
+              v-if="searchQuery"
+              @click="searchQuery = ''"
+              class="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+            >
+              <Icon name="mdi:close" class="block w-4 h-4" />
+            </button>
+          </div>
+          <button @click="close" class="flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+            <Icon name="mdi:close" class="block w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       <!-- Body: Index sidebar + Content -->
@@ -44,7 +64,7 @@
           <nav v-if="showIndex"
             class="absolute md:relative z-20 w-64 md:w-56 flex-shrink-0 h-full bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 overflow-y-auto">
             <ul class="py-3 px-3 space-y-0.5">
-              <li v-for="section in sections" :key="section.id">
+              <li v-for="section in filteredSections" :key="section.id">
                 <button @click="scrollTo(section.id)"
                   class="w-full text-left px-3 py-2 text-sm rounded-lg transition-colors"
                   :class="activeSection === section.id
@@ -61,8 +81,14 @@
         <div ref="contentRef" class="flex-1 overflow-y-auto p-6 scroll-smooth" @scroll="onScroll">
           <div class="max-w-3xl mx-auto space-y-12">
 
+            <!-- No results -->
+            <div v-if="searchQuery && filteredSectionIds.size === 0" class="text-center py-12 text-gray-400 dark:text-gray-500">
+              <Icon name="mdi:magnify" class="w-10 h-10 mx-auto mb-3 opacity-50" />
+              <p class="text-sm">No results for "{{ searchQuery }}"</p>
+            </div>
+
             <!-- Basics -->
-            <section :id="'help-basics'">
+            <section v-show="isSectionVisible('basics')" :id="'help-basics'">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-400 mb-3">{{ $t('help.basics.title') }}</h3>
               <div class="space-y-2 text-sm text-gray-700 dark:text-gray-400">
                 <p>{{ $t('help.basics.desc') }}</p>
@@ -84,7 +110,7 @@
             </section>
 
             <!-- Operators -->
-            <section :id="'help-operators'">
+            <section v-show="isSectionVisible('operators')" :id="'help-operators'">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-400 mb-3">Operators</h3>
               <div class="space-y-2 text-sm text-gray-700 dark:text-gray-400">
                 <p>Use symbols or natural language:</p>
@@ -108,7 +134,7 @@
             </section>
 
             <!-- Bitwise -->
-            <section :id="'help-bitwise'">
+            <section v-show="isSectionVisible('bitwise')" :id="'help-bitwise'">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-400 mb-3">Bitwise Operations</h3>
               <div class="space-y-2 text-sm text-gray-700 dark:text-gray-400">
                 <div class="grid grid-cols-2 gap-2 text-xs">
@@ -129,7 +155,7 @@
             </section>
 
             <!-- Variables -->
-            <section :id="'help-variables'">
+            <section v-show="isSectionVisible('variables')" :id="'help-variables'">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-400 mb-3">{{ $t('help.variables.title') }}</h3>
               <div class="space-y-2 text-sm text-gray-700 dark:text-gray-400">
                 <p>{{ $t('help.variables.desc') }}</p>
@@ -147,7 +173,7 @@
             </section>
 
             <!-- Prev & Special Keywords -->
-            <section :id="'help-special'">
+            <section v-show="isSectionVisible('special')" :id="'help-special'">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-400 mb-3">{{ $t('help.special.title') }}</h3>
               <div class="space-y-3 text-sm text-gray-700 dark:text-gray-400">
                 <div>
@@ -190,7 +216,7 @@
             </section>
 
             <!-- Percentages -->
-            <section :id="'help-percentages'">
+            <section v-show="isSectionVisible('percentages')" :id="'help-percentages'">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-400 mb-3">{{ $t('help.percentages.title') }}</h3>
               <div class="space-y-3 text-sm text-gray-700 dark:text-gray-400">
                 <div>
@@ -239,7 +265,7 @@
             </section>
 
             <!-- Scales -->
-            <section :id="'help-scales'">
+            <section v-show="isSectionVisible('scales')" :id="'help-scales'">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-400 mb-3">Scales</h3>
               <div class="space-y-2 text-sm text-gray-700 dark:text-gray-400">
                 <p>Use shorthand for large numbers:</p>
@@ -268,7 +294,7 @@
             </section>
 
             <!-- Currency -->
-            <section :id="'help-currency'">
+            <section v-show="isSectionVisible('currency')" :id="'help-currency'">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-400 mb-3">{{ $t('help.currency.title') }}</h3>
               <div class="space-y-3 text-sm text-gray-700 dark:text-gray-400">
                 <p>{{ $t('help.currency.desc') }}</p>
@@ -314,7 +340,7 @@
             </section>
 
             <!-- Units -->
-            <section :id="'help-units'">
+            <section v-show="isSectionVisible('units')" :id="'help-units'">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-400 mb-3">{{ $t('help.units.title') }}</h3>
               <div class="space-y-3 text-sm text-gray-700 dark:text-gray-400">
                 <p>{{ $t('help.units.desc') }} Units work with or without spaces (e.g., 100km or 100 km).</p>
@@ -405,7 +431,7 @@
             </section>
 
             <!-- Fuel Economy -->
-            <section :id="'help-fuel'">
+            <section v-show="isSectionVisible('fuel')" :id="'help-fuel'">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-400 mb-3">Fuel Economy</h3>
               <div class="space-y-2 text-sm text-gray-700 dark:text-gray-400">
                 <p>Convert between fuel economy units and calculate fuel consumption.</p>
@@ -434,7 +460,7 @@
             </section>
 
             <!-- CSS Units -->
-            <section :id="'help-css'">
+            <section v-show="isSectionVisible('css')" :id="'help-css'">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-400 mb-3">CSS Units</h3>
               <div class="space-y-2 text-sm text-gray-700 dark:text-gray-400">
                 <p>Convert between CSS units. Default: 1em = 16px, 1pt = 1.333px.</p>
@@ -454,7 +480,7 @@
             </section>
 
             <!-- SI Prefixes -->
-            <section :id="'help-si'">
+            <section v-show="isSectionVisible('si')" :id="'help-si'">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-400 mb-3">{{ $t('help.si.title') }}</h3>
               <div class="space-y-2 text-sm text-gray-700 dark:text-gray-400">
                 <p>{{ $t('help.si.desc') }}</p>
@@ -477,7 +503,7 @@
             </section>
 
             <!-- Number Formats -->
-            <section :id="'help-numformats'">
+            <section v-show="isSectionVisible('numformats')" :id="'help-numformats'">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-400 mb-3">Number Formats</h3>
               <div class="space-y-2 text-sm text-gray-700 dark:text-gray-400">
                 <p>Work with binary, hexadecimal, octal, and scientific notation.</p>
@@ -500,7 +526,7 @@
             </section>
 
             <!-- Functions -->
-            <section :id="'help-functions'">
+            <section v-show="isSectionVisible('functions')" :id="'help-functions'">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-400 mb-3">{{ $t('help.functions.title') }}</h3>
               <div class="space-y-3 text-sm text-gray-700 dark:text-gray-400">
                 <p>{{ $t('help.functions.desc') }}</p>
@@ -549,7 +575,7 @@
             </section>
 
             <!-- Constants -->
-            <section :id="'help-constants'">
+            <section v-show="isSectionVisible('constants')" :id="'help-constants'">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-400 mb-3">{{ $t('help.constants.title') }}</h3>
               <div class="space-y-2 text-sm text-gray-700 dark:text-gray-400">
                 <div class="grid grid-cols-2 gap-2 text-xs">
@@ -566,7 +592,7 @@
             </section>
 
             <!-- Date & Time -->
-            <section :id="'help-datetime'">
+            <section v-show="isSectionVisible('datetime')" :id="'help-datetime'">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-400 mb-3">Date &amp; Time</h3>
               <div class="space-y-3 text-sm text-gray-700 dark:text-gray-400">
                 <div>
@@ -614,7 +640,7 @@
             </section>
 
             <!-- Formatting -->
-            <section :id="'help-formatting'">
+            <section v-show="isSectionVisible('formatting')" :id="'help-formatting'">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-400 mb-3">{{ $t('help.formatting.title') }}</h3>
               <div class="space-y-2 text-sm text-gray-700 dark:text-gray-400">
                 <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded font-mono text-xs space-y-1">
@@ -629,7 +655,7 @@
             </section>
 
             <!-- Shortcuts -->
-            <section :id="'help-shortcuts'">
+            <section v-show="isSectionVisible('shortcuts')" :id="'help-shortcuts'">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-400 mb-3">{{ $t('shortcuts.title') }}</h3>
               <div class="space-y-4">
                 <div>
@@ -726,7 +752,7 @@
             </section>
 
             <!-- Tips -->
-            <section :id="'help-tips'">
+            <section v-show="isSectionVisible('tips')" :id="'help-tips'">
               <div class="p-4 bg-primary-50 dark:bg-gray-800 rounded-lg">
                 <h3 class="text-sm font-semibold text-primary-900 dark:text-primary-400 mb-2">{{ $t('shortcuts.tips') }}</h3>
                 <ul class="text-xs text-primary-800 dark:text-gray-400 space-y-1">
@@ -763,28 +789,54 @@ const emit = defineEmits(['close'])
 const showIndex = ref(true)
 const activeSection = ref('basics')
 const contentRef = ref(null)
+const searchQuery = ref('')
+const searchInputRef = ref(null)
 
 const sections = [
-  { id: 'basics', label: 'Basics' },
-  { id: 'operators', label: 'Operators' },
-  { id: 'bitwise', label: 'Bitwise' },
-  { id: 'variables', label: 'Variables' },
-  { id: 'special', label: 'Special Keywords' },
-  { id: 'percentages', label: 'Percentages' },
-  { id: 'scales', label: 'Scales' },
-  { id: 'currency', label: 'Currency' },
-  { id: 'units', label: 'Units' },
-  { id: 'fuel', label: 'Fuel Economy' },
-  { id: 'css', label: 'CSS Units' },
-  { id: 'si', label: 'SI Prefixes' },
-  { id: 'numformats', label: 'Number Formats' },
-  { id: 'functions', label: 'Functions' },
-  { id: 'constants', label: 'Constants' },
-  { id: 'datetime', label: 'Date & Time' },
-  { id: 'formatting', label: 'Formatting' },
-  { id: 'shortcuts', label: 'Shortcuts' },
-  { id: 'tips', label: 'Tips' },
+  { id: 'basics', label: 'Basics', keywords: 'basics arithmetic add subtract multiply divide exponent modulo implicit multiplication' },
+  { id: 'operators', label: 'Operators', keywords: 'operators plus minus times divide multiply addition subtraction multiplication division exponent modulo' },
+  { id: 'bitwise', label: 'Bitwise', keywords: 'bitwise and or xor shift left right' },
+  { id: 'variables', label: 'Variables', keywords: 'variables assign store value names' },
+  { id: 'special', label: 'Special Keywords', keywords: 'special prev previous sum average avg aggregate' },
+  { id: 'percentages', label: 'Percentages', keywords: 'percentages percent contextual literal reverse compound interest' },
+  { id: 'scales', label: 'Scales', keywords: 'scales thousand million billion trillion k M shorthand large numbers' },
+  { id: 'currency', label: 'Currency', keywords: 'currency dollar euro pound yen usd eur gbp conversion exchange rate money' },
+  { id: 'units', label: 'Units', keywords: 'units length weight volume temperature area speed time data convert conversion km miles feet celsius fahrenheit' },
+  { id: 'fuel', label: 'Fuel Economy', keywords: 'fuel economy mpg kpl consumption miles per gallon litre' },
+  { id: 'css', label: 'CSS Units', keywords: 'css units px em rem pt inch pixel font size' },
+  { id: 'si', label: 'SI Prefixes', keywords: 'si prefixes kilo mega giga tera milli micro' },
+  { id: 'numformats', label: 'Number Formats', keywords: 'number formats binary hex hexadecimal octal scientific notation base' },
+  { id: 'functions', label: 'Functions', keywords: 'functions sqrt cbrt abs round ceil floor log ln sin cos tan trigonometry' },
+  { id: 'constants', label: 'Constants', keywords: 'constants pi e tau phi golden ratio' },
+  { id: 'datetime', label: 'Date & Time', keywords: 'date time now today yesterday tomorrow timezone unix timestamp' },
+  { id: 'formatting', label: 'Formatting', keywords: 'formatting header comment label hash' },
+  { id: 'shortcuts', label: 'Shortcuts', keywords: 'shortcuts keyboard navigation quick functions conversions' },
+  { id: 'tips', label: 'Tips', keywords: 'tips tricks hints' },
 ]
+
+const filteredSectionIds = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  if (!q) return new Set(sections.map(s => s.id))
+  return new Set(
+    sections
+      .filter(s => s.label.toLowerCase().includes(q) || s.keywords.toLowerCase().includes(q))
+      .map(s => s.id)
+  )
+})
+
+const filteredSections = computed(() => {
+  return sections.filter(s => filteredSectionIds.value.has(s.id))
+})
+
+const isSectionVisible = (id) => {
+  return filteredSectionIds.value.has(id)
+}
+
+watch(searchQuery, () => {
+  if (contentRef.value) {
+    contentRef.value.scrollTop = 0
+  }
+})
 
 const scrollTo = (id) => {
   const el = contentRef.value?.querySelector(`#help-${id}`)

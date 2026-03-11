@@ -11,7 +11,7 @@
           leave-active-class="transition ease-in duration-200"
           leave-from-class="translate-y-0 md:opacity-100 md:scale-100"
           leave-to-class="translate-y-full md:translate-y-0 md:opacity-0 md:scale-95">
-          <div v-if="isOpen" class="bg-white dark:bg-gray-925 rounded-t-xl md:rounded-lg max-w-4xl w-full h-[95vh] md:h-[600px] overflow-hidden"
+          <div v-if="isOpen" class="bg-white dark:bg-gray-925 rounded-t-xl md:rounded-lg max-w-4xl w-full h-[95vh] md:h-[600px] overflow-hidden flex flex-col"
             @click.stop>
       <div class="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-800">
         <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">{{ $t('templates.title') }}</h2>
@@ -20,30 +20,62 @@
         </button>
       </div>
 
-      <!-- Search bar -->
-      <div class="px-4 pt-3 pb-2">
-        <div class="relative">
-          <Icon name="mdi:magnify"
-            class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-400-muted" />
-          <input v-model="searchQuery" type="text" :placeholder="$t('templates.search')"
-            class="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-gray-925 text-gray-900 dark:text-gray-400 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
-            @input="selectedCategory = 'all'" />
+      <!-- Search + Filters -->
+      <div class="px-4 pt-3 pb-2 space-y-2 border-b border-gray-200 dark:border-gray-800">
+        <div class="flex gap-2">
+          <div class="relative flex-1">
+            <Icon name="mdi:magnify"
+              class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-400-muted" />
+            <input v-model="searchQuery" type="text" :placeholder="$t('templates.search')"
+              class="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-gray-925 text-gray-900 dark:text-gray-400 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400" />
+          </div>
+          <select v-model="activeComplexity"
+            class="px-3 py-2 text-sm border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-gray-925 text-gray-700 dark:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400">
+            <option value="">All sizes</option>
+            <option value="quick">Quick</option>
+            <option value="detailed">Detailed</option>
+          </select>
         </div>
-      </div>
-
-      <!-- Category tabs -->
-      <div class="border-b border-gray-200 dark:border-gray-800 overflow-x-auto">
-        <div class="flex px-4">
-          <button v-for="cat in consolidatedCategories" :key="cat.id" @click="selectCategory(cat.id)"
-            class="px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors" :class="selectedCategory === cat.id
-              ? 'text-primary-600 dark:text-primary-400 border-b-2 border-primary-600 dark:border-primary-400'
-              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'">
-            {{ cat.name }}
+        <!-- Use case filters -->
+        <div class="flex flex-wrap items-center gap-1.5">
+          <span class="text-xs text-gray-400 dark:text-gray-500 shrink-0">Use case:</span>
+          <button
+            v-for="filter in categoryFilters"
+            :key="filter.id"
+            @click="toggleChip('category', filter.id)"
+            class="px-2.5 py-1 text-xs font-medium rounded-md border transition-colors"
+            :class="activeCategories.has(filter.id)
+              ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-800 dark:text-primary-300 border-primary-200 dark:border-primary-800'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-transparent hover:bg-gray-200 dark:hover:bg-gray-750 hover:text-gray-900 dark:hover:text-white'"
+          >
+            {{ filter.name }}
+          </button>
+        </div>
+        <!-- Feature filters -->
+        <div class="flex flex-wrap items-center gap-1.5">
+          <span class="text-xs text-gray-400 dark:text-gray-500 shrink-0">Features:</span>
+          <button
+            v-for="feat in featureFilters"
+            :key="feat.id"
+            @click="toggleChip('feature', feat.id)"
+            class="px-2.5 py-1 text-xs font-medium rounded-full border border-dashed transition-colors"
+            :class="activeFeatures.has(feat.id)
+              ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-400 dark:border-emerald-700 border-solid'
+              : 'bg-transparent text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
+          >
+            {{ feat.name }}
+          </button>
+          <button
+            v-if="hasActiveFilters"
+            @click="clearFilters"
+            class="ml-auto px-2.5 py-1 text-xs font-medium rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+          >
+            Clear all
           </button>
         </div>
       </div>
 
-      <div class="overflow-y-auto p-4 h-[calc(100%-200px)] md:h-auto md:max-h-[380px]">
+      <div class="overflow-y-auto p-4 flex-1">
         <Transition
           enter-active-class="transition-all duration-150 ease-out"
           enter-from-class="opacity-0 translate-y-1"
@@ -55,7 +87,7 @@
           <div v-if="filteredTemplates.length === 0" key="empty" class="text-center py-8 text-gray-500 dark:text-gray-400-muted">
             {{ $t('templates.noResults') }}
           </div>
-          <div v-else :key="selectedCategory" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div v-else :key="filterKey" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <button v-for="template in filteredTemplates" :key="template.id" @click="insertTemplate(template)"
               class="text-left p-4 border border-gray-200 dark:border-gray-800 rounded-lg hover:border-primary-500 dark:hover:border-primary-400 hover:bg-gray-50 dark:hover:bg-gray-850 transition-colors">
               <h3 class="font-semibold text-gray-900 dark:text-gray-400 mb-1">{{ template.name }}</h3>
@@ -78,23 +110,72 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'insert'])
 
-const { templates, getTemplates } = useTemplates()
+const { templates, categories } = useTemplates()
 
-const selectedCategory = ref('all')
 const searchQuery = ref('')
+const activeCategories = ref(new Set())
+const activeFeatures = ref(new Set())
+const activeComplexity = ref('')
 
-// Consolidate categories to reduce tabs
-const consolidatedCategories = [
-  { id: 'all', name: 'All' },
-  { id: 'money', name: 'Money', includes: ['shopping', 'dining', 'finance'] },
-  { id: 'lifestyle', name: 'Lifestyle', includes: ['travel', 'health', 'personal'] },
-  { id: 'productivity', name: 'Productivity', includes: ['work', 'cooking', 'home', 'tech'] }
+const categoryFilters = categories.filter(c => c.id !== 'all')
+
+const featureFilters = [
+  { id: 'currency', name: 'Currency', pattern: /[$€£¥₹₽₩₺₿]|USD|EUR|GBP|JPY/i },
+  { id: 'percentages', name: 'Percentages', pattern: /\d+%|% of|% on|% off/i },
+  { id: 'units', name: 'Unit conversion', pattern: /\bin\s+(km|m|cm|mm|miles?|feet|foot|inch|lb|kg|oz|g|ml|liters?|gallons?|celsius|fahrenheit|kelvin|mph|kph|sqft|sqm|px|em|rem|pt|radians|degrees|MB|GB|TB|MiB|GiB|bytes?|bits?|mpg|kpl|l\/100km)\b/i },
+  { id: 'variables', name: 'Variables', pattern: /^\w+\s*=\s*.+/m },
+  { id: 'dates', name: 'Dates & Time', pattern: /\b(today|tomorrow|yesterday|now|next\s+\w+|last\s+\w+|fromunix|timezone?|PST|EST|GMT|UTC|CET|HKT)\b/i },
+  { id: 'functions', name: 'Functions', pattern: /\b(sqrt|cbrt|abs|log|ln|sin|cos|tan|arcsin|arccos|arctan|sinh|cosh|tanh|round|ceil|floor|fact|root|fromunix)\s*[\d(]/i },
+  { id: 'aggregation', name: 'Sum & Avg', pattern: /\b(sum|average|avg|prev)\b/i },
 ]
+
+const templateFeatureCache = computed(() => {
+  const cache = new Map()
+  for (const t of templates) {
+    const features = new Set()
+    for (const f of featureFilters) {
+      if (f.pattern.test(t.content)) {
+        features.add(f.id)
+      }
+    }
+    cache.set(t.id, features)
+  }
+  return cache
+})
+
+const getTemplateLineCount = (template) => {
+  return template.content.split('\n').filter(l => l.trim() && !l.trim().startsWith('#') && !l.trim().startsWith('//')).length
+}
+
+const toggleChip = (type, id) => {
+  if (type === 'category') {
+    const next = new Set(activeCategories.value)
+    next.has(id) ? next.delete(id) : next.add(id)
+    activeCategories.value = next
+  } else if (type === 'feature') {
+    const next = new Set(activeFeatures.value)
+    next.has(id) ? next.delete(id) : next.add(id)
+    activeFeatures.value = next
+  }
+}
+
+const hasActiveFilters = computed(() => {
+  return activeCategories.value.size > 0 || activeFeatures.value.size > 0 || activeComplexity.value !== ''
+})
+
+const clearFilters = () => {
+  activeCategories.value = new Set()
+  activeFeatures.value = new Set()
+  activeComplexity.value = ''
+}
+
+const filterKey = computed(() => {
+  return [...activeCategories.value].sort().join(',') + '|' + [...activeFeatures.value].sort().join(',') + '|' + activeComplexity.value + '|' + searchQuery.value
+})
 
 const filteredTemplates = computed(() => {
   let result = templates
 
-  // Filter by search query
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase()
     result = result.filter(t =>
@@ -102,25 +183,30 @@ const filteredTemplates = computed(() => {
       t.description.toLowerCase().includes(query) ||
       t.content.toLowerCase().includes(query)
     )
-  } else {
-    // Filter by category if no search
-    if (selectedCategory.value === 'all') {
-      result = templates
-    } else {
-      const category = consolidatedCategories.find(c => c.id === selectedCategory.value)
-      if (category && category.includes) {
-        result = templates.filter(t => category.includes.includes(t.category))
+  }
+
+  if (activeCategories.value.size > 0) {
+    result = result.filter(t => activeCategories.value.has(t.category))
+  }
+
+  if (activeFeatures.value.size > 0) {
+    result = result.filter(t => {
+      const tFeatures = templateFeatureCache.value.get(t.id)
+      for (const f of activeFeatures.value) {
+        if (tFeatures.has(f)) return true
       }
-    }
+      return false
+    })
+  }
+
+  if (activeComplexity.value === 'quick') {
+    result = result.filter(t => getTemplateLineCount(t) <= 8)
+  } else if (activeComplexity.value === 'detailed') {
+    result = result.filter(t => getTemplateLineCount(t) > 8)
   }
 
   return result
 })
-
-const selectCategory = (categoryId) => {
-  selectedCategory.value = categoryId
-  searchQuery.value = ''
-}
 
 const insertTemplate = (template) => {
   emit('insert', template.content)

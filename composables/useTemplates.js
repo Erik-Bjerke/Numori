@@ -24,7 +24,7 @@ final = original - discount`
       id: 'percentage-examples',
       name: 'Percentage Examples',
       description: 'Learn how percentages work',
-      category: 'shopping',
+      category: 'learning',
       content: `# Percentage Examples
 
 // Contextual (Addition & Subtraction)
@@ -260,7 +260,7 @@ bmi = weight / (height ^ 2)`
       id: 'age',
       name: 'Age Calculator',
       description: 'Calculate age from birthdate',
-      category: 'personal',
+      category: 'planning',
       content: `# Age Calculator
 birthdate = today - 30 years
 days_since = today - birthdate`
@@ -269,7 +269,7 @@ days_since = today - birthdate`
       id: 'time-until',
       name: 'Time Until Event',
       description: 'Calculate time until future date',
-      category: 'personal',
+      category: 'planning',
       content: `# Time Until
 event = today + 2 weeks
 days_left = event - today
@@ -286,7 +286,7 @@ next year`
       id: 'timezone',
       name: 'Timezone Converter',
       description: 'Convert times between timezones',
-      category: 'personal',
+      category: 'travel',
       content: `# Timezone Converter
 PST time
 time in Madrid
@@ -395,7 +395,7 @@ cost = liters_needed * price_per_liter`
       id: 'unit-conversions',
       name: 'Unit Conversions',
       description: 'Common unit conversions for length, weight, speed',
-      category: 'conversions',
+      category: 'learning',
       content: `# Unit Conversions
 
 // Length
@@ -427,7 +427,7 @@ cost = liters_needed * price_per_liter`
       id: 'data-transfer',
       name: 'Data Transfer Time',
       description: 'Calculate file transfer time',
-      category: 'tech',
+      category: 'dev',
       content: `# Data Transfer
 file_size = 5 GB
 file_size in MB
@@ -439,7 +439,7 @@ time_minutes = time_seconds / 60`
       id: 'css-units',
       name: 'CSS Unit Converter',
       description: 'Convert between CSS units (px, pt, em, rem)',
-      category: 'tech',
+      category: 'dev',
       content: `# CSS Units
 // Default: 1em = 16px
 12 pt in px
@@ -459,7 +459,7 @@ ppi = 326
       id: 'number-formats',
       name: 'Number Formats',
       description: 'Binary, hex, octal conversions',
-      category: 'tech',
+      category: 'dev',
       content: `# Number Formats
 // Binary
 0b1010
@@ -482,7 +482,7 @@ ppi = 326
       id: 'bitwise',
       name: 'Bitwise Operations',
       description: 'AND, OR, XOR, shifts',
-      category: 'tech',
+      category: 'dev',
       content: `# Bitwise Operations
 // AND, OR, XOR
 12 & 10
@@ -501,7 +501,7 @@ ppi = 326
       id: 'math-functions',
       name: 'Math Functions',
       description: 'sqrt, log, round, trig, and more',
-      category: 'math',
+      category: 'learning',
       content: `# Math Functions
 sqrt(16)
 cbrt(8)
@@ -531,7 +531,7 @@ phi`
       id: 'trigonometry',
       name: 'Trigonometry',
       description: 'sin, cos, tan, and inverse functions',
-      category: 'math',
+      category: 'learning',
       content: `# Trigonometry
 // Degrees (use ° symbol)
 sin(45°)
@@ -556,7 +556,7 @@ tanh(1)
       id: 'scales-and-big-numbers',
       name: 'Scales & Big Numbers',
       description: 'Use k, M, billion, trillion shorthand',
-      category: 'math',
+      category: 'learning',
       content: `# Scales
 5k
 2M
@@ -574,7 +574,7 @@ tanh(1)
       id: 'sum-and-average',
       name: 'Sum & Average',
       description: 'Aggregate lines with sum and average',
-      category: 'math',
+      category: 'learning',
       content: `# Sum
 10
 15
@@ -603,7 +603,7 @@ sum - 10%`
       id: 'variables-and-prev',
       name: 'Variables & Prev',
       description: 'Use variables and reference previous results',
-      category: 'math',
+      category: 'learning',
       content: `# Variables
 x = 10
 y = 20
@@ -622,7 +622,7 @@ Discounted: prev - 10%`
       id: 'word-operators',
       name: 'Word Operators',
       description: 'Use English words for math operations',
-      category: 'math',
+      category: 'learning',
       content: `# Word Operators
 5 plus 3
 10 minus 3
@@ -645,14 +645,13 @@ Discounted: prev - 10%`
     { id: 'dining', name: 'Dining' },
     { id: 'travel', name: 'Travel' },
     { id: 'finance', name: 'Finance' },
-    { id: 'health', name: 'Health' },
-    { id: 'personal', name: 'Personal' },
     { id: 'work', name: 'Work' },
     { id: 'cooking', name: 'Cooking' },
     { id: 'home', name: 'Home' },
-    { id: 'conversions', name: 'Conversions' },
-    { id: 'tech', name: 'Tech' },
-    { id: 'math', name: 'Math' },
+    { id: 'health', name: 'Health' },
+    { id: 'planning', name: 'Planning' },
+    { id: 'dev', name: 'Dev' },
+    { id: 'learning', name: 'Learning' },
   ]
 
   const getTemplates = (category = 'all') => {
