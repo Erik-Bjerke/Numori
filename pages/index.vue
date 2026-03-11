@@ -174,7 +174,15 @@ onMounted(() => {
   if (window.innerWidth < 1024) {
     showSidebar.value = false
   }
-  showAlphaWarning.value = !localStorage.getItem('alpha-warning-dismissed')
+  showAlphaWarning.value = !localStorage.getItem('alpha-warning-dismissed') && !localePrefs.preferences.dismissAlphaWarning
+})
+
+// Watch for the preference being toggled in settings
+watch(() => localePrefs.preferences.dismissAlphaWarning, (dismissed) => {
+  if (dismissed) {
+    showAlphaWarning.value = false
+    localStorage.setItem('alpha-warning-dismissed', '1')
+  }
 })
 
 const dismissAlphaWarning = () => {

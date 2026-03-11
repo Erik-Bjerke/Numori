@@ -28,7 +28,10 @@
             currentLine === index ? 'bg-primary-100 dark:bg-primary-900' : ''
           ]" :style="{ height: lineHeight + 'px' }">
             <span v-if="line.result" @click="copyResult(line.result)"
-              class="text-primary-600 dark:text-primary-400 text-lg cursor-pointer hover:text-primary-700 dark:hover:text-primary-400 transition-colors pl-1">{{
+              :class="[
+                'text-primary-600 dark:text-primary-400 text-lg hover:text-primary-700 dark:hover:text-primary-400 transition-colors pl-1',
+                autoCopyResult ? 'cursor-pointer' : 'cursor-default'
+              ]">{{
                 line.result }}</span>
             <span v-else-if="line.error" class="text-error-500 dark:text-error-400 text-sm italic">{{ line.error
               }}</span>
@@ -69,7 +72,7 @@ const displayLines = ref([])
 const rawLines = ref([])     // cached raw calculator output (never locale-formatted)
 const scrollTop = ref(0)
 const currentLine = ref(0)
-const lineHeight = ref(19)
+const lineHeight = computed(() => props.localePreferences?.editorLineHeight ?? 19)
 const localContent = ref(props.content)
 const editorRef = ref(null)
 
@@ -78,7 +81,24 @@ const { registerCalcLanguage } = useMonacoCalcLanguage()
 const colorMode = useColorMode()
 import { formatDisplay } from '~/composables/useDisplayFormatter'
 
+const FONT_FAMILY_MAP = {
+  'system': 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+  'fira-code': "'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+  'jetbrains-mono': "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+  'source-code-pro': "'Source Code Pro', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+  'cascadia-code': "'Cascadia Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+  'ibm-plex-mono': "'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+}
+
 const sidebarWidth = computed(() => props.localePreferences?.resultsSidebarWidth ?? 256)
+const editorFontSize = computed(() => props.localePreferences?.editorFontSize ?? 16)
+const editorFontFamily = computed(() => FONT_FAMILY_MAP[props.localePreferences?.editorFontFamily] ?? FONT_FAMILY_MAP.system)
+const editorWordWrap = computed(() => props.localePreferences?.editorWordWrap ? 'on' : 'off')
+const editorLineNumbers = computed(() => {
+  const val = props.localePreferences?.editorLineNumbers
+  return ['on', 'off', 'relative', 'interval'].includes(val) ? val : 'on'
+})
+const autoCopyResult = computed(() => props.localePreferences?.autoCopyResult !== false)
 
 // Re-format display when locale preferences change (no recalculation)
 watch(() => props.localePreferences, () => {
@@ -117,13 +137,13 @@ onUnmounted(() => {
 // Editor options
 const editorOptions = computed(() => ({
   theme: colorMode.value === 'dark' ? 'vs-dark' : 'vs',
-  fontSize: 16,
-  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+  fontSize: editorFontSize.value,
+  fontFamily: editorFontFamily.value,
   lineHeight: lineHeight.value,
   minimap: { enabled: false },
   scrollBeyondLastLine: true,
-  wordWrap: 'off',
-  lineNumbers: 'on',
+  wordWrap: editorWordWrap.value,
+  lineNumbers: editorLineNumbers.value,
   glyphMargin: true,
   folding: true,
   lineDecorationsWidth: 0,
@@ -303,6 +323,7 @@ const reformatDisplay = () => {
 }
 
 const copyResult = async (result) => {
+  if (!autoCopyResult.value) return
   try {
     await navigator.clipboard.writeText(result)
   } catch (err) {

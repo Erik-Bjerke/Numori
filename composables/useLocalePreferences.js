@@ -63,6 +63,7 @@ export const LOCALE_PRESETS = {
 
 // Default preferences (UK)
 const DEFAULT_PREFERENCES = {
+  // Locale
   volume: 'uk_gallon',
   fuelEconomy: 'mpg_uk',
   distance: 'miles',
@@ -70,10 +71,19 @@ const DEFAULT_PREFERENCES = {
   dateFormat: 'DD/MM/YYYY',
   numberFormat: 'comma_dot',
   timeFormat: '24h',
+  // Editor
+  editorFontSize: 16,
+  editorFontFamily: 'system',
+  editorLineHeight: 19,
+  editorWordWrap: false,
+  editorLineNumbers: 'on',
+  // Customisation
   precisionMode: 'auto',
   decimalPlaces: 6,
   significantFigures: 6,
   resultsSidebarWidth: 256,
+  autoCopyResult: true,
+  dismissAlphaWarning: false,
 }
 
 export const useLocalePreferences = () => {

@@ -47,6 +47,7 @@
                 leave-to-class="opacity-0 -translate-x-2"
                 mode="out-in">
 
+              <!-- ===== Locales Tab ===== -->
               <div v-if="activeTab === 'locales'" key="locales" class="space-y-6">
                 <!-- Preset Selector -->
                 <div>
@@ -54,7 +55,7 @@
                     Preset
                   </label>
                   <div class="grid grid-cols-3 gap-2">
-                    <button v-for="(preset, name) in presets" :key="name"
+                    <button v-for="(_preset, name) in presets" :key="name"
                       @click="selectPreset(name)"
                       class="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 border-2"
                       :class="activePreset === name
@@ -148,9 +149,87 @@
                 </div>
               </div>
 
-              <!-- ===== Customisation Tab ===== -->
-              <div v-else-if="activeTab === 'formatting'" key="formatting" class="space-y-6">
+              <!-- ===== Editor Tab ===== -->
+              <div v-else-if="activeTab === 'editor'" key="editor" class="space-y-6">
                 <div class="space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Font Family</label>
+                    <select v-model="preferences.editorFontFamily" @change="onSettingChange" :class="selectClass">
+                      <option value="system">System Default</option>
+                      <option value="fira-code">Fira Code</option>
+                      <option value="jetbrains-mono">JetBrains Mono</option>
+                      <option value="source-code-pro">Source Code Pro</option>
+                      <option value="cascadia-code">Cascadia Code</option>
+                      <option value="ibm-plex-mono">IBM Plex Mono</option>
+                    </select>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400-muted">
+                      Custom fonts must be installed on your system
+                    </p>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">
+                      Font Size: {{ preferences.editorFontSize }}px
+                    </label>
+                    <input type="range" min="10" max="28" step="1" v-model.number="preferences.editorFontSize"
+                      @input="onSettingChange" class="w-full accent-primary-500" />
+                    <div class="flex justify-between text-xs text-gray-400 mt-1">
+                      <span>10px</span>
+                      <span>28px</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">
+                      Line Height: {{ preferences.editorLineHeight }}px
+                    </label>
+                    <input type="range" min="14" max="36" step="1" v-model.number="preferences.editorLineHeight"
+                      @input="onSettingChange" class="w-full accent-primary-500" />
+                    <div class="flex justify-between text-xs text-gray-400 mt-1">
+                      <span>14px</span>
+                      <span>36px</span>
+                    </div>
+                  </div>
+
+                  <div class="border-t border-gray-200 dark:border-gray-800"></div>
+
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-400">Word Wrap</label>
+                      <p class="text-xs text-gray-500 dark:text-gray-400-muted">Wrap long lines to fit the editor width</p>
+                    </div>
+                    <button @click="preferences.editorWordWrap = !preferences.editorWordWrap; onSettingChange()"
+                      :class="[
+                        'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+                        preferences.editorWordWrap ? 'bg-primary-500' : 'bg-gray-300 dark:bg-gray-700'
+                      ]">
+                      <span :class="[
+                        'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+                        preferences.editorWordWrap ? 'translate-x-6' : 'translate-x-1'
+                      ]" />
+                    </button>
+                  </div>
+
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-400">Line Numbers</label>
+                      <p class="text-xs text-gray-500 dark:text-gray-400-muted">How line numbers are displayed</p>
+                    </div>
+                    <select v-model="preferences.editorLineNumbers" @change="onSettingChange"
+                      class="w-40 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                      <option value="on">Absolute</option>
+                      <option value="relative">Relative</option>
+                      <option value="interval">Interval (every 10)</option>
+                      <option value="off">Off</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ===== Customisation Tab ===== -->
+              <div v-else-if="activeTab === 'customisation'" key="customisation" class="space-y-6">
+                <div class="space-y-4">
+                  <!-- Precision -->
                   <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Precision Mode</label>
                     <select v-model="preferences.precisionMode" @change="onSettingChange" :class="selectClass">
@@ -184,6 +263,7 @@
 
                   <div class="border-t border-gray-200 dark:border-gray-800"></div>
 
+                  <!-- Results sidebar width -->
                   <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">
                       Results Sidebar Width: {{ preferences.resultsSidebarWidth }}px
@@ -196,8 +276,46 @@
                       <span>{{ SIDEBAR_MAX_WIDTH }}px</span>
                     </div>
                   </div>
+
+                  <div class="border-t border-gray-200 dark:border-gray-800"></div>
+
+                  <!-- Toggles -->
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-400">Auto-copy Results</label>
+                      <p class="text-xs text-gray-500 dark:text-gray-400-muted">Copy result to clipboard when clicked</p>
+                    </div>
+                    <button @click="preferences.autoCopyResult = !preferences.autoCopyResult; onSettingChange()"
+                      :class="[
+                        'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+                        preferences.autoCopyResult ? 'bg-primary-500' : 'bg-gray-300 dark:bg-gray-700'
+                      ]">
+                      <span :class="[
+                        'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+                        preferences.autoCopyResult ? 'translate-x-6' : 'translate-x-1'
+                      ]" />
+                    </button>
+                  </div>
+
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-400">Hide Alpha Warning</label>
+                      <p class="text-xs text-gray-500 dark:text-gray-400-muted">Permanently dismiss the alpha warning banner</p>
+                    </div>
+                    <button @click="preferences.dismissAlphaWarning = !preferences.dismissAlphaWarning; onSettingChange()"
+                      :class="[
+                        'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
+                        preferences.dismissAlphaWarning ? 'bg-primary-500' : 'bg-gray-300 dark:bg-gray-700'
+                      ]">
+                      <span :class="[
+                        'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
+                        preferences.dismissAlphaWarning ? 'translate-x-6' : 'translate-x-1'
+                      ]" />
+                    </button>
+                  </div>
                 </div>
               </div>
+
               </Transition>
             </div>
 
@@ -238,7 +356,8 @@ const SIDEBAR_MAX_WIDTH = 480
 
 const tabs = [
   { id: 'locales', label: 'Locales' },
-  { id: 'formatting', label: 'Customisation' },
+  { id: 'editor', label: 'Editor' },
+  { id: 'customisation', label: 'Customisation' },
 ]
 const activeTab = ref('locales')
 
@@ -257,11 +376,11 @@ const presetLabels = {
 
 const presetLocaleMap = {
   UK: 'en-GB',
-  US: 'en-GB',  // no en-US locale available, fall back to en-GB
+  US: 'en-GB',
   ES: 'es-ES',
-  FR: 'en-GB',  // no fr-FR locale yet
-  DE: 'en-GB',  // no de-DE locale yet
-  JP: 'en-GB',  // no ja-JP locale yet
+  FR: 'en-GB',
+  DE: 'en-GB',
+  JP: 'en-GB',
 }
 
 const activePreset = computed(() => props.getActivePreset())
@@ -282,7 +401,6 @@ const getLanguageEmoji = (code) => {
 
 const selectPreset = (name) => {
   props.applyPreset(name)
-  // Switch language if a matching locale is available
   const targetLocale = presetLocaleMap[name]
   if (targetLocale && availableLocales.value.some(l => l.code === targetLocale)) {
     $switchLocale(targetLocale)
