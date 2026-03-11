@@ -12,6 +12,7 @@ export const LOCALE_PRESETS = {
     temperature: 'celsius',
     dateFormat: 'DD/MM/YYYY',
     numberFormat: 'comma_dot', // 1,000.00
+    timeFormat: '24h',
   },
   US: {
     volume: 'us_gallon',
@@ -20,6 +21,7 @@ export const LOCALE_PRESETS = {
     temperature: 'fahrenheit',
     dateFormat: 'MM/DD/YYYY',
     numberFormat: 'comma_dot',
+    timeFormat: '12h',
   },
   ES: {
     volume: 'litre',
@@ -28,6 +30,7 @@ export const LOCALE_PRESETS = {
     temperature: 'celsius',
     dateFormat: 'DD/MM/YYYY',
     numberFormat: 'dot_comma', // 1.000,00
+    timeFormat: '24h',
   },
   FR: {
     volume: 'litre',
@@ -36,6 +39,7 @@ export const LOCALE_PRESETS = {
     temperature: 'celsius',
     dateFormat: 'DD/MM/YYYY',
     numberFormat: 'space_comma', // 1 000,00
+    timeFormat: '24h',
   },
   DE: {
     volume: 'litre',
@@ -44,6 +48,7 @@ export const LOCALE_PRESETS = {
     temperature: 'celsius',
     dateFormat: 'DD.MM.YYYY',
     numberFormat: 'dot_comma',
+    timeFormat: '24h',
   },
   JP: {
     volume: 'litre',
@@ -52,6 +57,7 @@ export const LOCALE_PRESETS = {
     temperature: 'celsius',
     dateFormat: 'YYYY/MM/DD',
     numberFormat: 'comma_dot',
+    timeFormat: '24h',
   },
 }
 
@@ -63,6 +69,10 @@ const DEFAULT_PREFERENCES = {
   temperature: 'celsius',
   dateFormat: 'DD/MM/YYYY',
   numberFormat: 'comma_dot',
+  timeFormat: '24h',            // '12h' | '24h'
+  precisionMode: 'auto',       // 'auto' | 'decimals' | 'significant'
+  decimalPlaces: 6,             // used when precisionMode === 'decimals'
+  significantFigures: 6,        // used when precisionMode === 'significant'
 }
 
 export const useLocalePreferences = () => {

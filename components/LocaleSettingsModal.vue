@@ -117,6 +117,16 @@
                   </select>
                 </div>
 
+                <!-- Time Format -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Time Format</label>
+                  <select v-model="preferences.timeFormat" @change="onSettingChange"
+                    class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <option value="12h">12-hour (3:30 PM)</option>
+                    <option value="24h">24-hour (15:30)</option>
+                  </select>
+                </div>
+
                 <!-- Number Format -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Number Format</label>
@@ -126,6 +136,52 @@
                     <option value="dot_comma">1.000,00 (DE/ES)</option>
                     <option value="space_comma">1 000,00 (FR)</option>
                   </select>
+                </div>
+              </div>
+
+              <div class="border-t border-gray-200 dark:border-gray-800"></div>
+
+              <!-- Precision Settings -->
+              <div class="space-y-4">
+                <p class="text-sm font-medium text-gray-700 dark:text-gray-400">Result Precision</p>
+
+                <!-- Precision Mode -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Mode</label>
+                  <select v-model="preferences.precisionMode" @change="onSettingChange"
+                    class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <option value="auto">Auto (smart formatting)</option>
+                    <option value="decimals">Fixed decimal places</option>
+                    <option value="significant">Significant figures</option>
+                  </select>
+                </div>
+
+                <!-- Decimal Places (shown when mode is 'decimals') -->
+                <div v-if="preferences.precisionMode === 'decimals'">
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">
+                    Decimal Places: {{ preferences.decimalPlaces }}
+                  </label>
+                  <input type="range" min="0" max="15" step="1" v-model.number="preferences.decimalPlaces"
+                    @input="onSettingChange"
+                    class="w-full accent-primary-500" />
+                  <div class="flex justify-between text-xs text-gray-400 mt-1">
+                    <span>0</span>
+                    <span>15</span>
+                  </div>
+                </div>
+
+                <!-- Significant Figures (shown when mode is 'significant') -->
+                <div v-if="preferences.precisionMode === 'significant'">
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">
+                    Significant Figures: {{ preferences.significantFigures }}
+                  </label>
+                  <input type="range" min="1" max="15" step="1" v-model.number="preferences.significantFigures"
+                    @input="onSettingChange"
+                    class="w-full accent-primary-500" />
+                  <div class="flex justify-between text-xs text-gray-400 mt-1">
+                    <span>1</span>
+                    <span>15</span>
+                  </div>
                 </div>
               </div>
             </div>

@@ -17,7 +17,7 @@
 
     <!-- Results column (separate, synced scroll) -->
     <div v-if="props.showResults" :class="[
-      'flex-shrink-0 w-48 overflow-hidden bg-white dark:bg-gray-925 border-l border-gray-200 dark:border-gray-800',
+      'flex-shrink-0 w-64 overflow-hidden bg-white dark:bg-gray-925 border-l border-gray-200 dark:border-gray-800',
       bordered ? 'ml-2 rounded-lg' : ''
     ]">
       <div :style="{ transform: `translateY(-${scrollTop}px)` }">
@@ -55,12 +55,17 @@ const props = defineProps({
   bordered: {
     type: Boolean,
     default: false
+  },
+  localePreferences: {
+    type: Object,
+    default: null
   }
 })
 
 const emit = defineEmits(['update:content'])
 
 const displayLines = ref([])
+const rawLines = ref([])     // cached raw calculator output (never locale-formatted)
 const scrollTop = ref(0)
 const currentLine = ref(0)
 const lineHeight = ref(19)
@@ -70,6 +75,41 @@ const editorRef = ref(null)
 const { evaluateLines } = useCalculator()
 const { registerCalcLanguage } = useMonacoCalcLanguage()
 const colorMode = useColorMode()
+import { formatDisplay } from '~/composables/useDisplayFormatter'
+
+// Re-format display when locale preferences change (no recalculation)
+watch(() => props.localePreferences, () => {
+  reformatDisplay()
+}, { deep: true })
+
+// Live clock: update lines tagged liveTime every second
+let liveTimer = null
+const tickLiveTime = () => {
+  const raw = rawLines.value
+  if (!raw.length) return
+  const hasLive = raw.some(l => l.liveTime)
+  if (!hasLive) return
+
+  // Update raw results for live-time lines with fresh timestamps
+  for (const line of raw) {
+    if (!line.liveTime) continue
+    const now = new Date()
+    if (line.iana) {
+      line.result = now.toLocaleString('en-US', { timeZone: line.iana })
+    } else {
+      line.result = now.toLocaleString('en-US')
+    }
+    line.value = now.getTime()
+  }
+  reformatDisplay()
+}
+
+onMounted(() => {
+  liveTimer = setInterval(tickLiveTime, 1000)
+})
+onUnmounted(() => {
+  if (liveTimer) clearInterval(liveTimer)
+})
 
 // Editor options
 const editorOptions = computed(() => ({
@@ -220,11 +260,26 @@ watch(localContent, (newContent) => {
 
 const updateLines = (text) => {
   if (!text) {
+    rawLines.value = []
     displayLines.value = []
     return
   }
   const lines = text.split('\n')
-  displayLines.value = evaluateLines(lines)
+  rawLines.value = evaluateLines(lines)
+  reformatDisplay()
+}
+
+// Apply locale display formatting to cached raw results (no recalculation)
+const reformatDisplay = () => {
+  const prefs = props.localePreferences
+  if (!prefs || !rawLines.value.length) {
+    displayLines.value = rawLines.value
+    return
+  }
+  displayLines.value = rawLines.value.map(line => {
+    if (!line.result) return line
+    return { ...line, result: formatDisplay(line.result, null, prefs) }
+  })
 }
 
 const copyResult = async (result) => {
@@ -359,6 +414,6 @@ const wrapSelection = (before, after = before) => {
 
 defineExpose({
   insertText,
-  wrapSelection
+  wrapSelection,
 })
 </script>

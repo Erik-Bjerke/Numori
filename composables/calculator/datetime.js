@@ -16,7 +16,7 @@ export const handleTimezoneExpression = (input) => {
       try {
         const now = new Date()
         const formatted = now.toLocaleString('en-US', { timeZone: iana })
-        return { value: now.getTime(), display: formatted }
+        return { value: now.getTime(), display: formatted, liveTime: true, iana }
       } catch (e) { /* fall through */ }
     }
   }
@@ -31,7 +31,7 @@ export const handleTimezoneExpression = (input) => {
       try {
         const now = new Date()
         const formatted = now.toLocaleString('en-US', { timeZone: iana })
-        return { value: now.getTime(), display: formatted }
+        return { value: now.getTime(), display: formatted, liveTime: true, iana }
       } catch (e) { /* fall through */ }
     }
   }
@@ -139,7 +139,8 @@ export const handleDateExpression = (input) => {
     const result = evaluateMath(expression)
     if (isDateCalculation) {
       const resultDate = new Date(result)
-      return { value: result, display: resultDate.toLocaleString() }
+      const isLive = /^\s*(now|time)\s*$/i.test(input)
+      return { value: result, display: resultDate.toLocaleString(), ...(isLive && { liveTime: true }) }
     } else {
       const totalMs = result
       const totalSeconds = totalMs / 1000
@@ -164,7 +165,8 @@ export const handleDateExpression = (input) => {
     const timestamp = getDateFromKeyword(inputLower)
     if (timestamp !== null) {
       const date = new Date(timestamp)
-      return { value: timestamp, display: inputLower === 'now' || inputLower === 'time' ? date.toLocaleString() : date.toLocaleDateString() }
+      const isLive = inputLower === 'now' || inputLower === 'time'
+      return { value: timestamp, display: isLive ? date.toLocaleString() : date.toLocaleDateString(), ...(isLive && { liveTime: true }) }
     }
   }
   return null

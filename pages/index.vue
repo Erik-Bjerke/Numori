@@ -37,6 +37,7 @@
       <!-- Editor Area -->
       <main class="flex-1 overflow-hidden flex flex-col">
         <NoteEditor v-if="currentNote" ref="editorRef" :content="currentNote.content" :show-results="showResults"
+          :locale-preferences="localePrefs.preferences"
           @update:content="updateContent"
           :placeholder="'Start typing... Try: 10 + 20, or use # for headers, // for comments'" />
         <div v-else class="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">

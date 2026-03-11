@@ -97,6 +97,7 @@ export const useCalculator = () => {
       try {
         const result = evaluateExpression(labelMatch[2].trim(), index, allResults)
         line.result = result.display
+        if (result.liveTime) { line.liveTime = true; line.iana = result.iana || null }
         previousResult.value = result.value
       } catch (error) { /* silent */ }
       return
@@ -108,6 +109,7 @@ export const useCalculator = () => {
     try {
       const result = evaluateExpression(input, index, allResults)
       line.result = result.display
+      if (result.liveTime) { line.liveTime = true; line.iana = result.iana || null }
       previousResult.value = result.value
     } catch (error) { /* silent */ }
   }
