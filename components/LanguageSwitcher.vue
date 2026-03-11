@@ -40,7 +40,7 @@
                   class="w-full flex items-center justify-between p-4 rounded-xl transition-all duration-200" :class="[
                     currentLocale.code === locale.code
                       ? 'bg-primary-50 dark:bg-gray-800 border-2 border-primary-500 dark:border-primary-400 shadow-sm'
-                      : 'bg-gray-50 dark:bg-gray-925er border-2 border-transparent hover:border-gray-300 dark:hover:border-vscode-border-light hover:shadow-sm'
+                      : 'bg-gray-50 dark:bg-gray-925 border-2 border-transparent hover:border-gray-300 dark:hover:border-gray-700 hover:shadow-sm'
                   ]">
                   <div class="flex items-center gap-4">
                     <!-- Flag/Icon -->
@@ -78,7 +78,7 @@
               </div>
 
               <!-- Footer -->
-              <div class="p-4 bg-gray-50 dark:bg-gray-925er border-t border-gray-200 dark:border-gray-800">
+              <div class="p-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
                 <p class="text-xs text-center text-gray-500 dark:text-gray-400-muted">
                   Your preference will be saved automatically
                 </p>
