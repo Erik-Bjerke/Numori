@@ -134,7 +134,8 @@
       :get-active-preset="localePrefs.getActivePreset"
       :save="localePrefs.save"
       :reset="localePrefs.reset"
-      @close="showLocaleSettings = false" />
+      @close="showLocaleSettings = false"
+      @relaunch-wizard="showLocaleSettings = false; welcomeWizard.isOpen.value = true" />
 
     <ExportOptionsModal :is-open="showExportOptions"
       @close="showExportOptions = false"

@@ -29,10 +29,19 @@
                 <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed max-w-sm">
                   A notepad where every line can do math. Write naturally, and results appear instantly.
                 </p>
-                <div class="mt-5 w-full bg-gray-50 dark:bg-gray-900 rounded-lg p-4 text-left text-sm font-mono space-y-1">
-                  <div class="flex justify-between"><span class="text-gray-700 dark:text-gray-300">price = $120</span><span class="text-primary-600 dark:text-primary-400">$120</span></div>
-                  <div class="flex justify-between"><span class="text-gray-700 dark:text-gray-300">tax = 8% of price</span><span class="text-primary-600 dark:text-primary-400">$9.60</span></div>
-                  <div class="flex justify-between"><span class="text-gray-700 dark:text-gray-300">total = price + tax</span><span class="text-primary-600 dark:text-primary-400">$129.60</span></div>
+                <div class="mt-5 w-full bg-gray-50 dark:bg-gray-900 rounded-lg p-4 text-left text-sm font-mono space-y-1.5">
+                  <div class="flex justify-between">
+                    <span><span class="calc-variable">price</span> <span class="calc-operator">=</span> <span class="calc-currency">$</span><span class="calc-number">120</span></span>
+                    <span class="calc-result">$120</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span><span class="calc-variable">tax</span> <span class="calc-operator">=</span> <span class="calc-number">8%</span> <span class="calc-conversion">of</span> <span class="calc-variable">price</span></span>
+                    <span class="calc-result">$9.60</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span><span class="calc-variable">total</span> <span class="calc-operator">=</span> <span class="calc-variable">price</span> <span class="calc-operator">+</span> <span class="calc-variable">tax</span></span>
+                    <span class="calc-result">$129.60</span>
+                  </div>
                 </div>
                 <p class="mt-3 text-xs text-gray-500 dark:text-gray-500">
                   Supports unit conversions, currencies, dates, percentages, and more.
@@ -198,3 +207,21 @@ const finish = () => {
   emit('complete')
 }
 </script>
+
+<style scoped>
+/* CalcNotes syntax colours — light theme (matches Monaco calcnotes-light) */
+.calc-variable { color: #001080; }
+.calc-operator { color: #000000; }
+.calc-currency { color: #098658; }
+.calc-number   { color: #098658; }
+.calc-conversion { color: #0000ff; }
+.calc-result   { color: #098658; font-weight: 500; }
+
+/* Dark theme overrides (matches Monaco calcnotes-dark) */
+:root.dark .calc-variable { color: #9cdcfe; }
+:root.dark .calc-operator { color: #d4d4d4; }
+:root.dark .calc-currency { color: #b5cea8; }
+:root.dark .calc-number   { color: #b5cea8; }
+:root.dark .calc-conversion { color: #569cd6; }
+:root.dark .calc-result   { color: #b5cea8; }
+</style>

@@ -472,6 +472,16 @@
                           <span :class="toggleDot(preferences.dismissAlphaWarning)" />
                         </button>
                       </div>
+                      <div class="flex items-center justify-between">
+                        <div>
+                          <label class="settings-label-inline">Welcome Wizard</label>
+                          <p class="settings-hint">Show the first-time setup wizard again</p>
+                        </div>
+                        <button @click="emit('relaunch-wizard')"
+                          class="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                          Relaunch
+                        </button>
+                      </div>
                     </div>
                   </section>
 
@@ -506,7 +516,7 @@ const props = defineProps({
   reset: { type: Function, required: true },
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'relaunch-wizard'])
 
 const showIndex = ref(true)
 const activeSection = ref('locales')
@@ -542,7 +552,7 @@ const sections = [
   { id: 'cursor', label: 'Cursor & Scrolling', keywords: 'cursor style blink animation smooth caret scrolling phase expand solid' },
   { id: 'behaviour', label: 'Behaviour', keywords: 'behaviour auto close brackets quotes tab size indentation bracket pair colorization' },
   { id: 'results', label: 'Results & Display', keywords: 'results display precision decimal significant copy animation inline alignment' },
-  { id: 'general', label: 'General', keywords: 'general alpha warning dismiss' },
+  { id: 'general', label: 'General', keywords: 'general alpha warning dismiss welcome wizard relaunch setup' },
 ]
 
 const presets = LOCALE_PRESETS
