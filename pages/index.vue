@@ -251,7 +251,7 @@ const handleOpenFile = async () => {
   try {
     const data = await openFile()
     const newNote = addNote()
-    updateNoteMeta(newNote.id, { title: data.title, description: data.description })
+    updateNoteMeta(newNote.id, { title: data.title, description: data.description, tags: data.tags })
     updateNoteContent(newNote.id, data.content)
   } catch {
     // User cancelled or file read failed
@@ -263,7 +263,7 @@ const handleDuplicate = () => {
   const data = duplicateNote(currentNote.value)
   if (data) {
     const newNote = addNote()
-    updateNoteMeta(newNote.id, { title: data.title, description: data.description })
+    updateNoteMeta(newNote.id, { title: data.title, description: data.description, tags: data.tags })
     updateNoteContent(newNote.id, data.content)
   }
 }
@@ -279,7 +279,7 @@ const handleImport = async () => {
     const result = await importNotes()
     for (const noteData of result.notes) {
       const newNote = addNote()
-      updateNoteMeta(newNote.id, { title: noteData.title, description: noteData.description })
+      updateNoteMeta(newNote.id, { title: noteData.title, description: noteData.description, tags: noteData.tags })
       updateNoteContent(newNote.id, noteData.content)
     }
   } catch {

@@ -72,6 +72,7 @@ export const useFileActions = () => {
     const data = {
       title: note.title,
       description: note.description,
+      tags: note.tags || [],
       content: note.content,
       createdAt: note.createdAt,
       updatedAt: note.updatedAt,
@@ -88,6 +89,7 @@ export const useFileActions = () => {
     const data = notes.map(n => ({
       title: n.title,
       description: n.description,
+      tags: n.tags || [],
       content: n.content,
       createdAt: n.createdAt,
       updatedAt: n.updatedAt,
@@ -199,6 +201,7 @@ export const useFileActions = () => {
             const notes = parsed.map(n => ({
               title: n.title || 'Imported Note',
               description: n.description || '',
+              tags: n.tags || [],
               content: n.content || '',
             }))
             resolve({ type: 'multiple', notes })
@@ -209,6 +212,7 @@ export const useFileActions = () => {
               notes: [{
                 title: parsed.title || 'Imported Note',
                 description: parsed.description || '',
+                tags: parsed.tags || [],
                 content: parsed.content || '',
               }],
             })
@@ -233,6 +237,7 @@ export const useFileActions = () => {
     return {
       title: `${note.title} (copy)`,
       description: note.description || '',
+      tags: note.tags ? [...note.tags] : [],
       content: note.content || '',
     }
   }
