@@ -608,7 +608,12 @@ const resetAll = () => {
   props.reset()
 }
 
-const closeModal = () => emit('close')
+const closeModal = () => {
+  activeSection.value = 'locales'
+  searchQuery.value = ''
+  if (contentRef.value) contentRef.value.scrollTop = 0
+  emit('close')
+}
 
 onMounted(() => {
   if (window.innerWidth < 768) showIndex.value = false

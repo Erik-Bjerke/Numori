@@ -20,7 +20,6 @@
 
     <!-- Bottom toolbar -->
     <SidebarFooter
-      @show-templates="$emit('show-templates')"
       @show-help="$emit('show-help')"
       @show-locale-settings="$emit('show-locale-settings')"
       @show-language="$emit('show-language')" />
@@ -39,5 +38,5 @@ defineProps({
   }
 })
 
-defineEmits(['new-note', 'select-note', 'delete-note', 'edit-note', 'show-templates', 'show-help', 'show-locale-settings', 'show-language'])
+defineEmits(['new-note', 'select-note', 'delete-note', 'edit-note', 'show-help', 'show-locale-settings', 'show-language'])
 </script>

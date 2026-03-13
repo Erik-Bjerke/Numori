@@ -16,7 +16,8 @@
       </div>
 
       <!-- Center: Markdown formatting (desktop only) -->
-      <FormattingToolbar class="hidden lg:flex flex-1" @apply-format="(before, after) => $emit('apply-format', before, after)" />
+      <FormattingToolbar class="hidden lg:flex flex-1"
+        @apply-format="(before, after) => $emit('apply-format', before, after)" />
 
       <!-- Spacer on mobile to push right actions to the end -->
       <div class="flex-1 lg:hidden"></div>
@@ -24,9 +25,17 @@
       <!-- Right: Actions -->
       <div class="flex items-center gap-1">
         <!-- Alpha ribbon -->
-        <span class="alpha-ribbon relative px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-amber-400 text-amber-900 mr-2">
+        <span v-if="!hideAlpha"
+          class="alpha-ribbon relative px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-amber-400 text-amber-900 mr-2">
           alpha
         </span>
+
+        <!-- Templates -->
+        <button @click="$emit('show-templates')"
+          class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors leading-none"
+          title="Templates">
+          <Icon name="mdi:file-document-outline" class="w-5 h-5 block" />
+        </button>
 
         <!-- Toggle Mobile Formatting Toolbar -->
         <button @click="$emit('toggle-mobile-toolbar')"
@@ -36,22 +45,18 @@
         </button>
 
         <!-- Toggle markdown preview -->
-        <button @click="$emit('toggle-markdown-preview')"
-          class="p-2 rounded-lg transition-colors leading-none"
+        <button @click="$emit('toggle-markdown-preview')" class="p-2 rounded-lg transition-colors leading-none"
           :class="showMarkdownPreview
             ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30'
-            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-850'"
-          title="Toggle rendered preview">
+            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-850'" title="Toggle rendered preview">
           <Icon name="mdi:language-markdown-outline" class="w-5 h-5 block" />
         </button>
 
         <!-- Toggle inline results -->
-        <button @click="$emit('toggle-inline')"
-          class="p-2 rounded-lg transition-colors leading-none"
+        <button @click="$emit('toggle-inline')" class="p-2 rounded-lg transition-colors leading-none"
           :class="showInline
             ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30'
-            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-850'"
-          title="Toggle inline results">
+            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-850'" title="Toggle inline results">
           <Icon name="mdi:code-tags" class="w-5 h-5 block" />
         </button>
 
@@ -77,12 +82,17 @@ defineProps({
   showMarkdownPreview: {
     type: Boolean,
     default: false
+  },
+  hideAlpha: {
+    type: Boolean,
+    default: false
   }
 })
 
 defineEmits([
   'toggle-sidebar',
   'show-meta',
+  'show-templates',
   'apply-format',
   'toggle-inline',
   'toggle-mobile-toolbar',

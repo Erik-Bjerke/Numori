@@ -884,6 +884,9 @@ onMounted(() => {
 })
 
 const close = () => {
+  activeSection.value = 'basics'
+  searchQuery.value = ''
+  if (contentRef.value) contentRef.value.scrollTop = 0
   emit('close')
 }
 </script>

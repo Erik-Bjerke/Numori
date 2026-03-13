@@ -23,10 +23,12 @@
 
     <!-- Mobile-friendly Toolbar -->
     <AppHeader :current-note="currentNote" :show-inline="showInlineResults" :show-mobile-toolbar="showMobileToolbar" :show-markdown-preview="showMarkdownPreview"
+      :hide-alpha="localePrefs.preferences.dismissAlphaWarning"
       @toggle-sidebar="showSidebar = !showSidebar"
       @show-meta="currentNote && (showMetaModal = true)" @apply-format="applyFormat"
       @toggle-inline="showInlineResults = !showInlineResults" @toggle-mobile-toolbar="showMobileToolbar = !showMobileToolbar"
-      @toggle-markdown-preview="showMarkdownPreview = !showMarkdownPreview" />
+      @toggle-markdown-preview="showMarkdownPreview = !showMarkdownPreview"
+      @show-templates="showTemplates = true" />
 
     <!-- Main Content Area -->
     <div class="flex-1 flex overflow-hidden">
@@ -34,7 +36,7 @@
       <aside class="w-80 flex-shrink-0 hidden lg:block">
         <MainSidebar :notes="notes" :current-note-id="currentNoteId" @new-note="addNote" @select-note="selectNote"
           @delete-note="confirmDelete" @edit-note="openEditModal"
-          @show-templates="showTemplates = true" @show-help="showHelp = true"
+          @show-help="showHelp = true"
           @show-language="showLanguageModal = true" @show-locale-settings="showLocaleSettings = true" />
       </aside>
 
@@ -59,7 +61,7 @@
           <aside v-if="showSidebar" class="fixed inset-y-0 left-0 z-30 w-80 shadow-xl lg:hidden">
             <MainSidebar :notes="notes" :current-note-id="currentNoteId" @new-note="addNote" @select-note="selectNote"
               @delete-note="confirmDelete" @edit-note="openEditModal"
-              @show-templates="showTemplates = true" @show-help="showHelp = true"
+              @show-help="showHelp = true"
               @show-language="showLanguageModal = true" @show-locale-settings="showLocaleSettings = true" />
           </aside>
         </Transition>
