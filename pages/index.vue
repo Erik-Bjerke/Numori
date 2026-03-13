@@ -139,6 +139,12 @@
     <ExportOptionsModal :is-open="showExportOptions"
       @close="showExportOptions = false"
       @confirm="handleExportConfirm" />
+
+    <WelcomeWizard :is-open="welcomeWizard.isOpen.value"
+      :preferences="localePrefs.preferences"
+      :apply-preset="localePrefs.applyPreset"
+      :save-preferences="localePrefs.save"
+      @complete="welcomeWizard.complete()" />
   </div>
 </template>
 
@@ -147,6 +153,7 @@ const { notes, currentNoteId, currentNote, allTags, addNote, deleteNote, updateN
 const { exportNoteAsText, exportNoteAsJson, exportNoteAsMarkdown, exportNoteAsPdf, exportAllNotes, openFile, importNotes, duplicateNote, copyToClipboard, printNote } = useFileActions()
 const { evaluateLines } = useCalculator()
 const localePrefs = useLocalePreferences()
+const welcomeWizard = useWelcomeWizard()
 
 const showSidebar = ref(true) // Default to true for better UX
 const showMetaModal = ref(false)
@@ -160,12 +167,13 @@ const showMarkdownPreview = ref(false)
 const editorRef = ref(null)
 const showAlphaWarning = ref(false)
 
-// Hide sidebar on mobile by default + check alpha warning
+// Hide sidebar on mobile by default + check alpha warning + welcome wizard
 onMounted(() => {
   if (window.innerWidth < 1024) {
     showSidebar.value = false
   }
   showAlphaWarning.value = !localStorage.getItem('alpha-warning-dismissed') && !localePrefs.preferences.dismissAlphaWarning
+  welcomeWizard.showIfFirstTime()
 })
 
 // Watch for the preference being toggled in settings
