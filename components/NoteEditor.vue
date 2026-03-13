@@ -18,19 +18,6 @@
         <MonacoEditor ref="editorRef" v-model="localContent" :options="editorOptions" lang="calcnotes" class="h-full" @load="onEditorLoad" />
       </ClientOnly>
     </div>
-
-    <!-- Results column (separate, synced scroll) -->
-    <ResultsPanel
-      :lines="displayLines"
-      :visible="props.showResults"
-      :bordered="bordered"
-      :width="sidebarWidth"
-      :scroll-top="scrollTop"
-      :current-line="currentLine"
-      :line-height="lineHeight"
-      :copyable="autoCopyResult"
-      :copied-index="copiedIndex"
-      @copy-result="copyResult" />
   </div>
 </template>
 
@@ -46,11 +33,11 @@ const props = defineProps({
   },
   showResults: {
     type: Boolean,
-    default: true
+    default: false
   },
   showInline: {
     type: Boolean,
-    default: false
+    default: true
   },
   bordered: {
     type: Boolean,
@@ -70,13 +57,10 @@ const emit = defineEmits(['update:content'])
 
 const displayLines = ref([])
 const rawLines = ref([])     // cached raw calculator output (never locale-formatted)
-const scrollTop = ref(0)
 const currentLine = ref(0)
 const lineHeight = computed(() => props.localePreferences?.editorLineHeight ?? 19)
 const localContent = ref(props.content)
 const editorRef = ref(null)
-const copiedIndex = ref(null)
-let copiedTimeout = null
 
 // Inline result decorations
 let monacoEditorInstance = null
@@ -244,7 +228,6 @@ const FONT_FAMILY_MAP = {
   'ibm-plex-mono': "'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
 }
 
-const sidebarWidth = computed(() => props.localePreferences?.resultsSidebarWidth ?? 256)
 const editorFontSize = computed(() => props.localePreferences?.editorFontSize ?? 16)
 const editorFontFamily = computed(() => FONT_FAMILY_MAP[props.localePreferences?.editorFontFamily] ?? FONT_FAMILY_MAP.system)
 const editorWordWrap = computed(() => props.localePreferences?.editorWordWrap ? 'on' : 'off')
@@ -360,11 +343,6 @@ const onEditorLoad = (editor) => {
     // Listen for cursor position changes
     editor.onDidChangeCursorPosition((e) => {
       currentLine.value = e.position.lineNumber - 1
-    })
-
-    // Listen for scroll changes to sync results column
-    editor.onDidScrollChange((e) => {
-      scrollTop.value = e.scrollTop
     })
 
     // Re-render right-aligned decorations when editor is resized
@@ -710,11 +688,6 @@ const copyResult = async (result, index) => {
       return
     }
   }
-  copiedIndex.value = index
-  clearTimeout(copiedTimeout)
-  copiedTimeout = setTimeout(() => {
-    copiedIndex.value = null
-  }, 800)
 }
 
 // Watch for theme changes

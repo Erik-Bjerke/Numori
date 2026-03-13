@@ -22,10 +22,10 @@
     </Transition>
 
     <!-- Mobile-friendly Toolbar -->
-    <AppHeader :current-note="currentNote" :show-inline="showInlineResults" :show-sidebar-results="showResults" :show-mobile-toolbar="showMobileToolbar" :show-markdown-preview="showMarkdownPreview"
+    <AppHeader :current-note="currentNote" :show-inline="showInlineResults" :show-mobile-toolbar="showMobileToolbar" :show-markdown-preview="showMarkdownPreview"
       @toggle-sidebar="showSidebar = !showSidebar"
       @show-meta="currentNote && (showMetaModal = true)" @apply-format="applyFormat"
-      @toggle-inline="showInlineResults = !showInlineResults" @toggle-sidebar-results="showResults = !showResults" @toggle-mobile-toolbar="showMobileToolbar = !showMobileToolbar"
+      @toggle-inline="showInlineResults = !showInlineResults" @toggle-mobile-toolbar="showMobileToolbar = !showMobileToolbar"
       @toggle-markdown-preview="showMarkdownPreview = !showMarkdownPreview" />
 
     <!-- Main Content Area -->
@@ -67,7 +67,7 @@
 
       <!-- Editor Area -->
       <main class="flex-1 overflow-hidden flex flex-col">
-        <NoteEditor v-if="currentNote" ref="editorRef" :content="currentNote.content" :show-results="showResults" :show-inline="showInlineResults"
+        <NoteEditor v-if="currentNote" ref="editorRef" :content="currentNote.content" :show-inline="showInlineResults"
           :locale-preferences="localePrefs.preferences"
           :show-markdown-preview="showMarkdownPreview"
           @update:content="updateContent"
@@ -120,8 +120,7 @@ const showHelp = ref(false)
 const showTemplates = ref(false)
 const showLanguageModal = ref(false)
 const showLocaleSettings = ref(false)
-const showResults = ref(true)
-const showInlineResults = ref(false)
+const showInlineResults = ref(true)
 const showMobileToolbar = ref(true)
 const showMarkdownPreview = ref(false)
 const editorRef = ref(null)

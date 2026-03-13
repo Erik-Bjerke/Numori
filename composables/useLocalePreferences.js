@@ -82,7 +82,6 @@ const DEFAULT_PREFERENCES = {
   precisionMode: 'auto',
   decimalPlaces: 6,
   significantFigures: 6,
-  resultsSidebarWidth: 256,
   autoCopyResult: true,
   copyAnimationStyle: 'scale-pop',
   dismissAlphaWarning: false,
