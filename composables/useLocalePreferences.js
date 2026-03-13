@@ -84,6 +84,7 @@ const DEFAULT_PREFERENCES = {
   significantFigures: 6,
   resultsSidebarWidth: 256,
   autoCopyResult: true,
+  copyAnimationStyle: 'scale-pop',
   dismissAlphaWarning: false,
 }
 

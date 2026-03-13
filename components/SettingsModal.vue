@@ -302,8 +302,7 @@
                       <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-400">Auto-copy
                           Results</label>
-                        <p class="text-xs text-gray-500 dark:text-gray-400-muted">Copy result to clipboard when clicked
-                        </p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400-muted">Copy result to clipboard when clicked</p>
                       </div>
                       <button @click="preferences.autoCopyResult = !preferences.autoCopyResult; onSettingChange()"
                         :class="[
@@ -315,6 +314,20 @@
                           preferences.autoCopyResult ? 'translate-x-6' : 'translate-x-1'
                         ]" />
                       </button>
+                    </div>
+
+                    <div v-if="preferences.autoCopyResult">
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Copy Animation</label>
+                      <select v-model="preferences.copyAnimationStyle" @change="onSettingChange" :class="selectClass">
+                        <option value="float-up">Float up</option>
+                        <option value="fade">Fade in/out</option>
+                        <option value="scale-pop">Scale pop</option>
+                        <option value="slide-right">Slide from left</option>
+                        <option value="bounce">Bounce</option>
+                        <option value="glow">Glow pulse</option>
+                        <option value="none">None</option>
+                      </select>
+                      <p class="text-xs text-gray-500 dark:text-gray-400-muted mt-1">Animation style for the "Copied" feedback toast</p>
                     </div>
 
                     <div class="flex items-center justify-between">
@@ -434,6 +447,7 @@ const TAB_DEFAULTS = {
     significantFigures: 6,
     resultsSidebarWidth: 256,
     autoCopyResult: true,
+    copyAnimationStyle: 'scale-pop',
     dismissAlphaWarning: false,
   },
 }

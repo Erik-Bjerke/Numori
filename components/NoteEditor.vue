@@ -374,6 +374,39 @@ const onEditorLoad = (editor) => {
       }
     })
 
+    // Click-to-copy on inline result decorations
+    editor.onMouseDown((e) => {
+      if (!props.showInline || !autoCopyResult.value) return
+      // Check if the click target is an inline result decoration
+      const target = e.target
+      if (target.type !== monacoInstance.editor.MouseTargetType.CONTENT_TEXT) return
+      const el = target.element
+      if (!el || !el.classList.contains('calcnotes-inline-result')) return
+
+      const lineIndex = target.position.lineNumber - 1
+      const line = displayLines.value[lineIndex]
+      if (!line?.result) return
+
+      copyResult(line.result, lineIndex)
+
+      // Show a small "Copied" toast near the click
+      const editorDom = editor.getDomNode()
+      if (editorDom) {
+        const animStyle = props.localePreferences?.copyAnimationStyle || 'float-up'
+        const toast = document.createElement('div')
+        toast.className = `calcnotes-inline-copied-toast calcnotes-toast-${animStyle}`
+        toast.textContent = 'Copied'
+        const rect = editorDom.getBoundingClientRect()
+        toast.style.left = `${e.event.posx - rect.left}px`
+        toast.style.top = lineIndex <= 1
+          ? `${e.event.posy - rect.top + 8}px`
+          : `${e.event.posy - rect.top - 24}px`
+        editorDom.style.position = 'relative'
+        editorDom.appendChild(toast)
+        setTimeout(() => toast.remove(), 850)
+      }
+    })
+
     // Set initial cursor position
     const position = editor.getPosition()
     if (position) {
@@ -481,6 +514,79 @@ const injectInlineStyles = () => {
     .calcnotes-md-quote { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; font-style: italic !important; opacity: 0.85 !important; }
     .calcnotes-md-quote-bar { color: #007acc !important; font-style: normal !important; }
     .vs-dark .calcnotes-md-quote-bar { color: #4fc1ff !important; }
+    .calcnotes-inline-result { cursor: pointer; }
+    .calcnotes-inline-error { cursor: default; }
+    .calcnotes-inline-copied-toast {
+      position: absolute; pointer-events: none; z-index: 100;
+      padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500;
+      color: #16a34a; background: #dcfce7; box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      white-space: nowrap;
+    }
+    .vs-dark .calcnotes-inline-copied-toast { color: #4ade80; background: #14532d; }
+
+    /* float-up (original) */
+    .calcnotes-toast-float-up { animation: calcnotes-float-up 0.8s ease-out forwards; }
+    @keyframes calcnotes-float-up {
+      0% { opacity: 1; transform: translateY(0); }
+      70% { opacity: 1; transform: translateY(-4px); }
+      100% { opacity: 0; transform: translateY(-8px); }
+    }
+
+    /* fade */
+    .calcnotes-toast-fade { animation: calcnotes-fade 0.8s ease-in-out forwards; }
+    @keyframes calcnotes-fade {
+      0% { opacity: 0; }
+      15% { opacity: 1; }
+      70% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    /* scale-pop */
+    .calcnotes-toast-scale-pop { animation: calcnotes-scale-pop 0.8s ease-out forwards; }
+    @keyframes calcnotes-scale-pop {
+      0% { opacity: 0; transform: scale(0.5); }
+      20% { opacity: 1; transform: scale(1.15); }
+      35% { transform: scale(1); }
+      70% { opacity: 1; }
+      100% { opacity: 0; transform: scale(0.9); }
+    }
+
+    /* slide-right */
+    .calcnotes-toast-slide-right { animation: calcnotes-slide-right 0.8s ease-out forwards; }
+    @keyframes calcnotes-slide-right {
+      0% { opacity: 0; transform: translateX(-12px); }
+      20% { opacity: 1; transform: translateX(0); }
+      70% { opacity: 1; }
+      100% { opacity: 0; transform: translateX(8px); }
+    }
+
+    /* bounce */
+    .calcnotes-toast-bounce { animation: calcnotes-bounce 0.8s ease-out forwards; }
+    @keyframes calcnotes-bounce {
+      0% { opacity: 0; transform: translateY(6px); }
+      25% { opacity: 1; transform: translateY(-6px); }
+      45% { transform: translateY(2px); }
+      60% { transform: translateY(-2px); }
+      75% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; }
+    }
+
+    /* glow */
+    .calcnotes-toast-glow { animation: calcnotes-glow 0.8s ease-out forwards; }
+    @keyframes calcnotes-glow {
+      0% { opacity: 0; box-shadow: 0 0 0 0 rgba(22,163,74,0.4); }
+      20% { opacity: 1; box-shadow: 0 0 8px 2px rgba(22,163,74,0.5); }
+      60% { opacity: 1; box-shadow: 0 0 2px 0 rgba(22,163,74,0.2); }
+      100% { opacity: 0; box-shadow: 0 0 0 0 rgba(22,163,74,0); }
+    }
+
+    /* none */
+    .calcnotes-toast-none { animation: calcnotes-none 0.6s forwards; }
+    @keyframes calcnotes-none {
+      0% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { opacity: 0; }
+    }
   `
   document.head.appendChild(style)
 }
