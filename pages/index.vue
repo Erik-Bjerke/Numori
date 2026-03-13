@@ -43,12 +43,15 @@
 
     <!-- Main Content Area -->
     <div class="flex-1 flex overflow-hidden">
-      <!-- Sidebar - Notes List -->
-      <aside class="w-80 flex-shrink-0 hidden lg:block">
-        <MainSidebar :notes="notes" :current-note-id="currentNoteId" :all-tags="allTags" @new-note="addNote" @select-note="selectNote"
-          @delete-note="confirmDelete" @edit-note="openEditModal"
-          @show-help="showHelp = true"
-          @show-language="showLanguageModal = true" @show-locale-settings="showLocaleSettings = true" />
+      <!-- Sidebar - Notes List (desktop) -->
+      <aside class="flex-shrink-0 hidden lg:block overflow-hidden transition-[width] duration-300 ease-in-out"
+        :class="showSidebar ? 'w-80' : 'w-0'">
+        <div class="w-80 h-full">
+          <MainSidebar :notes="notes" :current-note-id="currentNoteId" :all-tags="allTags" @new-note="addNote" @select-note="selectNote"
+            @delete-note="confirmDelete" @edit-note="openEditModal"
+            @show-help="showHelp = true"
+            @show-language="showLanguageModal = true" @show-locale-settings="showLocaleSettings = true" />
+        </div>
       </aside>
 
       <!-- Mobile sidebar with slide transition -->
@@ -182,7 +185,9 @@ const dismissAlphaWarning = () => {
 
 const selectNote = (id) => {
   currentNoteId.value = id
-  showSidebar.value = false // Close sidebar on mobile after selection
+  if (window.innerWidth < 1024) {
+    showSidebar.value = false // Close sidebar on mobile after selection
+  }
 }
 
 const openEditModal = (id) => {

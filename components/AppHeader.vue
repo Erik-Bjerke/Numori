@@ -1,14 +1,8 @@
 <template>
   <header class="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 sticky top-0 z-10">
     <div class="flex items-center justify-between px-3 py-2">
-      <!-- Left: Menu toggle, File dropdown & Title -->
+      <!-- Left: File dropdown & Title -->
       <div class="flex items-center gap-2">
-        <button @click="$emit('toggle-sidebar')"
-          class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors leading-none lg:hidden"
-          title="Toggle notes list">
-          <Icon name="mdi:menu" class="w-5 h-5 block" />
-        </button>
-
         <!-- File dropdown -->
         <FileDropdown :has-note="!!currentNote"
           @new-note="$emit('file-new')"
@@ -60,6 +54,13 @@
             ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30'
             : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-850'" title="Toggle inline results">
           <Icon name="mdi:code-tags" class="w-5 h-5 block" />
+        </button>
+
+        <!-- Toggle sidebar -->
+        <button @click="$emit('toggle-sidebar')"
+          class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors leading-none"
+          title="Toggle notes list">
+          <Icon name="mdi:menu" class="w-5 h-5 block" />
         </button>
 
       </div>
