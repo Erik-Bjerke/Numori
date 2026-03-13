@@ -95,15 +95,13 @@
     </div>
 
     <!-- Mobile: toggle button (always visible) + collapsible formatting toolbar -->
-    <div v-if="currentNote" class="lg:hidden sticky bottom-0 z-10">
-      <!-- Toggle chevron — always visible, pinned bottom-right -->
-      <div class="flex justify-end px-2">
-        <button @click="showMobileToolbar = !showMobileToolbar"
-          class="px-1.5 pt-1 pb-0.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700 rounded-t-lg transition-colors shadow-sm"
-          :title="showMobileToolbar ? 'Hide formatting toolbar' : 'Show formatting toolbar'">
-          <Icon :name="showMobileToolbar ? 'mdi:chevron-down' : 'mdi:chevron-up'" class="w-5 h-5 block" />
-        </button>
-      </div>
+    <div v-if="currentNote" class="lg:hidden sticky bottom-0 z-10 relative">
+      <!-- Toggle chevron — absolutely positioned above the toolbar so it doesn't push content -->
+      <button @click="showMobileToolbar = !showMobileToolbar"
+        class="absolute right-2 bottom-full px-1.5 pt-1 pb-0.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700 rounded-t-lg transition-colors shadow-sm z-10"
+        :title="showMobileToolbar ? 'Hide formatting toolbar' : 'Show formatting toolbar'">
+        <Icon :name="showMobileToolbar ? 'mdi:chevron-down' : 'mdi:chevron-up'" class="w-5 h-5 block" />
+      </button>
       <!-- Collapsible toolbar -->
       <Transition
         enter-active-class="transition-all duration-200 ease-out"

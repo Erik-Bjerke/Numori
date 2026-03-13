@@ -56,9 +56,12 @@
           <Icon name="mdi:code-tags" class="w-5 h-5 block" />
         </button>
 
+        <!-- Separator -->
+        <div class="w-px h-5 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+
         <!-- Toggle sidebar -->
         <button @click="$emit('toggle-sidebar')"
-          class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors leading-none"
+          class="p-3 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors leading-none"
           title="Toggle notes list">
           <Icon name="mdi:menu" class="w-5 h-5 block" />
         </button>
