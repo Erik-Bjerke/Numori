@@ -516,6 +516,7 @@ const injectInlineStyles = () => {
     .vs-dark .calcnotes-md-quote-bar { color: #4fc1ff !important; }
     .calcnotes-inline-result { cursor: pointer; }
     .calcnotes-inline-error { cursor: default; }
+    .calcnotes-inline-pad { cursor: default; }
     .calcnotes-inline-copied-toast {
       position: absolute; pointer-events: none; z-index: 100;
       padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500;
@@ -644,25 +645,36 @@ const updateInlineDecorations = () => {
       ? `= ${line.result}`
       : `⚠ ${line.error}`
 
-    let text
+    let padText
     if (alignRight && targetCol > 0) {
-      // Pad so the result ends near the right edge of the visible area
-      // totalUsed = lineLength (existing text) + padding + resultStr.length
-      // We want totalUsed ≈ targetCol, so padding = targetCol - lineLength - resultStr.length
       const padCount = Math.max(4, targetCol - lineLength - resultStr.length)
-      text = ' '.repeat(padCount) + resultStr
+      padText = ' '.repeat(padCount)
     } else {
-      text = `  ${resultStr}`
+      padText = '  '
     }
 
     const className = line.result ? 'calcnotes-inline-result' : 'calcnotes-inline-error'
 
+    // Padding decoration (not clickable)
+    newDecorations.push({
+      range: new monacoInstance.Range(lineNumber, lineLength + 1, lineNumber, lineLength + 1),
+      options: {
+        description: 'calcnotes-inline-pad',
+        after: {
+          content: padText,
+          inlineClassName: 'calcnotes-inline-pad',
+        },
+        showIfCollapsed: true,
+      }
+    })
+
+    // Result decoration (clickable for results)
     newDecorations.push({
       range: new monacoInstance.Range(lineNumber, lineLength + 1, lineNumber, lineLength + 1),
       options: {
         description: 'calcnotes-inline-result',
         after: {
-          content: text,
+          content: resultStr,
           inlineClassName: className,
         },
         showIfCollapsed: true,
