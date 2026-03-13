@@ -37,13 +37,6 @@
           <Icon name="mdi:file-document-outline" class="w-5 h-5 block" />
         </button>
 
-        <!-- Toggle Mobile Formatting Toolbar -->
-        <button @click="$emit('toggle-mobile-toolbar')"
-          class="lg:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors leading-none"
-          :title="showMobileToolbar ? 'Hide formatting toolbar' : 'Show formatting toolbar'">
-          <Icon name="mdi:format-text" class="w-5 h-5 block" :class="showMobileToolbar ? 'text-primary-500' : ''" />
-        </button>
-
         <!-- Toggle markdown preview -->
         <button @click="$emit('toggle-markdown-preview')" class="p-2 rounded-lg transition-colors leading-none"
           :class="showMarkdownPreview
@@ -75,10 +68,6 @@ defineProps({
     type: Boolean,
     default: true
   },
-  showMobileToolbar: {
-    type: Boolean,
-    default: true
-  },
   showMarkdownPreview: {
     type: Boolean,
     default: false
@@ -95,7 +84,6 @@ defineEmits([
   'show-templates',
   'apply-format',
   'toggle-inline',
-  'toggle-mobile-toolbar',
   'toggle-markdown-preview',
 ])
 </script>

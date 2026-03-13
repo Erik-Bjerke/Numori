@@ -22,11 +22,11 @@
     </Transition>
 
     <!-- Mobile-friendly Toolbar -->
-    <AppHeader :current-note="currentNote" :show-inline="showInlineResults" :show-mobile-toolbar="showMobileToolbar" :show-markdown-preview="showMarkdownPreview"
+    <AppHeader :current-note="currentNote" :show-inline="showInlineResults" :show-markdown-preview="showMarkdownPreview"
       :hide-alpha="localePrefs.preferences.dismissAlphaWarning"
       @toggle-sidebar="showSidebar = !showSidebar"
       @show-meta="currentNote && (showMetaModal = true)" @apply-format="applyFormat"
-      @toggle-inline="showInlineResults = !showInlineResults" @toggle-mobile-toolbar="showMobileToolbar = !showMobileToolbar"
+      @toggle-inline="showInlineResults = !showInlineResults"
       @toggle-markdown-preview="showMarkdownPreview = !showMarkdownPreview"
       @show-templates="showTemplates = true" />
 
@@ -80,18 +80,29 @@
       </main>
     </div>
 
-    <!-- Mobile bottom formatting toolbar -->
-    <Transition
-      enter-active-class="transition-all duration-200 ease-out"
-      enter-from-class="translate-y-full opacity-0"
-      enter-to-class="translate-y-0 opacity-100"
-      leave-active-class="transition-all duration-150 ease-in"
-      leave-from-class="translate-y-0 opacity-100"
-      leave-to-class="translate-y-full opacity-0">
-      <div v-if="currentNote && showMobileToolbar" class="lg:hidden sticky bottom-0 z-10 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800">
-        <FormattingToolbar container-class="px-2 py-1.5" @apply-format="applyFormat" />
+    <!-- Mobile: toggle button (always visible) + collapsible formatting toolbar -->
+    <div v-if="currentNote" class="lg:hidden sticky bottom-0 z-10">
+      <!-- Toggle chevron — always visible, pinned bottom-right -->
+      <div class="flex justify-end px-2">
+        <button @click="showMobileToolbar = !showMobileToolbar"
+          class="px-1.5 pt-1 pb-0.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700 rounded-t-lg transition-colors shadow-sm"
+          :title="showMobileToolbar ? 'Hide formatting toolbar' : 'Show formatting toolbar'">
+          <Icon :name="showMobileToolbar ? 'mdi:chevron-down' : 'mdi:chevron-up'" class="w-5 h-5 block" />
+        </button>
       </div>
-    </Transition>
+      <!-- Collapsible toolbar -->
+      <Transition
+        enter-active-class="transition-all duration-200 ease-out"
+        enter-from-class="max-h-0 opacity-0"
+        enter-to-class="max-h-16 opacity-100"
+        leave-active-class="transition-all duration-150 ease-in"
+        leave-from-class="max-h-16 opacity-100"
+        leave-to-class="max-h-0 opacity-0">
+        <div v-if="showMobileToolbar" class="overflow-hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800">
+          <FormattingToolbar container-class="px-2 py-1.5" @apply-format="applyFormat" />
+        </div>
+      </Transition>
+    </div>
 
     <!-- Modals -->
     <NoteMetaModal :is-open="showMetaModal" :title="currentNote?.title || ''"
