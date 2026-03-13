@@ -28,7 +28,18 @@
       @show-meta="currentNote && (showMetaModal = true)" @apply-format="applyFormat"
       @toggle-inline="showInlineResults = !showInlineResults"
       @toggle-markdown-preview="showMarkdownPreview = !showMarkdownPreview"
-      @show-templates="showTemplates = true" />
+      @show-templates="showTemplates = true"
+      @file-new="addNote"
+      @file-open="handleOpenFile"
+      @file-duplicate="handleDuplicate"
+      @file-export-text="handleExportText"
+      @file-export-markdown="handleExportMarkdown"
+      @file-export-pdf="handleExportPdf"
+      @file-export-json="handleExportJson"
+      @file-export-all="handleExportAll"
+      @file-import="handleImport"
+      @file-copy="handleCopy"
+      @file-print="handlePrint" />
 
     <!-- Main Content Area -->
     <div class="flex-1 flex overflow-hidden">
@@ -120,11 +131,17 @@
       :save="localePrefs.save"
       :reset="localePrefs.reset"
       @close="showLocaleSettings = false" />
+
+    <ExportOptionsModal :is-open="showExportOptions"
+      @close="showExportOptions = false"
+      @confirm="handleExportConfirm" />
   </div>
 </template>
 
 <script setup>
 const { notes, currentNoteId, currentNote, addNote, deleteNote, updateNoteContent, updateNoteMeta } = useNotes()
+const { exportNoteAsText, exportNoteAsJson, exportNoteAsMarkdown, exportNoteAsPdf, exportAllNotes, openFile, importNotes, duplicateNote, copyToClipboard, printNote } = useFileActions()
+const { evaluateLines } = useCalculator()
 const localePrefs = useLocalePreferences()
 
 const showSidebar = ref(true) // Default to true for better UX
@@ -204,4 +221,76 @@ const insertTemplate = (templateContent) => {
     updateContent(content)
   }
 }
+
+// File menu handlers — export options modal
+const showExportOptions = ref(false)
+const pendingExportAction = ref(null)
+
+const askExportOptions = (action) => {
+  pendingExportAction.value = action
+  showExportOptions.value = true
+}
+
+const handleExportConfirm = (withResults) => {
+  showExportOptions.value = false
+  const calc = withResults ? evaluateLines : null
+  const note = currentNote.value
+  switch (pendingExportAction.value) {
+    case 'text': exportNoteAsText(note, calc); break
+    case 'markdown': exportNoteAsMarkdown(note, calc); break
+    case 'pdf': exportNoteAsPdf(note, calc); break
+    case 'print': printNote(note, calc); break
+  }
+  pendingExportAction.value = null
+}
+
+const handleOpenFile = async () => {
+  try {
+    const data = await openFile()
+    const newNote = addNote()
+    updateNoteMeta(newNote.id, { title: data.title, description: data.description })
+    updateNoteContent(newNote.id, data.content)
+  } catch {
+    // User cancelled or file read failed
+  }
+}
+
+const handleDuplicate = () => {
+  if (!currentNote.value) return
+  const data = duplicateNote(currentNote.value)
+  if (data) {
+    const newNote = addNote()
+    updateNoteMeta(newNote.id, { title: data.title, description: data.description })
+    updateNoteContent(newNote.id, data.content)
+  }
+}
+
+const handleExportText = () => askExportOptions('text')
+const handleExportMarkdown = () => askExportOptions('markdown')
+const handleExportPdf = () => askExportOptions('pdf')
+const handleExportJson = () => exportNoteAsJson(currentNote.value)
+const handleExportAll = () => exportAllNotes(notes.value)
+
+const handleImport = async () => {
+  try {
+    const result = await importNotes()
+    for (const noteData of result.notes) {
+      const newNote = addNote()
+      updateNoteMeta(newNote.id, { title: noteData.title, description: noteData.description })
+      updateNoteContent(newNote.id, noteData.content)
+    }
+  } catch {
+    // User cancelled or file read failed — silently ignore
+  }
+}
+
+const handleCopy = async () => {
+  try {
+    await copyToClipboard(currentNote.value)
+  } catch {
+    // Clipboard API not available
+  }
+}
+
+const handlePrint = () => askExportOptions('print')
 </script>

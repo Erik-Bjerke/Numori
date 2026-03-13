@@ -1,13 +1,29 @@
 <template>
   <header class="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 sticky top-0 z-10">
     <div class="flex items-center justify-between px-3 py-2">
-      <!-- Left: Menu toggle & Title -->
+      <!-- Left: Menu toggle, File dropdown & Title -->
       <div class="flex items-center gap-2">
         <button @click="$emit('toggle-sidebar')"
           class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors leading-none lg:hidden"
           title="Toggle notes list">
           <Icon name="mdi:menu" class="w-5 h-5 block" />
         </button>
+
+        <!-- File dropdown -->
+        <FileDropdown :has-note="!!currentNote"
+          @new-note="$emit('file-new')"
+          @open-file="$emit('file-open')"
+          @templates="$emit('show-templates')"
+          @duplicate="$emit('file-duplicate')"
+          @export-text="$emit('file-export-text')"
+          @export-markdown="$emit('file-export-markdown')"
+          @export-pdf="$emit('file-export-pdf')"
+          @export-json="$emit('file-export-json')"
+          @export-all="$emit('file-export-all')"
+          @import="$emit('file-import')"
+          @copy="$emit('file-copy')"
+          @print="$emit('file-print')" />
+
         <button @click="$emit('show-meta')" class="text-left">
           <h1 class="text-lg font-semibold text-gray-900 dark:text-gray-400 truncate max-w-[200px] sm:max-w-none">
             {{ currentNote?.title || 'Notes' }}
@@ -29,13 +45,6 @@
           class="alpha-ribbon relative px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-amber-400 text-amber-900 mr-2">
           alpha
         </span>
-
-        <!-- Templates -->
-        <button @click="$emit('show-templates')"
-          class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors leading-none"
-          title="Templates">
-          <Icon name="mdi:file-document-outline" class="w-5 h-5 block" />
-        </button>
 
         <!-- Toggle markdown preview -->
         <button @click="$emit('toggle-markdown-preview')" class="p-2 rounded-lg transition-colors leading-none"
@@ -85,6 +94,17 @@ defineEmits([
   'apply-format',
   'toggle-inline',
   'toggle-markdown-preview',
+  'file-new',
+  'file-open',
+  'file-duplicate',
+  'file-export-text',
+  'file-export-markdown',
+  'file-export-pdf',
+  'file-export-json',
+  'file-export-all',
+  'file-import',
+  'file-copy',
+  'file-print',
 ])
 </script>
 
