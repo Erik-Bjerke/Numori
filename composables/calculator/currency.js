@@ -7,11 +7,12 @@ import { evaluateMath } from './math'
 const CODE_CURRENCY_RE = /(\d+(?:\.\d+)?)\s*([kK]|M|thousand|thousands|million|millions|billion|billions|trillion|trillions)?\s+([a-zA-Z]+)/g
 
 // Replace code-based currency amounts (e.g. "56 EUR") with their USD value in an expression
-const replaceCodeCurrencies = (expr) => {
+const replaceCodeCurrencies = (expr, targetCurrency) => {
   return expr.replace(CODE_CURRENCY_RE, (match, num, scale, code) => {
     const currency = currencyMap[code.toLowerCase()] || code.toUpperCase()
     if (exchangeRates.value[currency]) {
       const val = applyScale(num, scale)
+      if (targetCurrency && currency === targetCurrency) return `(${val})`
       const usdVal = val / exchangeRates.value[currency]
       return `(${usdVal})`
     }
@@ -117,6 +118,42 @@ export const convertCurrency = (value, fromCurrency, toCurrency) => {
   return usd * toRate
 }
 
+// Collect all distinct currencies present in an expression context
+const collectCurrencies = (symbolMatches, currencyVarsInExpr, codeCurrencyMatches) => {
+  const currencies = new Set()
+  for (const s of symbolMatches) currencies.add(s.currency)
+  for (const cv of currencyVarsInExpr) currencies.add(cv.currency)
+  for (const cm of codeCurrencyMatches) currencies.add(cm.currency)
+  return currencies
+}
+
+// Replace all currency tokens in an expression with numeric values.
+// If allSameCurrency is true, just strip symbols and use raw values.
+// If mixed, convert everything to USD for intermediate calculation.
+const replaceCurrencyTokens = (expr, symbolMatches, currencyVarsInExpr, codeCurrencyMatches, allSameCurrency) => {
+  let result = expr
+
+  result = result.replace(/([€$£¥₹₽])\s*(\d+(?:\.\d+)?)\s*([kK]|M|thousand|thousands|million|millions|billion|billions|trillion|trillions)?/g, (_, symbol, num, scale) => {
+    const cur = currencyMap[symbol]
+    const val = applyScale(num, scale)
+    if (allSameCurrency) return `(${val})`
+    return `(${val / exchangeRates.value[cur]})`
+  })
+
+  for (const cv of currencyVarsInExpr) {
+    const regex = new RegExp(`\\b${cv.name}\\b`, 'gi')
+    if (allSameCurrency) {
+      result = result.replace(regex, `(${cv.value})`)
+    } else {
+      result = result.replace(regex, `(${cv.value / exchangeRates.value[cv.currency]})`)
+    }
+  }
+
+  result = replaceCodeCurrencies(result, allSameCurrency ? currencyVarsInExpr[0]?.currency || symbolMatches[0]?.currency : null)
+
+  return result
+}
+
 export const handleCurrencyExpression = (input) => {
   const noResult = { value: 0, currency: null, hasCurrency: false, isConverted: false }
 
@@ -130,6 +167,9 @@ export const handleCurrencyExpression = (input) => {
     if (exchangeRates.value[targetCurrency]) {
       const parsed = parseCurrency(sourceExpr)
       if (parsed && !parsed.rest) {
+        if (parsed.currency === targetCurrency) {
+          return { value: parsed.value, currency: targetCurrency, hasCurrency: true, isConverted: false }
+        }
         const converted = convertCurrency(parsed.value, parsed.currency, targetCurrency)
         return { value: converted, currency: targetCurrency, hasCurrency: true, isConverted: true }
       }
@@ -154,22 +194,31 @@ export const handleCurrencyExpression = (input) => {
         cvarsInSource.push({ name: 'prev', value: previousResult.value, currency: previousResultCurrency.value })
       }
 
-      const hasCodeCurrencies = findCodeCurrencyMatches(sourceExpr).length > 0
+      const codeMatches = findCodeCurrencyMatches(sourceExpr)
+      const hasCodeCurrencies = codeMatches.length > 0
 
       if (hasCurrencySymbols || hasCurrencyVars || hasCodeCurrencies) {
-        let expr = sourceExpr
-        expr = expr.replace(/([€$£¥₹₽])\s*(\d+(?:\.\d+)?)\s*([kK]|M|thousand|thousands|million|millions|billion|billions|trillion|trillions)?/g, (_, symbol, num, scale) => {
-          const cur = currencyMap[symbol]
-          const val = applyScale(num, scale)
-          const usdVal = val / exchangeRates.value[cur]
-          return `(${usdVal})`
-        })
-        for (const cv of cvarsInSource) {
-          const regex = new RegExp(`\\b${cv.name}\\b`, 'gi')
-          const usdVal = cv.value / exchangeRates.value[cv.currency]
-          expr = expr.replace(regex, `(${usdVal})`)
+        const symbolMatches = []
+        const symRe = /([€$£¥₹₽])\s*(\d+(?:\.\d+)?)\s*([kK]|M|thousand|thousands|million|millions|billion|billions|trillion|trillions)?/g
+        let sm
+        while ((sm = symRe.exec(sourceExpr)) !== null) {
+          symbolMatches.push({ symbol: sm[1], value: applyScale(sm[2], sm[3]), currency: currencyMap[sm[1]] })
         }
-        expr = replaceCodeCurrencies(expr)
+
+        const allCurrencies = collectCurrencies(symbolMatches, cvarsInSource, codeMatches)
+        const allSame = allCurrencies.size === 1 && allCurrencies.has(targetCurrency)
+
+        if (allSame) {
+          // All source values are already in the target currency — just strip symbols and do plain math
+          const expr = replaceCurrencyTokens(sourceExpr, symbolMatches, cvarsInSource, codeMatches, true)
+          try {
+            const result = evaluateMath(expr)
+            return { value: result, currency: targetCurrency, hasCurrency: true, isConverted: false }
+          } catch (e) { /* fall through */ }
+        }
+
+        // Mixed currencies — convert through USD
+        const expr = replaceCurrencyTokens(sourceExpr, symbolMatches, cvarsInSource, codeMatches, false)
         try {
           const usdResult = evaluateMath(expr)
           const converted = usdResult * exchangeRates.value[targetCurrency]
@@ -194,16 +243,23 @@ export const handleCurrencyExpression = (input) => {
     const cur2 = currencyMap[currArithMatch[5]]
     const val2 = applyScale(currArithMatch[6], currArithMatch[7])
 
-    const usd1 = val1 / exchangeRates.value[cur1]
-    const usd2 = val2 / exchangeRates.value[cur2]
     let result
-    if (op === '+') result = usd1 + usd2
-    else if (op === '-') result = usd1 - usd2
-    else if (op === '*') result = usd1 * usd2
-    else if (op === '/') result = usd1 / usd2
+    if (cur1 === cur2) {
+      // Same currency — plain math, no conversion
+      if (op === '+') result = val1 + val2
+      else if (op === '-') result = val1 - val2
+      else if (op === '*') result = val1 * val2
+      else if (op === '/') result = val1 / val2
+    } else {
+      // Mixed currencies — convert second operand to first currency
+      const converted2 = convertCurrency(val2, cur2, cur1)
+      if (op === '+') result = val1 + converted2
+      else if (op === '-') result = val1 - converted2
+      else if (op === '*') result = val1 * converted2
+      else if (op === '/') result = val1 / converted2
+    }
 
-    const finalValue = result * exchangeRates.value[cur1]
-    return { value: finalValue, currency: cur1, hasCurrency: true, isConverted: false }
+    return { value: result, currency: cur1, hasCurrency: true, isConverted: false }
   }
 
   // Simple currency: "$30", "€50"
@@ -253,26 +309,14 @@ export const handleCurrencyExpression = (input) => {
         : codeCurrencyMatches[0].currency
     }
 
-    let expr = input
+    const allCurrencies = collectCurrencies(symbolMatches, currencyVarsInExpr, codeCurrencyMatches)
+    const allSameCurrency = allCurrencies.size === 1
 
-    expr = expr.replace(/([€$£¥₹₽])\s*(\d+(?:\.\d+)?)\s*([kK]|M|thousand|thousands|million|millions|billion|billions|trillion|trillions)?/g, (_, symbol, num, scale) => {
-      const cur = currencyMap[symbol]
-      const val = applyScale(num, scale)
-      const usdVal = val / exchangeRates.value[cur]
-      return `(${usdVal})`
-    })
-
-    for (const cv of currencyVarsInExpr) {
-      const regex = new RegExp(`\\b${cv.name}\\b`, 'gi')
-      const usdVal = cv.value / exchangeRates.value[cv.currency]
-      expr = expr.replace(regex, `(${usdVal})`)
-    }
-
-    expr = replaceCodeCurrencies(expr)
+    let expr = replaceCurrencyTokens(input, symbolMatches, currencyVarsInExpr, codeCurrencyMatches, allSameCurrency)
 
     try {
-      const usdResult = evaluateMath(expr)
-      const finalValue = usdResult * exchangeRates.value[primaryCurrency]
+      const mathResult = evaluateMath(expr)
+      const finalValue = allSameCurrency ? mathResult : mathResult * exchangeRates.value[primaryCurrency]
       return { value: finalValue, currency: primaryCurrency, hasCurrency: true, isConverted: false }
     } catch (e) { /* fall through */ }
   }
