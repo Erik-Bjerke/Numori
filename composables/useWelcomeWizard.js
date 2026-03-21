@@ -1,5 +1,3 @@
-import { useLocalStorage } from '@vueuse/core'
-
 const STORAGE_KEY = 'calcnotes-welcome-completed'
 
 export const useWelcomeWizard = () => {

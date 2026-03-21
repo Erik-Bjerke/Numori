@@ -2,7 +2,6 @@
  * Composable for file-related actions: export, import, duplicate, copy, print.
  * Works with the note objects from useNotes.
  */
-import { useClipboard } from '@vueuse/core'
 
 export const useFileActions = () => {
   const { copy: clipboardCopy } = useClipboard()

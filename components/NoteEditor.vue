@@ -92,7 +92,6 @@ const { evaluateLines } = useCalculator()
 const { registerCalcLanguage } = useMonacoCalcLanguage()
 const colorMode = useColorMode()
 import { formatDisplay } from '~/composables/useDisplayFormatter'
-import { useIntervalFn, useDebounceFn } from '@vueuse/core'
 
 // --- Inline markdown rendering via Monaco decorations ---
 let mdDecorationCollection = null

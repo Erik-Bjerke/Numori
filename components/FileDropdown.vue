@@ -82,8 +82,6 @@ const emit = defineEmits([
   'about',
 ])
 
-import { onClickOutside, useEventListener } from '@vueuse/core'
-
 const open = ref(false)
 const dropdownRef = ref(null)
 

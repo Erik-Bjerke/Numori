@@ -8,7 +8,6 @@
  * is a known, long-standing browser limitation. As a workaround,
  * "New Note" is bound to Ctrl/Cmd+Shift+N instead.
  */
-import { useEventListener } from '@vueuse/core'
 
 export const useKeyboardShortcuts = (handlers = {}) => {
   const isMac = computed(() => {

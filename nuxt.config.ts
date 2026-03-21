@@ -2,14 +2,8 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: false },
-  vite: {
-    optimizeDeps: {
-      include: [
-        '@vueuse/core',
-      ]
-    }
-  },
   modules: [
+    '@vueuse/nuxt',
     '@nuxt/icon',
     '@nuxt/fonts',
     'nuxt-i18n-micro',
