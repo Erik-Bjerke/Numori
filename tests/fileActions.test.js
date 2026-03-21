@@ -471,6 +471,6 @@ describe('openFile', () => {
       }),
     }
 
-    await expect(openFile()).rejects.toThrow('Open cancelled')
+    await expect(openFile()).rejects.toThrow('Cancelled')
   })
 })

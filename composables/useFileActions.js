@@ -1,29 +1,18 @@
 /**
  * Composable for file-related actions: export, import, duplicate, copy, print.
  * Works with the note objects from useNotes.
+ * Supports both web (browser APIs) and native (Capacitor) platforms.
  */
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem'
+import { Share } from '@capacitor/share'
+import { Capacitor } from '@capacitor/core'
 
 export const useFileActions = () => {
   const { copy: clipboardCopy } = useClipboard()
+  const isNative = Capacitor.isNativePlatform()
 
-  /**
-   * Trigger a browser file download with the given content.
-   */
-  const downloadFile = (filename, content, mimeType = 'text/plain') => {
-    const blob = new Blob([content], { type: mimeType })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }
+  // ── Helpers ──────────────────────────────────────────────
 
-  /**
-   * Sanitize a note title into a safe filename.
-   */
   const sanitizeFilename = (title) => {
     return (title || 'untitled')
       .replace(/[^a-zA-Z0-9_\-\s]/g, '')
@@ -32,13 +21,6 @@ export const useFileActions = () => {
       .slice(0, 80) || 'untitled'
   }
 
-  /**
-   * Merge note content lines with calculator results.
-   * Each line gets " = result" appended when a result exists.
-   * @param {string} content - The raw note content
-   * @param {Function} evaluateLines - The calculator's evaluateLines function
-   * @returns {string} - Content with results appended to each line
-   */
   const mergeContentWithResults = (content, evaluateLines) => {
     if (!content || !evaluateLines) return content || ''
     const lines = content.split('\n')
@@ -50,11 +32,43 @@ export const useFileActions = () => {
     }).join('\n')
   }
 
+  // ── Download / Save ──────────────────────────────────────
+
   /**
-   * Export a single note as a .txt file (plain content).
-   * @param {Object} note
-   * @param {Function|null} evaluateLines - pass to include results
+   * Web: trigger a browser download. Native: write to cache then share.
    */
+  const downloadFile = async (filename, content, mimeType = 'text/plain') => {
+    if (!isNative) {
+      const blob = new Blob([content], { type: mimeType })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      return
+    }
+
+    // Native: write to cache, then share so the user can choose where to save
+    const result = await Filesystem.writeFile({
+      path: filename,
+      data: content,
+      directory: Directory.Cache,
+      encoding: Encoding.UTF8,
+    })
+
+    const fileUri = result.uri
+    await Share.share({
+      title: filename,
+      url: fileUri,
+      dialogTitle: `Save ${filename}`,
+    })
+  }
+
+  // ── Export functions ────────────────────────────────────
+
   const exportNoteAsText = (note, evaluateLines = null) => {
     if (!note) return false
     const filename = `${sanitizeFilename(note.title)}.txt`
@@ -65,9 +79,6 @@ export const useFileActions = () => {
     return true
   }
 
-  /**
-   * Export a single note as a .json file (full metadata).
-   */
   const exportNoteAsJson = (note) => {
     if (!note) return false
     const filename = `${sanitizeFilename(note.title)}.json`
@@ -83,9 +94,6 @@ export const useFileActions = () => {
     return true
   }
 
-  /**
-   * Export all notes as a single .json file.
-   */
   const exportAllNotes = (notes) => {
     if (!notes || notes.length === 0) return false
     const data = notes.map(n => ({
@@ -100,11 +108,6 @@ export const useFileActions = () => {
     return true
   }
 
-  /**
-   * Export a single note as a .md (markdown) file.
-   * @param {Object} note
-   * @param {Function|null} evaluateLines - pass to include results
-   */
   const exportNoteAsMarkdown = (note, evaluateLines = null) => {
     if (!note) return false
     const filename = `${sanitizeFilename(note.title)}.md`
@@ -116,124 +119,113 @@ export const useFileActions = () => {
     return true
   }
 
-  /**
-   * Export a single note as a PDF via the browser's print dialog.
-   * @param {Object} note
-   * @param {Function|null} evaluateLines - pass to include results
-   */
   const exportNoteAsPdf = (note, evaluateLines = null) => {
     if (!note) return false
     const body = evaluateLines
       ? mergeContentWithResults(note.content, evaluateLines)
       : (note.content || '')
     const escaped = body.replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    const printWindow = window.open('', '_blank')
-    if (!printWindow) return false
-    printWindow.document.write(`<!DOCTYPE html>
+
+    if (!isNative) {
+      const printWindow = window.open('', '_blank')
+      if (!printWindow) return false
+      printWindow.document.write(`<!DOCTYPE html>
 <html><head><title>${note.title || 'Note'}</title>
 <style>
   body { font-family: monospace; white-space: pre-wrap; padding: 2rem; max-width: 800px; margin: 0 auto; line-height: 1.6; }
   @media print { body { padding: 0; } }
 </style>
 </head><body>${escaped}</body></html>`)
-    printWindow.document.close()
-    printWindow.print()
+      printWindow.document.close()
+      printWindow.print()
+    } else {
+      // On native, export as HTML and share — user can open in browser/print from there
+      const html = `<!DOCTYPE html>
+<html><head><title>${note.title || 'Note'}</title>
+<style>body{font-family:monospace;white-space:pre-wrap;padding:2rem;max-width:800px;margin:0 auto;line-height:1.6}</style>
+</head><body>${escaped}</body></html>`
+      downloadFile(`${sanitizeFilename(note.title)}.html`, html, 'text/html')
+    }
     return true
+  }
+
+  // ── File picking (open / import) ───────────────────────
+
+  /**
+   * Native file picker using a temporary <input type="file">.
+   * On Capacitor Android/iOS the WebView delegates to the system file picker.
+   * Falls back identically on web.
+   */
+  const pickFile = (accept) => {
+    return new Promise((resolve, reject) => {
+      const input = document.createElement('input')
+      input.type = 'file'
+      input.accept = accept
+
+      input.onchange = async (e) => {
+        const file = e.target.files?.[0]
+        if (!file) return reject(new Error('No file selected'))
+        try {
+          const text = await file.text()
+          resolve({ name: file.name, text })
+        } catch (err) {
+          reject(new Error('Failed to read file: ' + err.message))
+        }
+      }
+      input.oncancel = () => reject(new Error('Cancelled'))
+      input.click()
+    })
   }
 
   /**
    * Open a .txt or .md file as a new note.
-   * Returns a promise that resolves with { title, description, content }.
    */
-  const openFile = () => {
-    return new Promise((resolve, reject) => {
-      const input = document.createElement('input')
-      input.type = 'file'
-      input.accept = '.txt,.md'
+  const openFile = async () => {
+    const { name, text } = await pickFile('.txt,.md,.json')
+    let title = name.replace(/\.[^.]+$/, '') || 'Opened Note'
+    let content = text
 
-      input.onchange = async (e) => {
-        const file = e.target.files?.[0]
-        if (!file) return reject(new Error('No file selected'))
-
-        try {
-          const text = await file.text()
-          let title = file.name.replace(/\.[^.]+$/, '') || 'Opened Note'
-          let content = text
-
-          // For markdown files, extract title from first # heading if present
-          if (file.name.endsWith('.md')) {
-            const headerMatch = text.match(/^#\s+(.+)\n\n?/)
-            if (headerMatch) {
-              title = headerMatch[1].trim()
-              content = text.slice(headerMatch[0].length)
-            }
-          }
-
-          resolve({ title, description: '', content })
-        } catch (err) {
-          reject(new Error('Failed to read file: ' + err.message))
-        }
+    if (name.endsWith('.md')) {
+      const headerMatch = text.match(/^#\s+(.+)\n\n?/)
+      if (headerMatch) {
+        title = headerMatch[1].trim()
+        content = text.slice(headerMatch[0].length)
       }
+    }
 
-      input.oncancel = () => reject(new Error('Open cancelled'))
-      input.click()
-    })
+    return { title, description: '', content }
   }
 
   /**
-   * Read a user-selected file and return its parsed content.
-   * Returns a promise that resolves with { type: 'single'|'multiple', notes: [...] }
+   * Import notes from a .json file.
    */
-  const importNotes = () => {
-    return new Promise((resolve, reject) => {
-      const input = document.createElement('input')
-      input.type = 'file'
-      input.accept = '.json'
+  const importNotes = async () => {
+    const { text } = await pickFile('.json')
+    const parsed = JSON.parse(text)
 
-      input.onchange = async (e) => {
-        const file = e.target.files?.[0]
-        if (!file) return reject(new Error('No file selected'))
+    if (Array.isArray(parsed)) {
+      const notes = parsed.map(n => ({
+        title: n.title || 'Imported Note',
+        description: n.description || '',
+        tags: n.tags || [],
+        content: n.content || '',
+      }))
+      return { type: 'multiple', notes }
+    }
 
-        try {
-          const text = await file.text()
-          const parsed = JSON.parse(text)
-
-          // Array of notes (backup file)
-          if (Array.isArray(parsed)) {
-            const notes = parsed.map(n => ({
-              title: n.title || 'Imported Note',
-              description: n.description || '',
-              tags: n.tags || [],
-              content: n.content || '',
-            }))
-            resolve({ type: 'multiple', notes })
-          } else {
-            // Single note JSON
-            resolve({
-              type: 'single',
-              notes: [{
-                title: parsed.title || 'Imported Note',
-                description: parsed.description || '',
-                tags: parsed.tags || [],
-                content: parsed.content || '',
-              }],
-            })
-          }
-        } catch (err) {
-          reject(new Error('Failed to read file: ' + err.message))
-        }
-      }
-
-      // Handle cancel (no file chosen)
-      input.oncancel = () => reject(new Error('Import cancelled'))
-
-      input.click()
-    })
+    return {
+      type: 'single',
+      notes: [{
+        title: parsed.title || 'Imported Note',
+        description: parsed.description || '',
+        tags: parsed.tags || [],
+        content: parsed.content || '',
+      }],
+    }
   }
 
-  /**
-   * Duplicate a note, returning the new note data (without id — caller assigns that).
-   */
+  // ── Utility actions ────────────────────────────────────
+
   const duplicateNote = (note) => {
     if (!note) return null
     return {
@@ -244,33 +236,36 @@ export const useFileActions = () => {
     }
   }
 
-  /**
-   * Copy note content to clipboard. Returns a promise.
-   */
   const copyToClipboard = async (note) => {
     if (!note?.content) return false
     await clipboardCopy(note.content)
     return true
   }
 
-  /**
-   * Print the current note content.
-   * @param {Object} note
-   * @param {Function|null} evaluateLines - pass to include results
-   */
   const printNote = (note, evaluateLines = null) => {
     if (!note) return false
     const body = evaluateLines
       ? mergeContentWithResults(note.content, evaluateLines)
       : (note.content || '')
-    const printWindow = window.open('', '_blank')
-    if (!printWindow) return false
-    printWindow.document.write(`<!DOCTYPE html>
+
+    if (!isNative) {
+      const printWindow = window.open('', '_blank')
+      if (!printWindow) return false
+      printWindow.document.write(`<!DOCTYPE html>
 <html><head><title>${note.title || 'Note'}</title>
 <style>body{font-family:monospace;white-space:pre-wrap;padding:2rem;max-width:800px;margin:0 auto;line-height:1.6}</style>
 </head><body>${body.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</body></html>`)
-    printWindow.document.close()
-    printWindow.print()
+      printWindow.document.close()
+      printWindow.print()
+    } else {
+      // Native: share as HTML for printing
+      const escaped = body.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      const html = `<!DOCTYPE html>
+<html><head><title>${note.title || 'Note'}</title>
+<style>body{font-family:monospace;white-space:pre-wrap;padding:2rem;max-width:800px;margin:0 auto;line-height:1.6}</style>
+</head><body>${escaped}</body></html>`
+      downloadFile(`${sanitizeFilename(note.title)}.html`, html, 'text/html')
+    }
     return true
   }
 

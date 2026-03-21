@@ -14,7 +14,9 @@
   "dependencies": {
     "@capacitor/android": "^8.2.0",
     "@capacitor/core": "^8.2.0",
+    "@capacitor/filesystem": "^8.1.2",
     "@capacitor/ios": "^8.2.0",
+    "@capacitor/share": "^8.0.1",
     "@codemirror/commands": "^6.10.3",
     "@codemirror/language": "^6.12.2",
     "@codemirror/state": "^6.6.0",
