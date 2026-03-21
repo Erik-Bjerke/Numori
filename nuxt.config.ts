@@ -4,8 +4,21 @@ export default defineNuxtConfig({
   devtools: { enabled: false },
   app: {
     head: {
+      title: 'Calc Notes',
+      htmlAttrs: { lang: 'en' },
       meta: [
-        { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' }
+        { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
+        { name: 'description', content: 'A smart notepad that instantly solves math as you type — powered by natural language.' },
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
+        { name: 'apple-mobile-web-app-title', content: 'Calc Notes' },
+        { name: 'application-name', content: 'Calc Notes' },
+        { name: 'theme-color', content: '#ffffff' }
+      ],
+      link: [
+        { rel: 'manifest', href: '/manifest.webmanifest' },
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' }
       ]
     }
   },
