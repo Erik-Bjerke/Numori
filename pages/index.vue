@@ -1,5 +1,5 @@
 <template>
-  <div class="h-screen flex flex-col bg-white dark:bg-gray-925">
+  <div class="h-screen flex flex-col bg-white dark:bg-gray-925 overscroll-none">
     <!-- Alpha Warning Banner -->
     <Transition
       enter-active-class="transition-all duration-300 ease-out"
