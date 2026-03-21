@@ -178,6 +178,10 @@
       @close="showExportOptions = false"
       @confirm="handleExportConfirm" />
 
+    <ConfirmDeleteModal :is-open="showDeleteConfirm"
+      @close="showDeleteConfirm = false"
+      @confirm="handleDeleteConfirm" />
+
     <WelcomeWizard :is-open="welcomeWizard.isOpen.value"
       :preferences="localePrefs.preferences"
       :apply-preset="localePrefs.applyPreset"
@@ -291,8 +295,15 @@ const updateMeta = ({ title, description, tags }) => {
 }
 
 const confirmDelete = (id) => {
-  if (confirm('Are you sure you want to delete this note?')) {
-    deleteNote(id)
+  pendingDeleteId.value = id
+  showDeleteConfirm.value = true
+}
+
+const handleDeleteConfirm = () => {
+  showDeleteConfirm.value = false
+  if (pendingDeleteId.value) {
+    deleteNote(pendingDeleteId.value)
+    pendingDeleteId.value = null
   }
 }
 
@@ -316,6 +327,10 @@ const insertTemplate = (templateContent) => {
 // File menu handlers — export options modal
 const showExportOptions = ref(false)
 const pendingExportAction = ref(null)
+
+// Delete confirmation modal
+const showDeleteConfirm = ref(false)
+const pendingDeleteId = ref(null)
 
 const askExportOptions = (action) => {
   pendingExportAction.value = action
