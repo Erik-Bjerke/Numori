@@ -4,7 +4,7 @@
       <!-- Left: File dropdown & Title -->
       <div class="flex items-center gap-2">
         <!-- File dropdown -->
-        <FileDropdown :has-note="!!currentNote"
+        <FileDropdown :has-note="!!currentNote" :mod-label="modLabel"
           @new-note="$emit('file-new')"
           @open-file="$emit('file-open')"
           @templates="$emit('show-templates')"
@@ -89,6 +89,10 @@ defineProps({
   hideAlpha: {
     type: Boolean,
     default: false
+  },
+  modLabel: {
+    type: String,
+    default: 'Ctrl'
   }
 })
 

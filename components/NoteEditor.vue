@@ -50,6 +50,10 @@ const props = defineProps({
   showMarkdownPreview: {
     type: Boolean,
     default: false
+  },
+  shortcutHandlers: {
+    type: Object,
+    default: null
   }
 })
 
@@ -425,6 +429,27 @@ const onEditorLoad = (editor) => {
     // Apply real decorations
     updateInlineDecorations()
     updateMarkdownPreview()
+
+    // Register app keyboard shortcuts on Monaco so they fire our handlers
+    // instead of being swallowed or triggering browser defaults
+    if (props.shortcutHandlers) {
+      const h = props.shortcutHandlers
+      const bindings = [
+        [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, h.save],
+        [monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyN, h.newNote],
+        [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyO, h.openFile],
+        [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP, h.print],
+        [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyD, h.duplicate],
+        [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyE, h.exportText],
+        [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyH, h.help],
+        [monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyS, h.exportAll],
+      ]
+      for (const [keybinding, handler] of bindings) {
+        if (handler) {
+          editor.addCommand(keybinding, () => handler())
+        }
+      }
+    }
   })
 }
 

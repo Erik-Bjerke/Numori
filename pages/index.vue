@@ -23,7 +23,7 @@
 
     <!-- Mobile-friendly Toolbar -->
     <AppHeader :current-note="currentNote" :show-inline="showInlineResults" :show-markdown-preview="showMarkdownPreview"
-      :hide-alpha="localePrefs.preferences.dismissAlphaWarning"
+      :hide-alpha="localePrefs.preferences.dismissAlphaWarning" :mod-label="modLabel"
       @toggle-sidebar="showSidebar = !showSidebar"
       @show-meta="currentNote && (showMetaModal = true)" @apply-format="applyFormat"
       @toggle-inline="showInlineResults = !showInlineResults"
@@ -87,6 +87,7 @@
         <NoteEditor v-if="currentNote" ref="editorRef" :content="currentNote.content" :show-inline="showInlineResults"
           :locale-preferences="localePrefs.preferences"
           :show-markdown-preview="showMarkdownPreview"
+          :shortcut-handlers="shortcutHandlers"
           @update:content="updateContent"
           :placeholder="'Start typing... Try: 10 + 20, or use # for headers, // for comments'" />
         <div v-else class="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
@@ -125,7 +126,7 @@
       :note-id="currentNote?.id" @close="showMetaModal = false"
       @save="updateMeta" @delete="confirmDelete" />
 
-    <HelpModal :is-open="showHelp" @close="showHelp = false" />
+    <HelpModal :is-open="showHelp" :mod-label="modLabel" @close="showHelp = false" />
     <AboutModal :is-open="showAbout" @close="showAbout = false" />
     <TemplatesModal :is-open="showTemplates" @close="showTemplates = false" @insert="insertTemplate" />
     <LanguageSwitcher :is-open="showLanguageModal" @close="showLanguageModal = false" />
@@ -157,6 +158,20 @@ const { exportNoteAsText, exportNoteAsJson, exportNoteAsMarkdown, exportNoteAsPd
 const { evaluateLines } = useCalculator()
 const localePrefs = useLocalePreferences()
 const welcomeWizard = useWelcomeWizard()
+
+// Keyboard shortcuts — must be declared before refs so handlers can reference them
+const { isMac, modLabel, handlers: shortcutHandlers } = useKeyboardShortcuts({
+  save: () => {
+    // Notes auto-save, but we still intercept to prevent browser save dialog
+  },
+  newNote: () => addNote(),
+  openFile: () => handleOpenFile(),
+  print: () => handlePrint(),
+  duplicate: () => handleDuplicate(),
+  exportText: () => handleExportText(),
+  help: () => { showHelp.value = true },
+  exportAll: () => handleExportAll(),
+})
 
 const showSidebar = ref(true) // Default to true for better UX
 const showMetaModal = ref(false)

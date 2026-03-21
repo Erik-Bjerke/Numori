@@ -659,6 +659,43 @@
               <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-400 mb-3">{{ $t('shortcuts.title') }}</h3>
               <div class="space-y-4">
                 <div>
+                  <p class="font-semibold text-gray-900 dark:text-gray-400 mb-2">Keyboard Shortcuts</p>
+                  <div class="space-y-2">
+                    <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800">
+                      <span class="text-sm text-gray-700 dark:text-gray-400">New Note</span>
+                      <kbd class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono text-gray-900 dark:text-gray-400">{{ modLabel }}+⇧+N</kbd>
+                    </div>
+                    <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800">
+                      <span class="text-sm text-gray-700 dark:text-gray-400">Open File</span>
+                      <kbd class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono text-gray-900 dark:text-gray-400">{{ modLabel }}+O</kbd>
+                    </div>
+                    <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800">
+                      <span class="text-sm text-gray-700 dark:text-gray-400">Save (auto-saved)</span>
+                      <kbd class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono text-gray-900 dark:text-gray-400">{{ modLabel }}+S</kbd>
+                    </div>
+                    <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800">
+                      <span class="text-sm text-gray-700 dark:text-gray-400">Duplicate Note</span>
+                      <kbd class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono text-gray-900 dark:text-gray-400">{{ modLabel }}+D</kbd>
+                    </div>
+                    <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800">
+                      <span class="text-sm text-gray-700 dark:text-gray-400">Export as Text</span>
+                      <kbd class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono text-gray-900 dark:text-gray-400">{{ modLabel }}+E</kbd>
+                    </div>
+                    <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800">
+                      <span class="text-sm text-gray-700 dark:text-gray-400">Print</span>
+                      <kbd class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono text-gray-900 dark:text-gray-400">{{ modLabel }}+P</kbd>
+                    </div>
+                    <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800">
+                      <span class="text-sm text-gray-700 dark:text-gray-400">Show Help</span>
+                      <kbd class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono text-gray-900 dark:text-gray-400">{{ modLabel }}+H</kbd>
+                    </div>
+                    <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800">
+                      <span class="text-sm text-gray-700 dark:text-gray-400">Export All Notes</span>
+                      <kbd class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono text-gray-900 dark:text-gray-400">{{ modLabel }}+⇧+S</kbd>
+                    </div>
+                  </div>
+                </div>
+                <div>
                   <p class="font-semibold text-gray-900 dark:text-gray-400 mb-2">Navigation</p>
                   <div class="space-y-2">
                     <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800">
@@ -781,7 +818,11 @@
 
 <script setup>
 const props = defineProps({
-  isOpen: Boolean
+  isOpen: Boolean,
+  modLabel: {
+    type: String,
+    default: 'Ctrl',
+  },
 })
 
 const emit = defineEmits(['close'])
@@ -820,7 +861,7 @@ const sections = [
   { id: 'constants', label: 'Constants', keywords: 'constants pi e tau phi golden ratio' },
   { id: 'datetime', label: 'Date & Time', keywords: 'date time now today yesterday tomorrow timezone unix timestamp' },
   { id: 'formatting', label: 'Formatting', keywords: 'formatting header comment label hash' },
-  { id: 'shortcuts', label: 'Shortcuts', keywords: 'shortcuts keyboard navigation quick functions conversions' },
+  { id: 'shortcuts', label: 'Shortcuts', keywords: 'shortcuts keyboard navigation quick functions conversions ctrl cmd save new open print duplicate export help' },
   { id: 'tips', label: 'Tips', keywords: 'tips tricks hints' },
 ]
 
