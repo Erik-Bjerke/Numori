@@ -5,9 +5,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Mock useClipboard from VueUse
 const mockCopy = vi.fn(() => Promise.resolve())
-vi.mock('@vueuse/core', () => ({
-  useClipboard: () => ({ copy: mockCopy }),
-}))
+vi.stubGlobal('useClipboard', () => ({ copy: mockCopy }))
 
 // We test the pure logic functions directly by importing the composable
 const { useFileActions } = await import('../composables/useFileActions.js')
