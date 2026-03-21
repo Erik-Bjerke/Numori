@@ -2,9 +2,24 @@
   <div class="h-full flex">
     <!-- Monaco Editor -->
     <div :class="[
-      'flex-1 overflow-hidden transition-all duration-200 ease-in-out',
+      'flex-1 overflow-hidden transition-all duration-200 ease-in-out relative',
       bordered ? 'border border-gray-200 dark:border-gray-700 rounded-lg' : ''
     ]">
+      <!-- Loading overlay while Monaco initialises -->
+      <Transition
+        enter-active-class="transition-opacity duration-150"
+        enter-from-class="opacity-0"
+        leave-active-class="transition-opacity duration-300"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0">
+        <div v-if="!editorReady" class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-white dark:bg-gray-925 text-gray-400 dark:text-gray-500">
+          <svg class="animate-spin h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          <span class="text-sm">Loading editor…</span>
+        </div>
+      </Transition>
       <ClientOnly>
         <template #fallback>
           <div class="h-full flex flex-col items-center justify-center gap-3 text-gray-400 dark:text-gray-500">
@@ -71,6 +86,7 @@ let monacoEditorInstance = null
 let decorationsCollection = null
 let monacoInstance = null
 let inlineStylesInjected = false
+const editorReady = ref(false)
 
 const { evaluateLines } = useCalculator()
 const { registerCalcLanguage } = useMonacoCalcLanguage()
@@ -443,6 +459,8 @@ const onEditorLoad = (editor) => {
         }
       }
     }
+
+    editorReady.value = true
   })
 }
 
@@ -476,7 +494,6 @@ watch(() => props.content, (newContent) => {
   if (localContent.value !== newContent) {
     localContent.value = newContent
     // Note switch: evaluate immediately (skip debounce) so results appear instantly
-    debouncedUpdateLines.cancel()
     updateLines(newContent)
   }
   // If content is the same (e.g. re-render), do nothing — localContent watcher won't fire.
