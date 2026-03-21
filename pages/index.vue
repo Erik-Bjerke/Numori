@@ -97,7 +97,8 @@
     </div>
 
     <!-- Mobile: toggle button (always visible) + collapsible formatting toolbar -->
-    <div v-if="currentNote" class="lg:hidden sticky bottom-0 z-10 relative">
+    <div v-if="currentNote" class="lg:hidden fixed left-0 right-0 z-10 transition-[bottom] duration-150 ease-out"
+      :style="{ bottom: mobileKeyboardOffset + 'px' }">
       <!-- Toggle chevron — absolutely positioned above the toolbar so it doesn't push content -->
       <button @click="showMobileToolbar = !showMobileToolbar"
         class="absolute right-2 bottom-full px-1.5 pt-1 pb-0.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700 rounded-t-lg transition-colors shadow-sm z-50"
@@ -185,6 +186,30 @@ const showMobileToolbar = ref(true)
 const showMarkdownPreview = ref(false)
 const editorRef = ref(null)
 const showAlphaWarning = ref(false)
+const mobileKeyboardOffset = ref(0)
+
+// Track virtual keyboard via visualViewport API
+let vvCleanup = null
+onMounted(() => {
+  const vv = window.visualViewport
+  if (vv) {
+    const update = () => {
+      // The difference between the layout viewport and the visual viewport
+      // tells us how much the keyboard is covering.
+      mobileKeyboardOffset.value = Math.max(0, window.innerHeight - vv.height - vv.offsetTop)
+    }
+    vv.addEventListener('resize', update)
+    vv.addEventListener('scroll', update)
+    vvCleanup = () => {
+      vv.removeEventListener('resize', update)
+      vv.removeEventListener('scroll', update)
+    }
+  }
+})
+
+onBeforeUnmount(() => {
+  if (vvCleanup) vvCleanup()
+})
 
 // Hide sidebar on mobile by default + check alpha warning + welcome wizard
 onMounted(() => {
