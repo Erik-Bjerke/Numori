@@ -2,7 +2,10 @@
  * Composable for file-related actions: export, import, duplicate, copy, print.
  * Works with the note objects from useNotes.
  */
+import { useClipboard } from '@vueuse/core'
+
 export const useFileActions = () => {
+  const { copy: clipboardCopy } = useClipboard()
 
   /**
    * Trigger a browser file download with the given content.
@@ -247,7 +250,7 @@ export const useFileActions = () => {
    */
   const copyToClipboard = async (note) => {
     if (!note?.content) return false
-    await navigator.clipboard.writeText(note.content)
+    await clipboardCopy(note.content)
     return true
   }
 

@@ -3,6 +3,12 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
+// Mock useClipboard from VueUse
+const mockCopy = vi.fn(() => Promise.resolve())
+vi.mock('@vueuse/core', () => ({
+  useClipboard: () => ({ copy: mockCopy }),
+}))
+
 // We test the pure logic functions directly by importing the composable
 const { useFileActions } = await import('../composables/useFileActions.js')
 
@@ -186,14 +192,13 @@ describe('copyToClipboard', () => {
   })
 
   it('copies content to clipboard', async () => {
-    const writeText = vi.fn(() => Promise.resolve())
-    vi.stubGlobal('navigator', { clipboard: { writeText } })
+    mockCopy.mockClear()
 
     const note = { content: 'hello world' }
     const result = await copyToClipboard(note)
 
     expect(result).toBe(true)
-    expect(writeText).toHaveBeenCalledWith('hello world')
+    expect(mockCopy).toHaveBeenCalledWith('hello world')
   })
 })
 

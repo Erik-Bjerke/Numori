@@ -71,12 +71,12 @@ let monacoEditorInstance = null
 let decorationsCollection = null
 let monacoInstance = null
 let inlineStylesInjected = false
-let updateDebounceTimer = null
 
 const { evaluateLines } = useCalculator()
 const { registerCalcLanguage } = useMonacoCalcLanguage()
 const colorMode = useColorMode()
 import { formatDisplay } from '~/composables/useDisplayFormatter'
+import { useIntervalFn, useDebounceFn } from '@vueuse/core'
 
 // --- Inline markdown rendering via Monaco decorations ---
 let mdDecorationCollection = null
@@ -255,7 +255,6 @@ watch(() => props.localePreferences, () => {
 }, { deep: true })
 
 // Live clock: update lines tagged liveTime every second
-let liveTimer = null
 const tickLiveTime = () => {
   const raw = rawLines.value
   if (!raw.length) return
@@ -276,13 +275,7 @@ const tickLiveTime = () => {
   reformatDisplay()
 }
 
-onMounted(() => {
-  liveTimer = setInterval(tickLiveTime, 1000)
-})
-onUnmounted(() => {
-  if (liveTimer) clearInterval(liveTimer)
-  if (updateDebounceTimer) clearTimeout(updateDebounceTimer)
-})
+useIntervalFn(tickLiveTime, 1000)
 
 // Editor options
 const editorOptions = computed(() => ({
@@ -483,17 +476,18 @@ watch(() => props.content, (newContent) => {
   if (localContent.value !== newContent) {
     localContent.value = newContent
     // Note switch: evaluate immediately (skip debounce) so results appear instantly
-    clearTimeout(updateDebounceTimer)
+    debouncedUpdateLines.cancel()
     updateLines(newContent)
   }
   // If content is the same (e.g. re-render), do nothing — localContent watcher won't fire.
 })
 
+const debouncedUpdateLines = useDebounceFn((text) => updateLines(text), 80)
+
 // Watch local content and emit changes + debounce calculations while typing
 watch(localContent, (newContent) => {
   emit('update:content', newContent)
-  clearTimeout(updateDebounceTimer)
-  updateDebounceTimer = setTimeout(() => updateLines(newContent), 80)
+  debouncedUpdateLines(newContent)
 })
 
 const updateLines = (text) => {

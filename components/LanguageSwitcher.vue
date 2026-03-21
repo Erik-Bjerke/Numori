@@ -132,15 +132,10 @@ const getLanguageEmoji = (code) => {
 }
 
 // Close modal on Escape key
-onMounted(() => {
-  const handleEscape = (e) => {
-    if (e.key === 'Escape' && props.isOpen) {
-      closeModal()
-    }
+import { useEventListener } from '@vueuse/core'
+useEventListener(document, 'keydown', (e) => {
+  if (e.key === 'Escape' && props.isOpen) {
+    closeModal()
   }
-  document.addEventListener('keydown', handleEscape)
-  onUnmounted(() => {
-    document.removeEventListener('keydown', handleEscape)
-  })
 })
 </script>

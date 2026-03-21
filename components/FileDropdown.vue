@@ -82,6 +82,8 @@ const emit = defineEmits([
   'about',
 ])
 
+import { onClickOutside, useEventListener } from '@vueuse/core'
+
 const open = ref(false)
 const dropdownRef = ref(null)
 
@@ -90,23 +92,11 @@ const action = (name) => {
   emit(name)
 }
 
-const onClickOutside = (e) => {
-  if (dropdownRef.value && !dropdownRef.value.contains(e.target)) {
-    open.value = false
-  }
-}
-
-const onKeydown = (e) => {
-  if (e.key === 'Escape') open.value = false
-}
-
-onMounted(() => {
-  document.addEventListener('click', onClickOutside)
-  document.addEventListener('keydown', onKeydown)
+onClickOutside(dropdownRef, () => {
+  open.value = false
 })
 
-onUnmounted(() => {
-  document.removeEventListener('click', onClickOutside)
-  document.removeEventListener('keydown', onKeydown)
+useEventListener(document, 'keydown', (e) => {
+  if (e.key === 'Escape') open.value = false
 })
 </script>

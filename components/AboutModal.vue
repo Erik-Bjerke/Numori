@@ -36,6 +36,12 @@
               <div class="space-y-1">
                 <p class="font-semibold text-gray-900 dark:text-gray-300">Author</p>
                 <p>Erik Bjerke — TheProcedural Software Ltd</p>
+                <a href="https://erikbjerke.com" target="_blank" rel="noopener noreferrer"
+                  class="text-primary-600 dark:text-primary-400 hover:underline text-xs">erikbjerke.com</a>
+                <span class="text-xs text-gray-400 dark:text-gray-600 mx-1">·</span>
+                <a href="https://theprocedural.com" target="_blank" rel="noopener noreferrer"
+                  class="text-primary-600 dark:text-primary-400 hover:underline text-xs">theprocedural.com</a>
+                <br>
                 <a href="mailto:contact@erikbjerke.com"
                   class="text-primary-600 dark:text-primary-400 hover:underline text-xs">contact@erikbjerke.com</a>
                 <span class="text-xs text-gray-400 dark:text-gray-600 mx-1">·</span>
@@ -54,17 +60,18 @@
                 <p class="font-semibold text-gray-900 dark:text-gray-300">Third-Party Licenses</p>
                 <p class="text-xs text-gray-500 dark:text-gray-500">This application uses the following open-source packages, all licensed under the MIT License:</p>
                 <ul class="text-xs space-y-0.5 list-disc list-inside text-gray-600 dark:text-gray-400">
-                  <li>Nuxt</li>
-                  <li>Vue</li>
-                  <li>Vue Router</li>
-                  <li>@nuxt/fonts</li>
-                  <li>@nuxt/icon</li>
-                  <li>@nuxtjs/color-mode</li>
-                  <li>@nuxtjs/tailwindcss</li>
-                  <li>@tailwindcss/typography</li>
-                  <li>nuxt-i18n-micro</li>
-                  <li>nuxt-monaco-editor</li>
-                  <li>Vitest</li>
+                  <li><a href="https://nuxt.com" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline">Nuxt</a></li>
+                  <li><a href="https://vuejs.org" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline">Vue</a></li>
+                  <li><a href="https://router.vuejs.org" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline">Vue Router</a></li>
+                  <li><a href="https://fonts.nuxt.com" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline">@nuxt/fonts</a></li>
+                  <li><a href="https://nuxt.com/modules/icon" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline">@nuxt/icon</a></li>
+                  <li><a href="https://color-mode.nuxtjs.org" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline">@nuxtjs/color-mode</a></li>
+                  <li><a href="https://tailwindcss.nuxtjs.org" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline">@nuxtjs/tailwindcss</a></li>
+                  <li><a href="https://tailwindcss.com/docs/typography-plugin" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline">@tailwindcss/typography</a></li>
+                  <li><a href="https://vueuse.org" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline">@vueuse/core</a></li>
+                  <li><a href="https://s00d.github.io/nuxt-i18n-micro" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline">nuxt-i18n-micro</a></li>
+                  <li><a href="https://nuxt.com/modules/monaco-editor" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline">nuxt-monaco-editor</a></li>
+                  <li><a href="https://vitest.dev" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline">Vitest</a></li>
                 </ul>
               </div>
             </div>
