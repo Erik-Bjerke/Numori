@@ -102,7 +102,7 @@
       :style="{ bottom: mobileKeyboardOffset + 'px' }">
       <!-- Toggle chevron — absolutely positioned above the toolbar so it doesn't push content -->
       <button @click="showMobileToolbar = !showMobileToolbar"
-        class="absolute right-2 bottom-full px-1.5 pt-1 pb-0.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700 rounded-t-lg transition-colors shadow-sm z-50"
+        class="absolute right-2 bottom-full px-1.5 pt-1 pb-0.5 bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-950 rounded-t-lg transition-colors z-50"
         :title="showMobileToolbar ? 'Hide formatting toolbar' : 'Show formatting toolbar'">
         <Icon :name="showMobileToolbar ? 'mdi:chevron-down' : 'mdi:chevron-up'" class="w-5 h-5 block" />
       </button>
@@ -114,7 +114,7 @@
         leave-active-class="transition-all duration-150 ease-in"
         leave-from-class="max-h-16 opacity-100"
         leave-to-class="max-h-0 opacity-0">
-        <div v-if="showMobileToolbar" class="overflow-hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800"
+        <div v-if="showMobileToolbar" class="overflow-hidden bg-gray-50 dark:bg-gray-900"
           :style="{ paddingBottom: mobileKeyboardOffset === 0 ? 'env(safe-area-inset-bottom, 0px)' : '0px', paddingLeft: 'env(safe-area-inset-left, 0px)', paddingRight: 'env(safe-area-inset-right, 0px)' }">
           <FormattingToolbar container-class="px-2 py-1.5" @apply-format="applyFormat" />
         </div>
