@@ -12,7 +12,9 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@capacitor/android": "^8.2.0",
     "@capacitor/core": "^8.2.0",
+    "@capacitor/ios": "^8.2.0",
     "@nuxt/fonts": "^0.14.0",
     "@nuxt/icon": "^2.2.1",
     "@nuxtjs/color-mode": "^4.0.0",
