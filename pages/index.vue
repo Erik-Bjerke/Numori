@@ -92,8 +92,38 @@
           :shortcut-handlers="shortcutHandlers"
           @update:content="updateContent"
           :placeholder="'Start typing... Try: 10 + 20, or use # for headers, // for comments'" />
-        <div v-else class="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
-          <p>Select a note or create a new one</p>
+        <div v-else class="flex items-center justify-center h-full px-6">
+          <div class="text-center max-w-sm space-y-6">
+            <!-- Icon -->
+            <div class="mx-auto w-16 h-16 rounded-2xl bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center">
+              <Icon name="mdi:file-document-outline" class="w-8 h-8 text-primary-500 dark:text-primary-400" />
+            </div>
+
+            <!-- Heading + subtext -->
+            <div class="space-y-2">
+              <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200">No note selected</h2>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Pick an existing note from the sidebar or start fresh with a new one.</p>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <button @click="addNote"
+                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm hover:shadow-md">
+                <Icon name="mdi:plus" class="w-5 h-5" />
+                Create new note
+              </button>
+              <button @click="showSidebar = true"
+                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                <Icon name="mdi:menu" class="w-5 h-5" />
+                Browse notes
+              </button>
+            </div>
+
+            <!-- Note count hint -->
+            <p v-if="notes.length" class="text-xs text-gray-400 dark:text-gray-500">
+              {{ notes.length }} {{ notes.length === 1 ? 'note' : 'notes' }} in your library
+            </p>
+          </div>
         </div>
       </main>
     </div>
