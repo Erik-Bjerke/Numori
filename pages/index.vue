@@ -73,7 +73,8 @@
           leave-active-class="transition-transform duration-200 ease-in"
           leave-from-class="translate-x-0"
           leave-to-class="-translate-x-full">
-          <aside v-if="showSidebar" class="fixed inset-y-0 left-0 z-30 w-80 shadow-xl lg:hidden">
+          <aside v-if="showSidebar" class="fixed inset-y-0 left-0 z-30 w-80 shadow-xl lg:hidden"
+            :style="{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingLeft: 'env(safe-area-inset-left, 0px)' }">
             <MainSidebar :notes="notes" :current-note-id="currentNoteId" :all-tags="allTags" @new-note="addNote" @select-note="selectNote"
               @delete-note="confirmDelete" @edit-note="openEditModal"
               @show-help="showHelp = true"
@@ -113,7 +114,8 @@
         leave-active-class="transition-all duration-150 ease-in"
         leave-from-class="max-h-16 opacity-100"
         leave-to-class="max-h-0 opacity-0">
-        <div v-if="showMobileToolbar" class="overflow-hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800">
+        <div v-if="showMobileToolbar" class="overflow-hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800"
+          :style="{ paddingBottom: mobileKeyboardOffset === 0 ? 'env(safe-area-inset-bottom, 0px)' : '0px', paddingLeft: 'env(safe-area-inset-left, 0px)', paddingRight: 'env(safe-area-inset-right, 0px)' }">
           <FormattingToolbar container-class="px-2 py-1.5" @apply-format="applyFormat" />
         </div>
       </Transition>

@@ -8,6 +8,14 @@
 </template>
 
 <style>
+/* Safe area insets for notched / rounded-corner devices */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+}
+
 /* Smooth theme transitions */
 * {
   transition-property: background-color, border-color, color, fill, stroke;

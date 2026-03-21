@@ -1,5 +1,5 @@
 <template>
-  <header class="bg-gray-100 dark:bg-gray-900 sticky top-0 z-10">
+  <header class="bg-gray-100 dark:bg-gray-900 sticky top-0 z-10" :style="{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingLeft: 'env(safe-area-inset-left, 0px)', paddingRight: 'env(safe-area-inset-right, 0px)' }">
     <div class="flex items-center justify-between px-3 py-2">
       <!-- Left: File dropdown & Title -->
       <div class="flex items-center gap-2">
