@@ -46,8 +46,10 @@
 </template>
 
 <script setup>
-import { EditorView, Decoration, WidgetType, keymap as cmKeymap, scrollPastEnd } from '@codemirror/view'
+import { EditorView, Decoration, WidgetType, keymap as cmKeymap, scrollPastEnd, lineNumbers as cmLineNumbers, highlightActiveLine as cmHighlightActiveLine, highlightActiveLineGutter as cmHighlightActiveLineGutter } from '@codemirror/view'
 import { StateField, StateEffect, Compartment, EditorSelection } from '@codemirror/state'
+import { foldGutter as cmFoldGutter, indentUnit } from '@codemirror/language'
+import { closeBrackets as cmCloseBrackets } from '@codemirror/autocomplete'
 import { calcnotesLanguage, calcnotesLightTheme, calcnotesDarkTheme } from '~/composables/useCalcLanguage'
 import { formatDisplay } from '~/composables/useDisplayFormatter'
 
@@ -80,6 +82,14 @@ const colorMode = useColorMode()
 // --- Compartments for dynamic reconfiguration ---
 const themeCompartment = new Compartment()
 const fontThemeCompartment = new Compartment()
+const scrollPastEndCompartment = new Compartment()
+const lineNumbersCompartment = new Compartment()
+const foldGutterCompartment = new Compartment()
+const activeLineCompartment = new Compartment()
+const activeLineGutterCompartment = new Compartment()
+const closeBracketsCompartment = new Compartment()
+const tabSizeCompartment = new Compartment()
+const wordWrapCompartment = new Compartment()
 
 // --- Font family map ---
 const FONT_FAMILY_MAP = {
@@ -99,11 +109,7 @@ const editorLineNumbers = computed(() => {
 })
 const editorCursorStyle = computed(() => {
   const val = props.localePreferences?.editorCursorStyle
-  return ['line', 'block', 'underline', 'line-thin', 'block-outline', 'underline-thin'].includes(val) ? val : 'line'
-})
-const editorCursorBlinking = computed(() => {
-  const val = props.localePreferences?.editorCursorBlinking
-  return ['blink', 'smooth', 'phase', 'expand', 'solid'].includes(val) ? val : 'blink'
+  return ['line', 'line-thin'].includes(val) ? val : 'line'
 })
 const autoCopyResult = computed(() => props.localePreferences?.autoCopyResult !== false)
 
@@ -382,24 +388,23 @@ const buildKeymap = () => {
 }
 
 // --- NuxtCodeMirror basicSetup config ---
+// Only static settings here — dynamic ones are managed via compartments below.
 const cmBasicSetup = computed(() => ({
-  lineNumbers: editorLineNumbers.value !== 'off',
-  foldGutter: props.localePreferences?.editorFolding ?? true,
-  highlightActiveLine: (props.localePreferences?.editorRenderLineHighlight ?? 'line') !== 'none',
-  highlightActiveLineGutter: (props.localePreferences?.editorRenderLineHighlight ?? 'line') !== 'none',
+  lineNumbers: false,
+  foldGutter: false,
+  highlightActiveLine: false,
+  highlightActiveLineGutter: false,
+  closeBrackets: false,
   bracketMatching: true,
-  closeBrackets: (props.localePreferences?.editorAutoClosingBrackets ?? 'always') !== 'never',
   autocompletion: false,
   highlightSelectionMatches: true,
-  tabSize: props.localePreferences?.editorTabSize ?? 2,
+  tabSize: false,
   drawSelection: true,
   rectangularSelection: true,
   crosshairCursor: false,
   dropCursor: true,
   allowMultipleSelections: true,
   indentOnInput: true,
-  // Disable the default syntaxHighlighting so our custom HighlightStyle
-  // from useCalcLanguage is the sole source of token colours.
   syntaxHighlighting: false,
   defaultKeymap: true,
   historyKeymap: true,
@@ -414,11 +419,65 @@ const cmBasicSetup = computed(() => ({
 // our own calcnotes themes (in extensions via themeCompartment) handle everything.
 const cmThemeMode = 'none'
 
+// --- Helpers for dynamic compartment values ---
+const buildLineNumbers = () => {
+  const mode = editorLineNumbers.value
+  if (mode === 'off') return []
+  if (mode === 'relative') {
+    return cmLineNumbers({
+      formatNumber: (lineNo, state) => {
+        const cursorLine = state.doc.lineAt(state.selection.main.head).number
+        const diff = Math.abs(lineNo - cursorLine)
+        return diff === 0 ? String(lineNo) : String(diff)
+      }
+    })
+  }
+  if (mode === 'interval') {
+    return cmLineNumbers({
+      formatNumber: (lineNo) => lineNo % 10 === 0 ? String(lineNo) : ''
+    })
+  }
+  return cmLineNumbers()
+}
+
+const buildFoldGutter = () =>
+  (props.localePreferences?.editorFolding ?? true) ? cmFoldGutter() : []
+
+const buildActiveLine = () => {
+  const val = props.localePreferences?.editorRenderLineHighlight ?? 'line'
+  return ['line', 'all'].includes(val) ? cmHighlightActiveLine() : []
+}
+
+const buildActiveLineGutter = () => {
+  const val = props.localePreferences?.editorRenderLineHighlight ?? 'line'
+  return val === 'all' ? cmHighlightActiveLineGutter() : []
+}
+
+const buildCloseBrackets = () =>
+  (props.localePreferences?.editorAutoClosingBrackets ?? 'always') !== 'never' ? cmCloseBrackets() : []
+
+const buildTabSize = () =>
+  indentUnit.of(' '.repeat(props.localePreferences?.editorTabSize ?? 2))
+
+const buildWordWrap = () =>
+  props.localePreferences?.editorWordWrap ? EditorView.lineWrapping : []
+
+const buildScrollPastEnd = () =>
+  props.localePreferences?.editorScrollPastEnd !== false ? scrollPastEnd() : []
+
 // --- Extensions array ---
 const cmExtensions = computed(() => [
   calcnotesLanguage,
   themeCompartment.of(colorMode.value === 'dark' ? calcnotesDarkTheme : calcnotesLightTheme),
   fontThemeCompartment.of(buildFontTheme()),
+  lineNumbersCompartment.of(buildLineNumbers()),
+  foldGutterCompartment.of(buildFoldGutter()),
+  activeLineCompartment.of(buildActiveLine()),
+  activeLineGutterCompartment.of(buildActiveLineGutter()),
+  closeBracketsCompartment.of(buildCloseBrackets()),
+  tabSizeCompartment.of(buildTabSize()),
+  wordWrapCompartment.of(buildWordWrap()),
+  scrollPastEndCompartment.of(buildScrollPastEnd()),
   inlineResultField,
   mdPreviewField,
   buildKeymap(),
@@ -427,12 +486,14 @@ const cmExtensions = computed(() => [
     if (update.selectionSet || update.docChanged) {
       const line = update.state.doc.lineAt(update.state.selection.main.head)
       currentLine.value = line.number - 1
+      // Relative line numbers need a gutter refresh on every cursor move
+      if (editorLineNumbers.value === 'relative') {
+        update.view.dispatch({
+          effects: lineNumbersCompartment.reconfigure(buildLineNumbers())
+        })
+      }
     }
   }),
-  // Word wrap
-  props.localePreferences?.editorWordWrap ? EditorView.lineWrapping : [],
-  // Scroll past end
-  props.localePreferences?.editorScrollPastEnd !== false ? scrollPastEnd() : [],
   // Click handler for inline results (copy on click)
   EditorView.domEventHandlers({
     click: handleResultClick,
@@ -528,10 +589,19 @@ onMounted(() => {
 // Re-format display when locale preferences change
 watch(() => props.localePreferences, () => {
   reformatDisplay()
-  // Reconfigure font theme
   if (editorView) {
     editorView.dispatch({
-      effects: fontThemeCompartment.reconfigure(buildFontTheme())
+      effects: [
+        fontThemeCompartment.reconfigure(buildFontTheme()),
+        lineNumbersCompartment.reconfigure(buildLineNumbers()),
+        foldGutterCompartment.reconfigure(buildFoldGutter()),
+        activeLineCompartment.reconfigure(buildActiveLine()),
+        activeLineGutterCompartment.reconfigure(buildActiveLineGutter()),
+        closeBracketsCompartment.reconfigure(buildCloseBrackets()),
+        tabSizeCompartment.reconfigure(buildTabSize()),
+        wordWrapCompartment.reconfigure(buildWordWrap()),
+        scrollPastEndCompartment.reconfigure(buildScrollPastEnd()),
+      ]
     })
   }
 }, { deep: true })

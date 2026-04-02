@@ -222,22 +222,10 @@
                           </select>
                         </div>
                         <div>
-                          <label :class="labelClass">Render Whitespace</label>
-                          <select v-model="preferences.editorRenderWhitespace" @change="onSettingChange" :class="selectClass">
-                            <option value="none">None</option>
-                            <option value="boundary">Boundary</option>
-                            <option value="selection">Selection</option>
-                            <option value="trailing">Trailing</option>
-                            <option value="all">All</option>
-                          </select>
-                          <p :class="hintClass">Show dots for spaces and arrows for tabs</p>
-                        </div>
-                        <div>
                           <label :class="labelClass">Line Highlight</label>
                           <select v-model="preferences.editorRenderLineHighlight" @change="onSettingChange" :class="selectClass">
                             <option value="none">None</option>
-                            <option value="gutter">Gutter only</option>
-                            <option value="line">Line only</option>
+                            <option value="line">Line</option>
                             <option value="all">Gutter + Line</option>
                           </select>
                         </div>
@@ -254,38 +242,11 @@
                         </div>
                         <div class="flex items-center justify-between">
                           <div>
-                            <label :class="labelInlineClass">Minimap</label>
-                            <p :class="hintClass">Show a miniature overview of the document</p>
-                          </div>
-                          <button @click="preferences.editorMinimap = !preferences.editorMinimap; onSettingChange()" :class="toggleClass(preferences.editorMinimap)">
-                            <span :class="toggleDot(preferences.editorMinimap)" />
-                          </button>
-                        </div>
-                        <div class="flex items-center justify-between">
-                          <div>
                             <label :class="labelInlineClass">Code Folding</label>
                             <p :class="hintClass">Allow collapsing code regions</p>
                           </div>
                           <button @click="preferences.editorFolding = !preferences.editorFolding; onSettingChange()" :class="toggleClass(preferences.editorFolding)">
                             <span :class="toggleDot(preferences.editorFolding)" />
-                          </button>
-                        </div>
-                        <div class="flex items-center justify-between">
-                          <div>
-                            <label :class="labelInlineClass">Glyph Margin</label>
-                            <p :class="hintClass">Show the glyph margin on the left side</p>
-                          </div>
-                          <button @click="preferences.editorGlyphMargin = !preferences.editorGlyphMargin; onSettingChange()" :class="toggleClass(preferences.editorGlyphMargin)">
-                            <span :class="toggleDot(preferences.editorGlyphMargin)" />
-                          </button>
-                        </div>
-                        <div class="flex items-center justify-between">
-                          <div>
-                            <label :class="labelInlineClass">Sticky Scroll</label>
-                            <p :class="hintClass">Pin parent scopes at the top while scrolling</p>
-                          </div>
-                          <button @click="preferences.editorStickyScroll = !preferences.editorStickyScroll; onSettingChange()" :class="toggleClass(preferences.editorStickyScroll)">
-                            <span :class="toggleDot(preferences.editorStickyScroll)" />
                           </button>
                         </div>
                       </div>
@@ -306,42 +267,10 @@
                           <select v-model="preferences.editorCursorStyle" @change="onSettingChange" :class="selectClass">
                             <option value="line">Line</option>
                             <option value="line-thin">Line (thin)</option>
-                            <option value="block">Block</option>
-                            <option value="block-outline">Block (outline)</option>
-                            <option value="underline">Underline</option>
-                            <option value="underline-thin">Underline (thin)</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label :class="labelClass">Cursor Animation</label>
-                          <select v-model="preferences.editorCursorBlinking" @change="onSettingChange" :class="selectClass">
-                            <option value="blink">Blink</option>
-                            <option value="smooth">Smooth</option>
-                            <option value="phase">Phase</option>
-                            <option value="expand">Expand</option>
-                            <option value="solid">Solid (no blink)</option>
                           </select>
                         </div>
                       </div>
                       <div class="space-y-4">
-                        <div class="flex items-center justify-between">
-                          <div>
-                            <label :class="labelInlineClass">Smooth Caret Animation</label>
-                            <p :class="hintClass">Animate the cursor when moving between positions</p>
-                          </div>
-                          <button @click="preferences.editorCursorSmoothCaret = !preferences.editorCursorSmoothCaret; onSettingChange()" :class="toggleClass(preferences.editorCursorSmoothCaret)">
-                            <span :class="toggleDot(preferences.editorCursorSmoothCaret)" />
-                          </button>
-                        </div>
-                        <div class="flex items-center justify-between">
-                          <div>
-                            <label :class="labelInlineClass">Smooth Scrolling</label>
-                            <p :class="hintClass">Animate scrolling instead of jumping</p>
-                          </div>
-                          <button @click="preferences.editorSmoothScrolling = !preferences.editorSmoothScrolling; onSettingChange()" :class="toggleClass(preferences.editorSmoothScrolling)">
-                            <span :class="toggleDot(preferences.editorSmoothScrolling)" />
-                          </button>
-                        </div>
                         <div class="flex items-center justify-between">
                           <div>
                             <label :class="labelInlineClass">Scroll Past End</label>
@@ -368,17 +297,6 @@
                           <label :class="labelClass">Auto-close Brackets</label>
                           <select v-model="preferences.editorAutoClosingBrackets" @change="onSettingChange" :class="selectClass">
                             <option value="always">Always</option>
-                            <option value="languageDefined">Language defined</option>
-                            <option value="beforeWhitespace">Before whitespace</option>
-                            <option value="never">Never</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label :class="labelClass">Auto-close Quotes</label>
-                          <select v-model="preferences.editorAutoClosingQuotes" @change="onSettingChange" :class="selectClass">
-                            <option value="always">Always</option>
-                            <option value="languageDefined">Language defined</option>
-                            <option value="beforeWhitespace">Before whitespace</option>
                             <option value="never">Never</option>
                           </select>
                         </div>
@@ -387,15 +305,6 @@
                           <input type="range" min="1" max="8" step="1" v-model.number="preferences.editorTabSize" @input="onSettingChange" class="w-full accent-primary-500" />
                           <div class="flex justify-between text-xs text-gray-400 mt-1"><span>1</span><span>8</span></div>
                         </div>
-                      </div>
-                      <div class="flex items-center justify-between">
-                        <div>
-                          <label :class="labelInlineClass">Bracket Pair Colorization</label>
-                          <p :class="hintClass">Colour matching brackets for easier reading</p>
-                        </div>
-                        <button @click="preferences.editorBracketPairColorization = !preferences.editorBracketPairColorization; onSettingChange()" :class="toggleClass(preferences.editorBracketPairColorization)">
-                          <span :class="toggleDot(preferences.editorBracketPairColorization)" />
-                        </button>
                       </div>
                     </div>
                   </section>
@@ -560,9 +469,9 @@ const toggleDot = (active) => [
 const sections = [
   { id: 'locales', label: 'Locales', keywords: 'locale language preset volume fuel economy distance temperature date time number format region' },
   { id: 'typography', label: 'Typography', keywords: 'font family size line height ligatures typography text' },
-  { id: 'layout', label: 'Layout', keywords: 'layout line numbers whitespace word wrap minimap folding glyph margin sticky scroll highlight' },
-  { id: 'cursor', label: 'Cursor & Scrolling', keywords: 'cursor style blink animation smooth caret scrolling phase expand solid scroll past end' },
-  { id: 'behaviour', label: 'Behaviour', keywords: 'behaviour auto close brackets quotes tab size indentation bracket pair colorization' },
+  { id: 'layout', label: 'Layout', keywords: 'layout line numbers word wrap folding highlight' },
+  { id: 'cursor', label: 'Cursor & Scrolling', keywords: 'cursor style scroll past end' },
+  { id: 'behaviour', label: 'Behaviour', keywords: 'behaviour auto close brackets tab size indentation' },
   { id: 'results', label: 'Results & Display', keywords: 'results display precision decimal significant copy animation inline alignment' },
   { id: 'general', label: 'General', keywords: 'general alpha warning dismiss welcome wizard relaunch setup' },
 ]

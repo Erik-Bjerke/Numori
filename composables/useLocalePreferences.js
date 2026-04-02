@@ -79,23 +79,14 @@ const DEFAULT_PREFERENCES = {
   // Editor — Layout
   editorWordWrap: false,
   editorLineNumbers: 'on',
-  editorMinimap: false,
-  editorStickyScroll: false,
   editorFolding: true,
-  editorGlyphMargin: true,
-  editorRenderWhitespace: 'none',
   // Editor — Cursor
   editorCursorStyle: 'line',
-  editorCursorBlinking: 'blink',
-  editorCursorSmoothCaret: false,
-  editorSmoothScrolling: false,
   editorScrollPastEnd: true,
   // Editor — Behaviour
   editorAutoClosingBrackets: 'always',
-  editorAutoClosingQuotes: 'always',
-  editorBracketPairColorization: true,
   editorTabSize: 2,
-  editorRenderLineHighlight: 'line',
+  editorRenderLineHighlight: 'all',
   // Editor — Results
   inlineResultAlign: 'left',
   // Customisation

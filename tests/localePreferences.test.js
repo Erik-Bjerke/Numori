@@ -44,22 +44,14 @@ const EXPECTED_DEFAULTS = {
   // Editor — Layout
   editorWordWrap: false,
   editorLineNumbers: 'on',
-  editorMinimap: false,
-  editorStickyScroll: false,
   editorFolding: true,
-  editorGlyphMargin: true,
-  editorRenderWhitespace: 'none',
   // Editor — Cursor
   editorCursorStyle: 'line',
-  editorCursorBlinking: 'blink',
-  editorCursorSmoothCaret: false,
-  editorSmoothScrolling: false,
+  editorScrollPastEnd: true,
   // Editor — Behaviour
   editorAutoClosingBrackets: 'always',
-  editorAutoClosingQuotes: 'always',
-  editorBracketPairColorization: true,
   editorTabSize: 2,
-  editorRenderLineHighlight: 'line',
+  editorRenderLineHighlight: 'all',
   // Editor — Results
   inlineResultAlign: 'left',
   // Customisation
@@ -139,10 +131,10 @@ describe('Presets', () => {
   it('applyPreset does not overwrite editor settings', () => {
     const { preferences, applyPreset } = useLocalePreferences()
     preferences.editorFontSize = 22
-    preferences.editorCursorStyle = 'block'
+    preferences.editorCursorStyle = 'line-thin'
     applyPreset('US')
     expect(preferences.editorFontSize).toBe(22)
-    expect(preferences.editorCursorStyle).toBe('block')
+    expect(preferences.editorCursorStyle).toBe('line-thin')
   })
 
   it('applyPreset with invalid name does nothing', () => {
@@ -204,18 +196,10 @@ describe('setPreference', () => {
       editorLigatures: true,
       editorWordWrap: true,
       editorLineNumbers: 'relative',
-      editorMinimap: true,
-      editorStickyScroll: true,
       editorFolding: false,
-      editorGlyphMargin: false,
-      editorRenderWhitespace: 'all',
-      editorCursorStyle: 'block',
-      editorCursorBlinking: 'smooth',
-      editorCursorSmoothCaret: true,
-      editorSmoothScrolling: true,
+      editorCursorStyle: 'line-thin',
+      editorScrollPastEnd: false,
       editorAutoClosingBrackets: 'never',
-      editorAutoClosingQuotes: 'never',
-      editorBracketPairColorization: false,
       editorTabSize: 4,
       editorRenderLineHighlight: 'all',
       inlineResultAlign: 'right',
@@ -241,11 +225,11 @@ describe('Persistence (save & load)', () => {
   })
 
   it('loads saved preferences on init', () => {
-    const customPrefs = { editorFontSize: 24, editorCursorStyle: 'block', temperature: 'fahrenheit' }
+    const customPrefs = { editorFontSize: 24, editorCursorStyle: 'line-thin', temperature: 'fahrenheit' }
     storage['calcnotes-locale-preferences'] = JSON.stringify(customPrefs)
     const { preferences } = useLocalePreferences()
     expect(preferences.editorFontSize).toBe(24)
-    expect(preferences.editorCursorStyle).toBe('block')
+    expect(preferences.editorCursorStyle).toBe('line-thin')
     expect(preferences.temperature).toBe('fahrenheit')
     // Non-overridden defaults should still be present
     expect(preferences.editorFontFamily).toBe('system')
@@ -264,10 +248,8 @@ describe('Reset', () => {
     const { preferences, reset } = useLocalePreferences()
     // Change a bunch of settings
     preferences.editorFontSize = 28
-    preferences.editorCursorStyle = 'block'
+    preferences.editorCursorStyle = 'line-thin'
     preferences.temperature = 'fahrenheit'
-    preferences.editorMinimap = true
-    preferences.editorSmoothScrolling = true
     preferences.editorTabSize = 8
 
     reset()
@@ -295,47 +277,23 @@ describe('Editor Settings — Valid Values', () => {
 
   it('editorCursorStyle accepts all valid options', () => {
     const { preferences } = useLocalePreferences()
-    for (const val of ['line', 'line-thin', 'block', 'block-outline', 'underline', 'underline-thin']) {
+    for (const val of ['line', 'line-thin']) {
       preferences.editorCursorStyle = val
       expect(preferences.editorCursorStyle).toBe(val)
     }
   })
 
-  it('editorCursorBlinking accepts all valid options', () => {
-    const { preferences } = useLocalePreferences()
-    for (const val of ['blink', 'smooth', 'phase', 'expand', 'solid']) {
-      preferences.editorCursorBlinking = val
-      expect(preferences.editorCursorBlinking).toBe(val)
-    }
-  })
-
-  it('editorRenderWhitespace accepts all valid options', () => {
-    const { preferences } = useLocalePreferences()
-    for (const val of ['none', 'boundary', 'selection', 'trailing', 'all']) {
-      preferences.editorRenderWhitespace = val
-      expect(preferences.editorRenderWhitespace).toBe(val)
-    }
-  })
-
   it('editorAutoClosingBrackets accepts all valid options', () => {
     const { preferences } = useLocalePreferences()
-    for (const val of ['always', 'languageDefined', 'beforeWhitespace', 'never']) {
+    for (const val of ['always', 'never']) {
       preferences.editorAutoClosingBrackets = val
       expect(preferences.editorAutoClosingBrackets).toBe(val)
     }
   })
 
-  it('editorAutoClosingQuotes accepts all valid options', () => {
-    const { preferences } = useLocalePreferences()
-    for (const val of ['always', 'languageDefined', 'beforeWhitespace', 'never']) {
-      preferences.editorAutoClosingQuotes = val
-      expect(preferences.editorAutoClosingQuotes).toBe(val)
-    }
-  })
-
   it('editorRenderLineHighlight accepts all valid options', () => {
     const { preferences } = useLocalePreferences()
-    for (const val of ['none', 'gutter', 'line', 'all']) {
+    for (const val of ['none', 'line', 'all']) {
       preferences.editorRenderLineHighlight = val
       expect(preferences.editorRenderLineHighlight).toBe(val)
     }
@@ -344,9 +302,8 @@ describe('Editor Settings — Valid Values', () => {
   it('boolean editor settings toggle correctly', () => {
     const { preferences } = useLocalePreferences()
     const booleanKeys = [
-      'editorLigatures', 'editorWordWrap', 'editorMinimap', 'editorStickyScroll',
-      'editorFolding', 'editorGlyphMargin', 'editorCursorSmoothCaret',
-      'editorSmoothScrolling', 'editorBracketPairColorization',
+      'editorLigatures', 'editorWordWrap',
+      'editorFolding', 'editorScrollPastEnd',
     ]
     for (const key of booleanKeys) {
       const original = preferences[key]
@@ -377,13 +334,11 @@ describe('Editor Settings — Valid Values', () => {
 
 describe('Editor Options Mapping', () => {
   // These tests verify the mapping logic used in NoteEditor.vue
-  // to ensure preferences translate correctly to editor options.
+  // to ensure preferences translate correctly to CodeMirror options.
 
   const mapWordWrap = (val) => val ? 'on' : 'off'
   const mapLineNumbers = (val) => ['on', 'off', 'relative', 'interval'].includes(val) ? val : 'on'
-  const mapCursorStyle = (val) => ['line', 'block', 'underline', 'line-thin', 'block-outline', 'underline-thin'].includes(val) ? val : 'line'
-  const mapCursorBlinking = (val) => ['blink', 'smooth', 'phase', 'expand', 'solid'].includes(val) ? val : 'blink'
-  const mapSmoothCaret = (val) => val ? 'on' : 'off'
+  const mapCursorStyle = (val) => ['line', 'line-thin'].includes(val) ? val : 'line'
 
   it('wordWrap maps boolean to on/off', () => {
     expect(mapWordWrap(false)).toBe('off')
@@ -401,45 +356,8 @@ describe('Editor Options Mapping', () => {
 
   it('cursorStyle maps valid values through, defaults invalid to line', () => {
     expect(mapCursorStyle('line')).toBe('line')
-    expect(mapCursorStyle('block')).toBe('block')
-    expect(mapCursorStyle('underline')).toBe('underline')
     expect(mapCursorStyle('line-thin')).toBe('line-thin')
-    expect(mapCursorStyle('block-outline')).toBe('block-outline')
-    expect(mapCursorStyle('underline-thin')).toBe('underline-thin')
     expect(mapCursorStyle('garbage')).toBe('line')
     expect(mapCursorStyle(undefined)).toBe('line')
-  })
-
-  it('cursorBlinking maps valid values through, defaults invalid to blink', () => {
-    expect(mapCursorBlinking('blink')).toBe('blink')
-    expect(mapCursorBlinking('smooth')).toBe('smooth')
-    expect(mapCursorBlinking('phase')).toBe('phase')
-    expect(mapCursorBlinking('expand')).toBe('expand')
-    expect(mapCursorBlinking('solid')).toBe('solid')
-    expect(mapCursorBlinking('garbage')).toBe('blink')
-    expect(mapCursorBlinking(undefined)).toBe('blink')
-  })
-
-  it('cursorSmoothCaretAnimation maps boolean to on/off', () => {
-    expect(mapSmoothCaret(false)).toBe('off')
-    expect(mapSmoothCaret(true)).toBe('on')
-  })
-
-  it('minimap wraps in { enabled: bool }', () => {
-    const mapMinimap = (val) => ({ enabled: val ?? false })
-    expect(mapMinimap(false)).toEqual({ enabled: false })
-    expect(mapMinimap(true)).toEqual({ enabled: true })
-  })
-
-  it('stickyScroll wraps in { enabled: bool }', () => {
-    const mapSticky = (val) => ({ enabled: val ?? false })
-    expect(mapSticky(false)).toEqual({ enabled: false })
-    expect(mapSticky(true)).toEqual({ enabled: true })
-  })
-
-  it('bracketPairColorization wraps in { enabled: bool }', () => {
-    const mapBracket = (val) => ({ enabled: val ?? true })
-    expect(mapBracket(true)).toEqual({ enabled: true })
-    expect(mapBracket(false)).toEqual({ enabled: false })
   })
 })
