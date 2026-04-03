@@ -155,5 +155,13 @@ export async function migrate() {
     END $$
   `)
 
+  // Add viewer_fingerprint for identifying unique viewers across repeat visits
+  await query(`
+    DO $$ BEGIN
+      ALTER TABLE share_views ADD COLUMN IF NOT EXISTS viewer_fingerprint TEXT;
+    EXCEPTION WHEN duplicate_column THEN NULL;
+    END $$
+  `)
+
   console.log('[migrate] Database tables ready')
 }

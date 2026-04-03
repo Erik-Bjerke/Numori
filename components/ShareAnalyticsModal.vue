@@ -28,12 +28,10 @@
 
             <!-- Body -->
             <div class="flex-1 overflow-y-auto px-5 py-4">
-              <!-- Loading -->
               <div v-if="loading" class="flex items-center justify-center py-12">
                 <Icon name="mdi:loading" class="w-6 h-6 text-gray-400 animate-spin" />
               </div>
 
-              <!-- Not enabled -->
               <div v-else-if="data && !data.enabled" class="text-center py-12">
                 <Icon name="mdi:chart-bar" class="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
                 <p class="text-sm text-gray-500 dark:text-gray-500">Analytics were not enabled for this share</p>
@@ -42,7 +40,6 @@
               <template v-else-if="data">
                 <!-- ═══ Summary Tab ═══ -->
                 <div v-if="activeTab === 'summary'" class="space-y-4">
-                  <!-- Status badge -->
                   <div class="flex items-center gap-2">
                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
                       :class="data.isActive
@@ -53,27 +50,33 @@
                     </span>
                   </div>
 
-                  <!-- Stats grid -->
-                  <div class="grid grid-cols-2 gap-2">
+                  <div class="grid grid-cols-3 gap-2">
                     <div class="px-3 py-2.5 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
                       <p class="text-lg font-semibold text-gray-900 dark:text-gray-200">{{ data.totalViews }}</p>
-                      <p class="text-xs text-gray-500 dark:text-gray-500">Total views</p>
+                      <p class="text-xs text-gray-500 dark:text-gray-500">Views</p>
                     </div>
                     <div class="px-3 py-2.5 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
                       <p class="text-lg font-semibold text-gray-900 dark:text-gray-200">{{ data.totalImports }}</p>
                       <p class="text-xs text-gray-500 dark:text-gray-500">Imports</p>
                     </div>
                     <div class="px-3 py-2.5 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
-                      <p class="text-lg font-semibold text-gray-900 dark:text-gray-200">{{ data.knownViewers }}</p>
-                      <p class="text-xs text-gray-500 dark:text-gray-500">Known viewers</p>
+                      <p class="text-lg font-semibold text-gray-900 dark:text-gray-200">{{ data.uniqueViewers }}</p>
+                      <p class="text-xs text-gray-500 dark:text-gray-500">Unique visitors</p>
                     </div>
-                    <div class="px-3 py-2.5 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
-                      <p class="text-lg font-semibold text-gray-900 dark:text-gray-200">{{ data.anonymousViews }}</p>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-2">
+                    <div class="px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+                      <p class="text-sm font-semibold text-gray-900 dark:text-gray-200">{{ data.knownViewers }}</p>
+                      <p class="text-xs text-gray-500 dark:text-gray-500">Identified</p>
+                    </div>
+                    <div class="px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+                      <p class="text-sm font-semibold text-gray-900 dark:text-gray-200">{{ data.anonymousViewers }}</p>
                       <p class="text-xs text-gray-500 dark:text-gray-500">Anonymous / private</p>
                     </div>
                   </div>
 
-                  <!-- Quick list of recent events -->
+                  <!-- Recent activity -->
                   <div v-if="data.views.length">
                     <p class="text-xs font-medium text-gray-500 dark:text-gray-500 mb-2">Recent activity</p>
                     <div class="space-y-1">
@@ -83,7 +86,8 @@
                           <Icon :name="v.eventType === 'import' ? 'mdi:download' : 'mdi:eye-outline'"
                             class="w-3.5 h-3.5 flex-shrink-0"
                             :class="v.eventType === 'import' ? 'text-primary-500' : 'text-gray-400'" />
-                          <span class="text-gray-700 dark:text-gray-300 truncate">{{ v.viewerName || 'Unknown' }}</span>
+                          <span class="text-gray-700 dark:text-gray-300 truncate">{{ viewerLabel(v) }}</span>
+                          <span v-if="v.totalVisits > 1" class="text-gray-400 flex-shrink-0">({{ v.totalVisits }}x)</span>
                           <span v-if="v.parsed" class="text-gray-400 truncate hidden sm:inline">· {{ v.parsed.summary }}</span>
                         </div>
                         <span class="text-gray-400 flex-shrink-0 ml-2">{{ formatTimeAgo(v.viewedAt) }}</span>
@@ -99,7 +103,7 @@
                 <!-- ═══ Details Tab ═══ -->
                 <div v-if="activeTab === 'details'" class="space-y-3">
                   <!-- Controls -->
-                  <div class="flex items-center justify-between">
+                  <div class="flex items-center justify-between flex-wrap gap-2">
                     <label class="flex items-center gap-2 cursor-pointer">
                       <input v-model="showRaw" type="checkbox"
                         class="w-3.5 h-3.5 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500" />
@@ -110,26 +114,25 @@
                         class="text-xs px-2 py-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors">
                         Delete selected ({{ selectedIds.size }})
                       </button>
-                      <button v-if="data.views.length > 0" @click="deleteAll"
+                      <button v-if="data.totalRecords > 0" @click="deleteAll"
                         class="text-xs px-2 py-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors">
                         Delete all
                       </button>
                     </div>
                   </div>
 
-                  <!-- Select all -->
+                  <!-- Select all on page -->
                   <label v-if="data.views.length > 0" class="flex items-center gap-2 cursor-pointer px-1">
-                    <input type="checkbox" :checked="selectedIds.size === data.views.length && data.views.length > 0"
+                    <input type="checkbox" :checked="allOnPageSelected"
                       @change="toggleSelectAll"
                       class="w-3.5 h-3.5 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500" />
-                    <span class="text-xs text-gray-500 dark:text-gray-500">Select all</span>
+                    <span class="text-xs text-gray-500 dark:text-gray-500">Select all on this page</span>
                   </label>
 
                   <!-- Event list -->
                   <div v-if="data.views.length" class="space-y-2">
                     <div v-for="v in data.views" :key="v.id"
                       class="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                      <!-- Event header -->
                       <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-900">
                         <input type="checkbox" :checked="selectedIds.has(v.id)"
                           @change="toggleSelect(v.id)"
@@ -138,7 +141,11 @@
                           class="w-4 h-4 flex-shrink-0"
                           :class="v.eventType === 'import' ? 'text-primary-500' : 'text-gray-400'" />
                         <span class="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">
-                          {{ v.viewerName || 'Unknown' }}
+                          {{ viewerLabel(v) }}
+                        </span>
+                        <span v-if="v.totalVisits > 1"
+                          class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 flex-shrink-0">
+                          {{ v.totalVisits }} visits
                         </span>
                         <span class="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
                           :class="v.eventType === 'import'
@@ -149,7 +156,6 @@
                         <span class="ml-auto text-[10px] text-gray-400 flex-shrink-0">{{ formatTimestamp(v.viewedAt) }}</span>
                       </div>
 
-                      <!-- Parsed details -->
                       <div class="px-3 py-2 space-y-1 text-xs">
                         <div v-if="v.parsed" class="flex flex-wrap gap-x-4 gap-y-1 text-gray-600 dark:text-gray-400">
                           <span><span class="text-gray-400">Device:</span> {{ v.parsed.deviceType }}</span>
@@ -162,8 +168,9 @@
                         <div v-if="v.raw.ip" class="text-gray-500 dark:text-gray-500">
                           <span class="text-gray-400">IP:</span> {{ v.raw.ip }}
                         </div>
-
-                        <!-- Raw data -->
+                        <div v-if="v.fingerprint" class="text-gray-400 dark:text-gray-600 font-mono text-[10px]">
+                          Visitor ID: {{ v.fingerprint }}
+                        </div>
                         <div v-if="showRaw && v.raw.userAgent" class="mt-1 px-2 py-1.5 rounded bg-gray-100 dark:bg-gray-800 font-mono text-[10px] text-gray-500 dark:text-gray-500 break-all">
                           {{ v.raw.userAgent }}
                         </div>
@@ -173,6 +180,31 @@
                   <div v-else class="text-center py-6">
                     <Icon name="mdi:database-off-outline" class="w-8 h-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
                     <p class="text-sm text-gray-500 dark:text-gray-500">No data collected yet</p>
+                  </div>
+
+                  <!-- Pagination -->
+                  <div v-if="data.totalPages > 1" class="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-800">
+                    <span class="text-xs text-gray-500 dark:text-gray-500">
+                      Page {{ data.page }} of {{ data.totalPages }} ({{ data.totalRecords }} records)
+                    </span>
+                    <div class="flex items-center gap-1">
+                      <button @click="goToPage(1)" :disabled="data.page <= 1"
+                        class="p-1 rounded text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+                        <Icon name="mdi:chevron-double-left" class="w-4 h-4" />
+                      </button>
+                      <button @click="goToPage(data.page - 1)" :disabled="data.page <= 1"
+                        class="p-1 rounded text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+                        <Icon name="mdi:chevron-left" class="w-4 h-4" />
+                      </button>
+                      <button @click="goToPage(data.page + 1)" :disabled="data.page >= data.totalPages"
+                        class="p-1 rounded text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+                        <Icon name="mdi:chevron-right" class="w-4 h-4" />
+                      </button>
+                      <button @click="goToPage(data.totalPages)" :disabled="data.page >= data.totalPages"
+                        class="p-1 rounded text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+                        <Icon name="mdi:chevron-double-right" class="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </template>
@@ -192,7 +224,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close'])
-
 const { apiFetch } = useApi()
 
 const tabs = [
@@ -205,29 +236,51 @@ const loading = ref(false)
 const data = ref(null)
 const showRaw = ref(false)
 const selectedIds = ref(new Set())
+const currentPage = ref(1)
+
+const allOnPageSelected = computed(() => {
+  if (!data.value || !data.value.views.length) return false
+  return data.value.views.every(v => selectedIds.value.has(v.id))
+})
 
 watch(() => props.isOpen, (open) => {
   if (open && props.hash) {
     activeTab.value = 'summary'
     showRaw.value = false
     selectedIds.value = new Set()
-    loadData()
+    currentPage.value = 1
+    loadData(1)
   } else {
     data.value = null
   }
 })
 
-const loadData = async () => {
+const loadData = async (page = 1) => {
   loading.value = true
   try {
-    data.value = await apiFetch(`/api/share/${props.hash}/analytics`, {
+    data.value = await apiFetch(`/api/share/${props.hash}/analytics?page=${page}&limit=20`, {
       headers: props.authHeaders
     })
+    currentPage.value = data.value.page
   } catch {
     data.value = null
   } finally {
     loading.value = false
   }
+}
+
+const goToPage = (page) => {
+  if (!data.value || page < 1 || page > data.value.totalPages) return
+  selectedIds.value = new Set()
+  loadData(page)
+}
+
+const viewerLabel = (v) => {
+  if (v.viewerName) return v.viewerName
+  if (v.fingerprint?.startsWith('user:')) return 'User #' + v.fingerprint.split(':')[1]
+  if (v.fingerprint?.startsWith('private:')) return 'Private visitor'
+  if (v.fingerprint?.startsWith('anon:')) return 'Visitor ' + v.fingerprint.split(':')[1].slice(0, 6)
+  return 'Unknown'
 }
 
 const toggleSelect = (id) => {
@@ -238,7 +291,7 @@ const toggleSelect = (id) => {
 }
 
 const toggleSelectAll = () => {
-  if (selectedIds.value.size === data.value.views.length) {
+  if (allOnPageSelected.value) {
     selectedIds.value = new Set()
   } else {
     selectedIds.value = new Set(data.value.views.map(v => v.id))
@@ -255,7 +308,7 @@ const deleteSelected = async () => {
       body: { ids: [...selectedIds.value] }
     })
     selectedIds.value = new Set()
-    await loadData()
+    await loadData(currentPage.value)
   } catch { /* ignore */ }
 }
 
@@ -267,7 +320,7 @@ const deleteAll = async () => {
       headers: props.authHeaders
     })
     selectedIds.value = new Set()
-    await loadData()
+    await loadData(1)
   } catch { /* ignore */ }
 }
 

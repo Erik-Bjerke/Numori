@@ -4,12 +4,14 @@ import { query } from '../../../utils/db.js'
 /**
  * GET /api/share/:hash/analytics — Get view analytics for a shared note.
  * Only the owner can access. Works even after soft-delete (unshare).
+ *
+ * Query params:
+ *   page (default 1), limit (default 20, max 100)
  */
 export default defineEventHandler(async (event) => {
   const auth = await requireAuth(event)
   const hash = getRouterParam(event, 'hash')
 
-  // Verify ownership (include soft-deleted)
   const noteResult = await query(
     'SELECT id, collect_analytics, deleted_at FROM shared_notes WHERE hash = $1 AND user_id = $2',
     [hash, auth.userId]
@@ -22,39 +24,58 @@ export default defineEventHandler(async (event) => {
   const sharedNote = noteResult.rows[0]
 
   if (!sharedNote.collect_analytics) {
-    return { enabled: false, totalViews: 0, totalImports: 0, uniqueViewers: 0, views: [] }
+    return { enabled: false, totalViews: 0, totalImports: 0, uniqueViewers: 0, views: [], page: 1, totalPages: 0, totalRecords: 0 }
   }
 
-  // Aggregates
-  const totalViewsRes = await query(
-    "SELECT COUNT(*) as count FROM share_views WHERE shared_note_id = $1 AND event_type = 'view'",
-    [sharedNote.id]
-  )
-  const totalImportsRes = await query(
-    "SELECT COUNT(*) as count FROM share_views WHERE shared_note_id = $1 AND event_type = 'import'",
-    [sharedNote.id]
-  )
-  const knownRes = await query(
-    'SELECT COUNT(DISTINCT viewer_user_id) as count FROM share_views WHERE shared_note_id = $1 AND viewer_user_id IS NOT NULL',
-    [sharedNote.id]
-  )
-  const anonRes = await query(
-    'SELECT COUNT(*) as count FROM share_views WHERE shared_note_id = $1 AND viewer_user_id IS NULL',
-    [sharedNote.id]
-  )
+  const urlParams = getQuery(event)
+  const page = Math.max(1, parseInt(urlParams.page) || 1)
+  const limit = Math.min(100, Math.max(1, parseInt(urlParams.limit) || 20))
+  const offset = (page - 1) * limit
 
-  // All events (last 100)
+  // Aggregates
+  const [totalViewsRes, totalImportsRes, uniqueRes, totalRecordsRes] = await Promise.all([
+    query("SELECT COUNT(*) as count FROM share_views WHERE shared_note_id = $1 AND event_type = 'view'", [sharedNote.id]),
+    query("SELECT COUNT(*) as count FROM share_views WHERE shared_note_id = $1 AND event_type = 'import'", [sharedNote.id]),
+    query('SELECT COUNT(DISTINCT viewer_fingerprint) as count FROM share_views WHERE shared_note_id = $1 AND viewer_fingerprint IS NOT NULL', [sharedNote.id]),
+    query('SELECT COUNT(*) as count FROM share_views WHERE shared_note_id = $1', [sharedNote.id])
+  ])
+
+  // Unique viewers breakdown
+  const [knownRes, anonFpRes] = await Promise.all([
+    query("SELECT COUNT(DISTINCT viewer_fingerprint) as count FROM share_views WHERE shared_note_id = $1 AND viewer_fingerprint LIKE 'user:%'", [sharedNote.id]),
+    query("SELECT COUNT(DISTINCT viewer_fingerprint) as count FROM share_views WHERE shared_note_id = $1 AND (viewer_fingerprint LIKE 'anon:%' OR viewer_fingerprint LIKE 'private:%')", [sharedNote.id])
+  ])
+
+  // Paginated events
   const viewsResult = await query(`
-    SELECT id, viewer_name, user_agent, ip_address, referrer, event_type, viewed_at
+    SELECT id, viewer_name, viewer_fingerprint, user_agent, ip_address, referrer, event_type, viewed_at
     FROM share_views
     WHERE shared_note_id = $1
     ORDER BY viewed_at DESC
-    LIMIT 100
-  `, [sharedNote.id])
+    LIMIT $2 OFFSET $3
+  `, [sharedNote.id, limit, offset])
+
+  // For each fingerprint in this page, get their total view count for context
+  const fingerprints = [...new Set(viewsResult.rows.map(r => r.viewer_fingerprint).filter(Boolean))]
+  let fpCounts = {}
+  if (fingerprints.length > 0) {
+    const placeholders = fingerprints.map((_, i) => `$${i + 2}`).join(', ')
+    const countRes = await query(
+      `SELECT viewer_fingerprint, COUNT(*) as count FROM share_views WHERE shared_note_id = $1 AND viewer_fingerprint IN (${placeholders}) GROUP BY viewer_fingerprint`,
+      [sharedNote.id, ...fingerprints]
+    )
+    for (const r of countRes.rows) {
+      fpCounts[r.viewer_fingerprint] = parseInt(r.count)
+    }
+  }
+
+  const totalRecords = parseInt(totalRecordsRes.rows[0].count)
 
   const views = viewsResult.rows.map(v => ({
     id: v.id,
     viewerName: v.viewer_name || null,
+    fingerprint: v.viewer_fingerprint || null,
+    totalVisits: fpCounts[v.viewer_fingerprint] || 1,
     eventType: v.event_type,
     raw: {
       userAgent: v.user_agent || null,
@@ -70,9 +91,14 @@ export default defineEventHandler(async (event) => {
     isActive: !sharedNote.deleted_at,
     totalViews: parseInt(totalViewsRes.rows[0].count),
     totalImports: parseInt(totalImportsRes.rows[0].count),
+    uniqueViewers: parseInt(uniqueRes.rows[0].count),
     knownViewers: parseInt(knownRes.rows[0].count),
-    anonymousViews: parseInt(anonRes.rows[0].count),
-    views
+    anonymousViewers: parseInt(anonFpRes.rows[0].count),
+    views,
+    page,
+    limit,
+    totalRecords,
+    totalPages: Math.ceil(totalRecords / limit)
   }
 })
 
@@ -85,7 +111,6 @@ function parseUserAgent(ua) {
   let browserVersion = ''
   let deviceType = 'Desktop'
 
-  // OS detection
   const winMatch = ua.match(/Windows NT ([\d.]+)/)
   const macMatch = ua.match(/Mac OS X ([\d_.]+)/)
   const iosMatch = ua.match(/(?:iPhone|iPad|iPod).*?OS ([\d_]+)/)
@@ -114,7 +139,6 @@ function parseUserAgent(ua) {
     os = 'Linux'
   }
 
-  // Browser detection (order matters)
   const edgeMatch = ua.match(/Edg(?:e|A|iOS)?\/([\d.]+)/)
   const firefoxMatch = ua.match(/Firefox\/([\d.]+)/)
   const chromeMatch = ua.match(/Chrome\/([\d.]+)/)
@@ -129,7 +153,6 @@ function parseUserAgent(ua) {
   else if (chromeMatch && !ua.includes('Edg')) { browser = 'Chrome'; browserVersion = chromeMatch[1] }
   else if (safariMatch) { browser = 'Safari'; browserVersion = safariMatch[1] }
 
-  // Bot detection
   if (/bot|crawl|spider|slurp|Googlebot|Bingbot/i.test(ua)) {
     deviceType = 'Bot'
   }

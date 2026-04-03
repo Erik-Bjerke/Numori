@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { query } from '../../utils/db.js'
 import { optionalAuth } from '../../utils/auth.js'
 
@@ -24,17 +25,14 @@ export default defineEventHandler(async (event) => {
 
   const row = result.rows[0]
 
-  // Soft-deleted = no longer shared
   if (row.deleted_at) {
     throw createError({ statusCode: 410, statusMessage: 'This shared note is no longer available' })
   }
 
-  // Check expiration
   if (row.expires_at && new Date(row.expires_at) < new Date()) {
     throw createError({ statusCode: 410, statusMessage: 'This shared note has expired' })
   }
 
-  // Record view if analytics enabled
   if (row.collect_analytics) {
     await recordEvent(event, row.id, 'view')
   }
@@ -55,6 +53,27 @@ export default defineEventHandler(async (event) => {
 })
 
 /**
+ * Build a viewer fingerprint to identify the same person across repeat visits.
+ * - Logged-in user with tracking allowed: "user:<id>"
+ * - Logged-in user with privacy on: "private:<hash of userId + shared_note_id>"
+ *   (unique per share so it can't be correlated across shares)
+ * - Anonymous: "anon:<hash of ip + user_agent>"
+ */
+function buildFingerprint(auth, privacyOn, ipAddress, userAgent, sharedNoteId) {
+  if (auth && !privacyOn) {
+    return `user:${auth.userId}`
+  }
+  if (auth && privacyOn) {
+    // Still fingerprint so we can count unique private viewers, but no PII leaks
+    const raw = `private:${auth.userId}:${sharedNoteId}`
+    return `private:${createHash('sha256').update(raw).digest('hex').slice(0, 16)}`
+  }
+  // Anonymous — fingerprint from IP + UA
+  const raw = `anon:${ipAddress || 'no-ip'}:${userAgent || 'no-ua'}`
+  return `anon:${createHash('sha256').update(raw).digest('hex').slice(0, 16)}`
+}
+
+/**
  * Record a view or import event for analytics.
  */
 async function recordEvent(event, sharedNoteId, eventType) {
@@ -62,15 +81,15 @@ async function recordEvent(event, sharedNoteId, eventType) {
   const userAgent = getHeader(event, 'user-agent') || null
   const referrer = getHeader(event, 'referer') || null
 
-  // Extract IP from common headers
   const forwarded = getHeader(event, 'x-forwarded-for')
   const realIp = getHeader(event, 'x-real-ip')
-  let ipAddress = forwarded ? forwarded.split(',')[0].trim() : (realIp || null)
+  const ipAddress = forwarded ? forwarded.split(',')[0].trim() : (realIp || null)
 
   let viewerUserId = null
   let viewerName = null
   let recordUserAgent = null
   let recordIp = null
+  let privacyOn = false
 
   if (auth) {
     const privResult = await query(
@@ -78,21 +97,25 @@ async function recordEvent(event, sharedNoteId, eventType) {
       [auth.userId]
     )
     const viewer = privResult.rows[0]
+    privacyOn = !viewer || viewer.privacy_no_tracking
     if (viewer && !viewer.privacy_no_tracking) {
       viewerUserId = auth.userId
       viewerName = viewer.name || null
       recordUserAgent = userAgent
       recordIp = ipAddress
     }
-    // Privacy on: record anonymous view only
   } else {
-    // No account: record UA and IP (no privacy preference)
     recordUserAgent = userAgent
     recordIp = ipAddress
   }
 
+  const fingerprint = buildFingerprint(auth, privacyOn, ipAddress, userAgent, sharedNoteId)
+
   query(`
-    INSERT INTO share_views (shared_note_id, viewer_user_id, viewer_name, user_agent, ip_address, referrer, event_type)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
-  `, [sharedNoteId, viewerUserId, viewerName, recordUserAgent, recordIp, referrer, eventType]).catch(() => {})
+    INSERT INTO share_views (shared_note_id, viewer_user_id, viewer_name, user_agent, ip_address, referrer, event_type, viewer_fingerprint)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+  `, [sharedNoteId, viewerUserId, viewerName, recordUserAgent, recordIp, referrer, eventType, fingerprint]).catch(() => {})
 }
+
+// Export for reuse by import endpoint
+export { buildFingerprint }

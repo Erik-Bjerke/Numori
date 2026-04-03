@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { query } from '../../../utils/db.js'
 import { optionalAuth } from '../../../utils/auth.js'
 
@@ -17,7 +18,6 @@ export default defineEventHandler(async (event) => {
   const row = result.rows[0]
   if (!row.collect_analytics) return { ok: true }
 
-  // Reuse the same recording logic
   const auth = await optionalAuth(event)
   const userAgent = getHeader(event, 'user-agent') || null
   const referrer = getHeader(event, 'referer') || null
@@ -29,6 +29,7 @@ export default defineEventHandler(async (event) => {
   let viewerName = null
   let recordUserAgent = null
   let recordIp = null
+  let privacyOn = false
 
   if (auth) {
     const privResult = await query(
@@ -36,6 +37,7 @@ export default defineEventHandler(async (event) => {
       [auth.userId]
     )
     const viewer = privResult.rows[0]
+    privacyOn = !viewer || viewer.privacy_no_tracking
     if (viewer && !viewer.privacy_no_tracking) {
       viewerUserId = auth.userId
       viewerName = viewer.name || null
@@ -47,10 +49,22 @@ export default defineEventHandler(async (event) => {
     recordIp = ipAddress
   }
 
+  // Build fingerprint
+  let fingerprint
+  if (auth && !privacyOn) {
+    fingerprint = `user:${auth.userId}`
+  } else if (auth && privacyOn) {
+    const raw = `private:${auth.userId}:${row.id}`
+    fingerprint = `private:${createHash('sha256').update(raw).digest('hex').slice(0, 16)}`
+  } else {
+    const raw = `anon:${ipAddress || 'no-ip'}:${userAgent || 'no-ua'}`
+    fingerprint = `anon:${createHash('sha256').update(raw).digest('hex').slice(0, 16)}`
+  }
+
   await query(`
-    INSERT INTO share_views (shared_note_id, viewer_user_id, viewer_name, user_agent, ip_address, referrer, event_type)
-    VALUES ($1, $2, $3, $4, $5, $6, 'import')
-  `, [row.id, viewerUserId, viewerName, recordUserAgent, recordIp, referrer])
+    INSERT INTO share_views (shared_note_id, viewer_user_id, viewer_name, user_agent, ip_address, referrer, event_type, viewer_fingerprint)
+    VALUES ($1, $2, $3, $4, $5, $6, 'import', $7)
+  `, [row.id, viewerUserId, viewerName, recordUserAgent, recordIp, referrer, fingerprint])
 
   return { ok: true }
 })
