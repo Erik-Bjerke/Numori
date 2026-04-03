@@ -20,14 +20,19 @@ export const useAuth = () => {
   const restore = async () => {
     if (!import.meta.client) return
     const stored = localStorage.getItem('auth_token')
-    if (!stored) return
+    if (!stored) {
+      console.debug('[auth] no stored token')
+      return
+    }
 
     token.value = stored
     try {
       user.value = await apiFetch('/api/auth/me', {
         headers: { Authorization: `Bearer ${stored}` }
       })
-    } catch {
+      console.debug('[auth] restored session, isLoggedIn=', isLoggedIn.value)
+    } catch (err) {
+      console.debug('[auth] restore failed:', err.message || err)
       token.value = null
       localStorage.removeItem('auth_token')
     }

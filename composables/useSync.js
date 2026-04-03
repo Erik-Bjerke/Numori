@@ -224,6 +224,7 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
   }
 
   watch(() => auth.isLoggedIn.value, (loggedIn) => {
+    console.debug(`[sync] auth watch fired: loggedIn=${loggedIn}`)
     if (loggedIn) {
       startAutoSync()
       connectSSE()
