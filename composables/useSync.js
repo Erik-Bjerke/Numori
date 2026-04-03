@@ -1,7 +1,12 @@
 /**
  * Composable for cloud sync. Pushes local notes to server and pulls remote changes.
- * Supports manual sync, auto-sync on interval, and debounced sync on note changes.
- * Tracks deletions so they propagate across devices.
+ * Supports manual sync, auto-sync on interval, and SSE push from other clients.
+ *
+ * IMPORTANT: No deep watcher on notes. Sync is triggered explicitly:
+ * - syncNow() for create/delete
+ * - debouncedSync() for content/meta edits (called from useNotes)
+ * - interval every 2 minutes
+ * - SSE notification from another client
  */
 export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => {
   const { apiFetch, apiUrl } = useApi()
@@ -86,9 +91,7 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
       // Sort by user-defined order
       notes.value.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
 
-      // Deletions synced successfully — clear the queue
       clearDeletedIds()
-
       lastSyncedAt.value = data.syncedAt
       localStorage.setItem('last_synced_at', data.syncedAt)
       saveNotes()
@@ -99,12 +102,13 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
     }
   }
 
-  /** Immediate sync — bypasses debounce. For create/delete actions. */
+  /** Immediate sync — bypasses debounce. For create/delete/reorder. */
   const syncNow = () => {
     clearTimeout(debounceTimer)
     sync()
   }
 
+  /** Debounced sync — call from content/meta edits. */
   const debouncedSync = () => {
     if (!auth.isLoggedIn.value) return
     clearTimeout(debounceTimer)
@@ -135,15 +139,13 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
     eventSource.onmessage = (e) => {
       try {
         const msg = JSON.parse(e.data)
-        if (msg.type === 'sync') {
-          // Another client synced — pull changes
+        if (msg.type === 'sync' && !syncing.value) {
           sync()
         }
-      } catch { /* ignore parse errors */ }
+      } catch { /* ignore */ }
     }
 
     eventSource.onerror = () => {
-      // Reconnect after a delay on error
       disconnectSSE()
       setTimeout(() => {
         if (auth.isLoggedIn.value) connectSSE()
@@ -168,12 +170,10 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
     }
   }, { immediate: true })
 
-  watch(notes, () => debouncedSync(), { deep: true })
-
   onBeforeUnmount(() => {
     stopAutoSync()
     disconnectSSE()
   })
 
-  return { syncing, lastSyncedAt, syncError, sync, syncNow }
+  return { syncing, lastSyncedAt, syncError, sync, syncNow, debouncedSync }
 }

@@ -60,7 +60,7 @@
             @show-help="showHelp = true"
             @show-language="showLanguageModal = true" @show-locale-settings="showLocaleSettings = true"
             @show-auth="showAuthModal = true" @logout="handleLogout" @edit-profile="handleShowProfile"
-            @reorder="reorderNotes" />
+            @reorder="handleReorder" />
         </div>
       </aside>
 
@@ -90,7 +90,7 @@
               @show-help="showHelp = true"
               @show-language="showLanguageModal = true" @show-locale-settings="showLocaleSettings = true"
               @show-auth="showAuthModal = true" @logout="handleLogout" @edit-profile="handleShowProfile"
-              @reorder="reorderNotes" />
+              @reorder="handleReorder" />
           </aside>
         </Transition>
       </Teleport>
@@ -239,13 +239,18 @@ const { evaluateLines } = useCalculator()
 const localePrefs = useLocalePreferences()
 const welcomeWizard = useWelcomeWizard()
 const auth = useAuth()
-const { syncing, lastSyncedAt, sync, syncNow } = useSync(auth, notes, saveNotes, deletedIds, clearDeletedIds)
+const { syncing, lastSyncedAt, sync, syncNow, debouncedSync } = useSync(auth, notes, saveNotes, deletedIds, clearDeletedIds)
 
 // Wrapper: create note + instant sync
 const createNote = () => {
   const note = addNote()
   syncNow()
   return note
+}
+
+const handleReorder = (orderedIds) => {
+  reorderNotes(orderedIds)
+  syncNow()
 }
 
 // Keyboard shortcuts — must be declared before refs so handlers can reference them
@@ -395,12 +400,14 @@ const openEditModal = (id) => {
 const updateContent = (content) => {
   if (currentNote.value) {
     updateNoteContent(currentNote.value.id, content)
+    debouncedSync()
   }
 }
 
 const updateMeta = ({ title, description, tags }) => {
   if (currentNote.value) {
     updateNoteMeta(currentNote.value.id, { title, description, tags })
+    debouncedSync()
   }
 }
 
