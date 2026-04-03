@@ -51,6 +51,9 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
     syncing.value = true
     syncError.value = null
 
+    // SSE-triggered syncs are pull-only reactions — don't broadcast back
+    const shouldBroadcast = source !== 'sse'
+
     try {
       const clientNotes = notes.value.map(n => ({
         clientId: n.id,
@@ -70,7 +73,8 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
           notes: clientNotes,
           deletedClientIds: [...deletedIds.value],
           lastSyncedAt: lastSyncedAt.value,
-          sessionId
+          sessionId,
+          broadcast: shouldBroadcast
         }
       })
 
@@ -92,9 +96,10 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
             existing.description = remote.description
             existing.tags = remote.tags
             existing.content = remote.content
-            existing.sortOrder = remote.sortOrder ?? existing.sortOrder
             existing.updatedAt = remote.updatedAt
           }
+          // Always take server's sort order
+          existing.sortOrder = remote.sortOrder ?? existing.sortOrder
         } else {
           notes.value.push({
             id: localId,
@@ -102,7 +107,7 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
             description: remote.description,
             tags: remote.tags || [],
             content: remote.content,
-            sortOrder: remote.sortOrder ?? notes.value.length,
+            sortOrder: remote.sortOrder ?? 0,
             createdAt: remote.createdAt,
             updatedAt: remote.updatedAt
           })
@@ -118,10 +123,12 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
 
       console.debug(`[sync] done (pulled=${data.pulled.length}, deleted=${data.deletedClientIds?.length || 0})`)
 
-      // Expect our own SSE echo within 500ms — ignore it
-      expectingSelfEcho = true
-      clearTimeout(echoTimer)
-      echoTimer = setTimeout(() => { expectingSelfEcho = false }, 500)
+      // Only expect self-echo if we asked the server to broadcast
+      if (shouldBroadcast) {
+        expectingSelfEcho = true
+        clearTimeout(echoTimer)
+        echoTimer = setTimeout(() => { expectingSelfEcho = false }, 500)
+      }
     } catch (err) {
       syncError.value = err.data?.statusMessage || err.message || 'Sync failed'
       console.debug(`[sync] error: ${syncError.value}`)
