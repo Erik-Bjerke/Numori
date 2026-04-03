@@ -1,77 +1,92 @@
 <template>
   <header class="bg-gray-100 dark:bg-gray-900 flex-shrink-0 z-10" :style="{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingLeft: 'env(safe-area-inset-left, 0px)', paddingRight: 'env(safe-area-inset-right, 0px)' }">
-    <div class="flex items-center justify-between px-3 py-1.5 gap-1">
-      <!-- Left: File dropdown & Title -->
-      <div class="flex items-center gap-1.5 min-w-0">
-        <FileDropdown :has-note="!!currentNote" :mod-label="modLabel" :selection-count="selectionCount"
-          @new-note="$emit('file-new')"
-          @open-file="$emit('file-open')"
-          @templates="$emit('show-templates')"
-          @duplicate="$emit('file-duplicate')"
-          @export-text="$emit('file-export-text')"
-          @export-markdown="$emit('file-export-markdown')"
-          @export-pdf="$emit('file-export-pdf')"
-          @export-json="$emit('file-export-json')"
-          @export-all="$emit('file-export-all')"
-          @import="$emit('file-import')"
-          @copy="$emit('file-copy')"
-          @print="$emit('file-print')"
-          @about="$emit('file-about')" />
+    <div class="flex flex-col px-3 py-1.5 gap-0.5">
+      <!-- Top row: Centered title -->
+      <button @click="$emit('show-meta')" class="text-center min-w-0 px-1 py-0.5 mb-1 bg-gray-200/50 dark:bg-gray-800/50 rounded-md">
+        <h1 class="text-sm font-semibold leading-tight text-gray-900 dark:text-gray-400 truncate">
+          {{ currentNote?.title || 'Notes' }}
+        </h1>
+      </button>
 
-        <button @click="$emit('show-meta')" class="text-left min-w-0">
-          <h1 class="text-base font-semibold text-gray-900 dark:text-gray-400 truncate max-w-[180px] sm:max-w-xs lg:max-w-sm xl:max-w-md">
-            {{ currentNote?.title || 'Notes' }}
-          </h1>
-        </button>
-      </div>
-
-      <!-- Center: Markdown formatting (desktop only) -->
-      <FormattingToolbar class="hidden lg:flex flex-1"
-        :show-markdown-preview="showMarkdownPreview"
-        @apply-format="(before, after) => $emit('apply-format', before, after)"
-        @toggle-markdown-preview="$emit('toggle-markdown-preview')" />
-
-      <!-- Spacer on mobile -->
-      <div class="flex-1 lg:hidden"></div>
-
-      <!-- Right: Actions -->
-      <div class="flex items-center gap-0.5">
-        <!-- Inline results mode group -->
-        <div class="inline-flex items-center bg-gray-200/50 dark:bg-gray-800 rounded-lg p-0.5" role="group">
-          <button @click="$emit('update:inline-mode', 'left')"
-            class="p-2 rounded-md transition-all leading-none"
-            :class="inlineMode === 'left'
-              ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
-              : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
-            title="Results on left">
-            <Icon name="mdi:dock-left" class="w-5 h-5 block" />
+      <!-- Bottom row: All controls -->
+      <div class="flex items-center gap-1">
+        <!-- Left: Sidebar toggle + dropdowns -->
+        <div class="flex items-center gap-0.5">
+          <button @click="$emit('toggle-sidebar')"
+            class="p-2 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-200/60 dark:hover:bg-gray-800 transition-colors leading-none"
+            title="Toggle notes list">
+            <Icon name="mdi:menu" class="w-4.5 h-4.5 block" />
           </button>
-          <button @click="$emit('update:inline-mode', 'off')"
-            class="p-2 rounded-md transition-all leading-none"
-            :class="inlineMode === 'off'
-              ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
-              : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
-            title="Results off">
-            <Icon name="mdi:eye-off-outline" class="w-5 h-5 block" />
-          </button>
-          <button @click="$emit('update:inline-mode', 'right')"
-            class="p-2 rounded-md transition-all leading-none"
-            :class="inlineMode === 'right'
-              ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
-              : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
-            title="Results on right">
-            <Icon name="mdi:dock-right" class="w-5 h-5 block" />
-          </button>
+          <FileDropdown :has-note="!!currentNote" :mod-label="modLabel" :selection-count="selectionCount"
+            @new-note="$emit('file-new')"
+            @open-file="$emit('file-open')"
+            @templates="$emit('show-templates')"
+            @duplicate="$emit('file-duplicate')"
+            @export-text="$emit('file-export-text')"
+            @export-markdown="$emit('file-export-markdown')"
+            @export-pdf="$emit('file-export-pdf')"
+            @export-json="$emit('file-export-json')"
+            @export-all="$emit('file-export-all')"
+            @import="$emit('file-import')"
+            @copy="$emit('file-copy')"
+            @print="$emit('file-print')"
+            @about="$emit('file-about')" />
+          <ViewDropdown
+            @toggle-sidebar="$emit('toggle-sidebar')"
+            @toggle-markdown-preview="$emit('toggle-markdown-preview')"
+            @inline-left="$emit('update:inline-mode', 'left')"
+            @inline-off="$emit('update:inline-mode', 'off')"
+            @inline-right="$emit('update:inline-mode', 'right')" />
         </div>
 
-        <div class="w-px h-5 bg-gray-300/60 dark:bg-gray-700 mx-0.5"></div>
+        <!-- Center: Markdown formatting (desktop only) -->
+        <FormattingToolbar class="hidden lg:flex flex-1"
+          :show-markdown-preview="showMarkdownPreview"
+          @apply-format="(before, after) => $emit('apply-format', before, after)"
+          @toggle-markdown-preview="$emit('toggle-markdown-preview')" />
 
-        <!-- Toggle sidebar -->
-        <button @click="$emit('toggle-sidebar')"
-          class="p-2 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-200/60 dark:hover:bg-gray-800 transition-colors leading-none"
-          title="Toggle notes list">
-          <Icon name="mdi:menu" class="w-5 h-5 block" />
-        </button>
+        <!-- Spacer on mobile -->
+        <div class="flex-1 lg:hidden"></div>
+
+        <!-- Right: Actions -->
+        <div class="flex items-center gap-0.5">
+          <!-- Inline results mode group -->
+          <div class="inline-flex items-center bg-gray-200/50 dark:bg-gray-800 rounded-lg" role="group">
+            <button @click="$emit('update:inline-mode', 'left')"
+              class="p-2 rounded-lg transition-all leading-none"
+              :class="inlineMode === 'left'
+                ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
+                : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
+              title="Results on left">
+              <Icon name="mdi:dock-left" class="w-5 h-5 block" />
+            </button>
+            <button @click="$emit('update:inline-mode', 'off')"
+              class="p-2 rounded-lg transition-all leading-none"
+              :class="inlineMode === 'off'
+                ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
+                : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
+              title="Results off">
+              <Icon name="mdi:eye-off-outline" class="w-5 h-5 block" />
+            </button>
+            <button @click="$emit('update:inline-mode', 'right')"
+              class="p-2 rounded-lg transition-all leading-none"
+              :class="inlineMode === 'right'
+                ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
+                : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
+              title="Results on right">
+              <Icon name="mdi:dock-right" class="w-5 h-5 block" />
+            </button>
+          </div>
+
+          <div class="w-px h-5 bg-gray-300/60 dark:bg-gray-700 mx-0.5"></div>
+
+          <!-- Focus mode -->
+          <button @click="$emit('toggle-focus')"
+            class="p-2 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-200/60 dark:hover:bg-gray-800 transition-colors leading-none"
+            title="Focus mode">
+            <Icon name="mdi:fullscreen" class="w-5 h-5 block" />
+          </button>
+        </div>
       </div>
     </div>
   </header>
@@ -107,6 +122,7 @@ defineProps({
 
 defineEmits([
   'toggle-sidebar',
+  'toggle-focus',
   'show-meta',
   'show-templates',
   'apply-format',

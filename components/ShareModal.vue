@@ -4,7 +4,7 @@
       <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
         @click.self="$emit('close')">
         <Transition name="modal-panel" appear>
-          <div v-if="isOpen" class="bg-white dark:bg-gray-925 rounded-lg max-w-sm w-full p-5 max-h-[85vh] overflow-y-auto">
+          <div v-if="isOpen" class="bg-white dark:bg-gray-925 rounded-lg max-w-sm w-full p-4 sm:p-5 max-h-[85vh] overflow-y-auto">
 
             <!-- Header -->
             <div class="flex items-center justify-between mb-4">

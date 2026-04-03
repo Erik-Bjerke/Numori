@@ -1,7 +1,7 @@
 <template>
   <div class="h-screen flex flex-col bg-white dark:bg-gray-925 overscroll-none">
     <!-- Mobile-friendly Toolbar -->
-    <AppHeader :current-note="currentNote" :inline-mode="showInlineResults" :show-markdown-preview="showMarkdownPreview"
+    <AppHeader v-if="!focusMode" :current-note="currentNote" :inline-mode="showInlineResults" :show-markdown-preview="showMarkdownPreview"
       :mod-label="modLabel"
       :selection-count="selectedNoteIds.length"
       :is-logged-in="auth.isLoggedIn.value"
@@ -9,6 +9,7 @@
       @show-meta="currentNote && (showMetaModal = true)" @apply-format="applyFormat"
       @update:inline-mode="showInlineResults = $event"
       @toggle-markdown-preview="showMarkdownPreview = !showMarkdownPreview"
+      @toggle-focus="focusMode = true"
       @show-templates="showTemplates = true"
       @file-new="createNote"
       @file-open="handleOpenFile"
@@ -26,7 +27,7 @@
     <!-- Main Content Area -->
     <div class="flex-1 flex overflow-hidden">
       <!-- Sidebar - Notes List (desktop) -->
-      <aside class="flex-shrink-0 hidden lg:block overflow-hidden transition-[width] duration-300 ease-in-out"
+      <aside v-if="!focusMode" class="flex-shrink-0 hidden lg:block overflow-hidden transition-[width] duration-300 ease-in-out"
         :class="showSidebar ? 'w-80' : 'w-0'">
         <div class="w-80 h-full">
           <MainSidebar :notes="notes" :current-note-id="currentNoteId" :all-tags="allTags" :is-logged-in="auth.isLoggedIn.value" :user="auth.user.value" :shared-note-ids="sharedNoteIds" :shared-notes-map="sharedNotesMap" :analytics-notes-map="analyticsNotesMap" @new-note="createNote" @select-note="selectNote"
@@ -233,6 +234,21 @@
       @open-analytics="handleOpenAnalytics" />
 
     <SyncIndicator :syncing="syncing" />
+
+    <!-- Zen mode exit button -->
+    <Transition
+      enter-active-class="transition-opacity duration-300"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition-opacity duration-200"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0">
+      <button v-if="focusMode" @click="focusMode = false"
+        class="fixed bottom-3 right-3 z-50 p-2 rounded-lg bg-black/10 dark:bg-white/10 text-gray-500 dark:text-gray-400 hover:bg-black/20 dark:hover:bg-white/20 hover:text-gray-700 dark:hover:text-gray-200 transition-colors backdrop-blur-sm"
+        title="Exit focus mode">
+        <Icon name="mdi:fullscreen-exit" class="w-5 h-5 block" />
+      </button>
+    </Transition>
   </div>
 </template>
 
@@ -273,6 +289,7 @@ const { isMac, modLabel, handlers: shortcutHandlers } = useKeyboardShortcuts({
 })
 
 const showSidebar = ref(true) // Default to true for better UX
+const focusMode = ref(false)
 const showMetaModal = ref(false)
 const showHelp = ref(false)
 const showTemplates = ref(false)

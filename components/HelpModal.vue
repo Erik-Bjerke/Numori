@@ -14,24 +14,24 @@
           <div v-if="isOpen" class="bg-white dark:bg-gray-925 rounded-none md:rounded-lg max-w-5xl w-full h-screen md:h-[90vh] overflow-hidden flex flex-col safe-area-modal"
             @click.stop>
       <!-- Header -->
-      <div class="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
-        <div class="flex items-center gap-2">
+      <div class="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-800 flex-shrink-0 gap-2">
+        <div class="flex items-center gap-2 flex-shrink-0">
           <button @click="showIndex = !showIndex"
             class="flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
             :title="showIndex ? 'Hide index' : 'Show index'">
             <Icon name="mdi:table-of-contents" class="block w-5 h-5" />
           </button>
-          <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">{{ $t('help.title') }}</h2>
+          <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none hidden sm:block">{{ $t('help.title') }}</h2>
         </div>
-        <div class="flex items-center gap-2">
-          <div class="relative">
+        <div class="flex items-center gap-2 min-w-0">
+          <div class="relative min-w-0 flex-1">
             <Icon name="mdi:magnify" class="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             <input
               ref="searchInputRef"
               v-model="searchQuery"
               type="text"
               placeholder="Search..."
-              class="w-40 md:w-56 pl-7 pr-7 py-1 text-sm bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+              class="w-full pl-7 pr-7 py-1 text-sm bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
               @keydown.escape="searchQuery = ''"
             />
             <button
@@ -42,7 +42,7 @@
               <Icon name="mdi:close" class="block w-4 h-4" />
             </button>
           </div>
-          <button @click="close" class="flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+          <button @click="close" class="flex-shrink-0 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
             <Icon name="mdi:close" class="block w-5 h-5" />
           </button>
         </div>
