@@ -3,6 +3,8 @@
  * Stores JWT in localStorage. Completely optional — app works without auth.
  */
 export const useAuth = () => {
+  const { apiFetch } = useApi()
+
   const user = ref(null)
   const token = ref(null)
   const loading = ref(false)
@@ -10,13 +12,11 @@ export const useAuth = () => {
 
   const isLoggedIn = computed(() => !!token.value && !!user.value)
 
-  /** Helper: get auth headers for API calls */
   const authHeaders = computed(() => {
     if (!token.value) return {}
     return { Authorization: `Bearer ${token.value}` }
   })
 
-  // Restore session from localStorage
   const restore = async () => {
     if (!import.meta.client) return
     const stored = localStorage.getItem('auth_token')
@@ -24,10 +24,9 @@ export const useAuth = () => {
 
     token.value = stored
     try {
-      const data = await $fetch('/api/auth/me', {
+      user.value = await apiFetch('/api/auth/me', {
         headers: { Authorization: `Bearer ${stored}` }
       })
-      user.value = data
     } catch {
       token.value = null
       localStorage.removeItem('auth_token')
@@ -38,7 +37,7 @@ export const useAuth = () => {
     loading.value = true
     error.value = null
     try {
-      const data = await $fetch('/api/auth/register', {
+      const data = await apiFetch('/api/auth/register', {
         method: 'POST',
         body: { email, password, name }
       })
@@ -58,7 +57,7 @@ export const useAuth = () => {
     loading.value = true
     error.value = null
     try {
-      const data = await $fetch('/api/auth/login', {
+      const data = await apiFetch('/api/auth/login', {
         method: 'POST',
         body: { email, password }
       })
@@ -85,7 +84,7 @@ export const useAuth = () => {
     loading.value = true
     error.value = null
     try {
-      const data = await $fetch('/api/auth/profile', {
+      const data = await apiFetch('/api/auth/profile', {
         method: 'PUT',
         headers: authHeaders.value,
         body: { name, email, avatarUrl }
@@ -104,7 +103,7 @@ export const useAuth = () => {
     loading.value = true
     error.value = null
     try {
-      await $fetch('/api/auth/password', {
+      await apiFetch('/api/auth/password', {
         method: 'PUT',
         headers: authHeaders.value,
         body: { currentPassword, newPassword }
@@ -121,14 +120,12 @@ export const useAuth = () => {
     loading.value = true
     error.value = null
     try {
-      const data = await $fetch('/api/auth/delete', {
+      const data = await apiFetch('/api/auth/delete', {
         method: 'POST',
         headers: authHeaders.value,
         body: { type, password }
       })
-      if (type === 'account') {
-        logout()
-      }
+      if (type === 'account') logout()
       return data
     } catch (err) {
       error.value = err.data?.statusMessage || err.message || 'Deletion request failed'
@@ -138,35 +135,18 @@ export const useAuth = () => {
     }
   }
 
-  /** Refresh user data from server (stats, etc.) */
   const refreshUser = async () => {
     if (!token.value) return
     try {
-      const data = await $fetch('/api/auth/me', {
-        headers: authHeaders.value
-      })
-      user.value = data
+      user.value = await apiFetch('/api/auth/me', { headers: authHeaders.value })
     } catch { /* ignore */ }
   }
 
-  onMounted(() => {
-    restore()
-  })
+  onMounted(() => restore())
 
   return {
-    user,
-    token,
-    loading,
-    error,
-    isLoggedIn,
-    authHeaders,
-    register,
-    login,
-    logout,
-    restore,
-    updateProfile,
-    changePassword,
-    requestDeletion,
-    refreshUser
+    user, token, loading, error, isLoggedIn, authHeaders,
+    register, login, logout, restore,
+    updateProfile, changePassword, requestDeletion, refreshUser
   }
 }

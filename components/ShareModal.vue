@@ -109,6 +109,7 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 
 const { copy: clipboardCopy } = useClipboard()
+const { apiFetch, apiUrl } = useApi()
 
 const anonymous = ref(false)
 const sharerName = ref('')
@@ -121,8 +122,7 @@ const copied = ref(false)
 
 const shareUrl = computed(() => {
   if (!shareHash.value) return ''
-  const base = window.location.origin
-  return `${base}/shared/${shareHash.value}`
+  return apiUrl(`/shared/${shareHash.value}`)
 })
 
 watch(() => props.isOpen, (open) => {
@@ -158,7 +158,7 @@ const handleShare = async () => {
       body.sharerEmail = sharerEmail.value || undefined
     }
 
-    const data = await $fetch('/api/share', {
+    const data = await apiFetch('/api/share', {
       method: 'POST',
       headers: props.authHeaders,
       body

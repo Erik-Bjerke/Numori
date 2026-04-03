@@ -1,5 +1,6 @@
 import { requireAuth } from '../../utils/auth.js'
 import { query } from '../../utils/db.js'
+import { notifySync } from '../../utils/syncBroadcast.js'
 
 /**
  * POST /api/notes/sync — Bulk sync endpoint with soft-delete support.
@@ -116,6 +117,9 @@ export default defineEventHandler(async (event) => {
     createdAt: row.created_at,
     updatedAt: row.updated_at
   }))
+
+  // Notify other connected clients for this user
+  notifySync(auth.userId, event.node.res)
 
   return {
     pushed,

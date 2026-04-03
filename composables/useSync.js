@@ -4,6 +4,8 @@
  * Tracks deletions so they propagate across devices.
  */
 export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => {
+  const { apiFetch, apiUrl } = useApi()
+
   const syncing = ref(false)
   const lastSyncedAt = ref(null)
   const syncError = ref(null)
@@ -35,7 +37,7 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
         updatedAt: n.updatedAt
       }))
 
-      const data = await $fetch('/api/notes/sync', {
+      const data = await apiFetch('/api/notes/sync', {
         method: 'POST',
         headers: auth.authHeaders.value,
         body: {
@@ -118,14 +120,57 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
     intervalId = null
   }
 
+  // SSE: listen for sync notifications from other clients
+  let eventSource = null
+
+  const connectSSE = () => {
+    disconnectSSE()
+    if (!auth.token.value) return
+
+    eventSource = new EventSource(apiUrl(`/api/sync/events?token=${auth.token.value}`))
+
+    eventSource.onmessage = (e) => {
+      try {
+        const msg = JSON.parse(e.data)
+        if (msg.type === 'sync') {
+          // Another client synced — pull changes
+          sync()
+        }
+      } catch { /* ignore parse errors */ }
+    }
+
+    eventSource.onerror = () => {
+      // Reconnect after a delay on error
+      disconnectSSE()
+      setTimeout(() => {
+        if (auth.isLoggedIn.value) connectSSE()
+      }, 5000)
+    }
+  }
+
+  const disconnectSSE = () => {
+    if (eventSource) {
+      eventSource.close()
+      eventSource = null
+    }
+  }
+
   watch(() => auth.isLoggedIn.value, (loggedIn) => {
-    if (loggedIn) startAutoSync()
-    else stopAutoSync()
+    if (loggedIn) {
+      startAutoSync()
+      connectSSE()
+    } else {
+      stopAutoSync()
+      disconnectSSE()
+    }
   }, { immediate: true })
 
   watch(notes, () => debouncedSync(), { deep: true })
 
-  onBeforeUnmount(() => stopAutoSync())
+  onBeforeUnmount(() => {
+    stopAutoSync()
+    disconnectSSE()
+  })
 
   return { syncing, lastSyncedAt, syncError, sync, syncNow }
 }

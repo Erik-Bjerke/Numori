@@ -59,6 +59,7 @@
 <script setup>
 const route = useRoute()
 const hash = route.params.hash
+const { apiFetch } = useApi()
 
 const note = ref(null)
 const loading = ref(true)
@@ -66,7 +67,7 @@ const error = ref(null)
 
 onMounted(async () => {
   try {
-    note.value = await $fetch(`/api/share/${hash}`)
+    note.value = await apiFetch(`/api/share/${hash}`)
   } catch (err) {
     error.value = err.data?.statusMessage || 'This shared note could not be found.'
   } finally {

@@ -63,6 +63,11 @@ export default defineNuxtConfig({
       routes: ['/']
     }
   },
+  runtimeConfig: {
+    public: {
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || ''
+    }
+  },
   vite: {
     build: {
       sourcemap: false,
