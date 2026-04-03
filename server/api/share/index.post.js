@@ -44,9 +44,8 @@ export default defineEventHandler(async (event) => {
   // If anonymous, name and email stay null
 
   let expiresAt = null
-  if (expiresInDays && expiresInDays > 0) {
-    expiresAt = new Date(Date.now() + expiresInDays * 86400000).toISOString()
-  }
+  const days = Math.min(Math.max(parseInt(expiresInDays) || 30, 1), 30)
+  expiresAt = new Date(Date.now() + days * 86400000).toISOString()
 
   await query(`
     INSERT INTO shared_notes (hash, user_id, title, description, tags, content, sharer_name, sharer_email, anonymous, expires_at)

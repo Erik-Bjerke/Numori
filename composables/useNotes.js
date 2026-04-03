@@ -197,6 +197,7 @@ Discounted: prev - 10%
     deleteNote,
     updateNoteContent,
     updateNoteMeta,
-    loadNotes
+    loadNotes,
+    saveNotes
   }
 }

@@ -73,9 +73,14 @@
 
     <!-- Bottom toolbar -->
     <SidebarFooter
+      :is-logged-in="isLoggedIn"
+      :user="user"
       @show-help="$emit('show-help')"
       @show-locale-settings="$emit('show-locale-settings')"
-      @show-language="$emit('show-language')" />
+      @show-language="$emit('show-language')"
+      @show-auth="$emit('show-auth')"
+      @logout="$emit('logout')"
+      @edit-profile="$emit('edit-profile')" />
   </div>
 </template>
 
@@ -83,12 +88,15 @@
 const props = defineProps({
   notes: { type: Array, required: true },
   currentNoteId: { type: String, default: null },
-  allTags: { type: Array, default: () => [] }
+  allTags: { type: Array, default: () => [] },
+  isLoggedIn: { type: Boolean, default: false },
+  user: { type: Object, default: null }
 })
 
 const emit = defineEmits([
   'new-note', 'select-note', 'delete-note', 'edit-note',
   'show-help', 'show-locale-settings', 'show-language',
+  'show-auth', 'logout', 'edit-profile',
   'bulk-delete', 'selection-change'
 ])
 

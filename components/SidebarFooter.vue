@@ -10,6 +10,14 @@
     </div>
 
     <div class="flex items-center gap-1">
+      <!-- Account menu -->
+      <AccountMenu
+        :is-logged-in="isLoggedIn"
+        :user="user"
+        @sign-in="$emit('show-auth')"
+        @logout="$emit('logout')"
+        @edit-profile="$emit('edit-profile')" />
+
       <button @click="$emit('show-help')"
         class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors leading-none"
         title="Help">
@@ -25,5 +33,10 @@
 </template>
 
 <script setup>
-defineEmits(['show-help', 'show-locale-settings', 'show-language'])
+defineProps({
+  isLoggedIn: { type: Boolean, default: false },
+  user: { type: Object, default: null }
+})
+
+defineEmits(['show-help', 'show-locale-settings', 'show-language', 'show-auth', 'logout', 'edit-profile'])
 </script>

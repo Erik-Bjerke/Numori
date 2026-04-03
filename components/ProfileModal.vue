@@ -1,0 +1,331 @@
+<template>
+  <Teleport to="body">
+    <Transition name="modal-backdrop">
+      <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
+        @click.self="$emit('close')">
+        <Transition name="modal-panel" appear>
+          <div v-if="isOpen"
+            class="bg-white dark:bg-gray-925 rounded-lg max-w-md w-full max-h-[85vh] overflow-hidden flex flex-col">
+
+            <!-- Header -->
+            <div class="flex items-center justify-between px-5 py-3 border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
+              <div class="flex items-center gap-2">
+                <button v-if="activeSection !== 'main'" @click="activeSection = 'main'"
+                  class="flex items-center gap-1 px-2 py-1 -ml-2 text-sm text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 rounded-lg transition-colors">
+                  <Icon name="mdi:arrow-left" class="block w-4 h-4" />
+                  <span>Back</span>
+                </button>
+                <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">
+                  {{ activeSection === 'main' ? 'Profile' : sectionTitle }}
+                </h2>
+              </div>
+              <button @click="$emit('close')"
+                class="flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                <Icon name="mdi:close" class="block w-5 h-5" />
+              </button>
+            </div>
+
+            <!-- Body -->
+            <div class="flex-1 overflow-y-auto px-5 py-4">
+
+              <!-- Feedback message -->
+              <div v-if="feedback" class="mb-3 px-3 py-2 rounded-lg text-xs"
+                :class="feedbackType === 'error'
+                  ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
+                  : 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'">
+                {{ feedback }}
+              </div>
+
+              <!-- ═══ Main section ═══ -->
+              <div v-if="activeSection === 'main'" class="space-y-4">
+
+                <!-- Avatar + name -->
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    <img v-if="user?.avatarUrl" :src="user.avatarUrl" class="w-full h-full object-cover" alt="Avatar" />
+                    <Icon v-else name="mdi:account" class="w-7 h-7 text-primary-600 dark:text-primary-400" />
+                  </div>
+                  <div class="min-w-0">
+                    <p class="text-sm font-medium text-gray-900 dark:text-gray-200 truncate">{{ user?.name || 'No name set' }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-500 truncate">{{ user?.email }}</p>
+                  </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+                    <p class="text-lg font-semibold text-gray-900 dark:text-gray-200">{{ user?.stats?.notesCount ?? '—' }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-500">Cloud notes</p>
+                  </div>
+                  <div class="px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+                    <p class="text-lg font-semibold text-gray-900 dark:text-gray-200">{{ user?.stats?.sharedCount ?? '—' }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-500">Shared notes</p>
+                  </div>
+                </div>
+
+                <!-- Sync status -->
+                <div class="px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+                  <div class="flex items-center gap-2">
+                    <Icon name="mdi:cloud-sync-outline" class="w-4 h-4 text-gray-500" />
+                    <span class="text-xs text-gray-600 dark:text-gray-400">
+                      {{ lastSyncedAt ? `Last synced ${formatDate(lastSyncedAt)}` : 'Never synced' }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Deletion requested warning -->
+                <div v-if="user?.deletionRequestedAt"
+                  class="px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-200">
+                  ⚠️ Account deletion requested. Contact support to cancel.
+                </div>
+
+                <!-- Menu items -->
+                <div class="space-y-1">
+                  <button @click="activeSection = 'edit'"
+                    class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                    <Icon name="mdi:account-edit-outline" class="w-5 h-5 text-gray-400" />
+                    Edit Profile
+                  </button>
+                  <button @click="activeSection = 'password'"
+                    class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                    <Icon name="mdi:lock-outline" class="w-5 h-5 text-gray-400" />
+                    Change Password
+                  </button>
+                  <button @click="activeSection = 'danger'"
+                    class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                    <Icon name="mdi:alert-outline" class="w-5 h-5" />
+                    Data &amp; Account Deletion
+                  </button>
+                </div>
+
+                <!-- Member since -->
+                <p class="text-xs text-gray-400 dark:text-gray-600 text-center pt-2">
+                  Member since {{ user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—' }}
+                </p>
+              </div>
+
+              <!-- ═══ Edit Profile ═══ -->
+              <div v-else-if="activeSection === 'edit'" class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Name</label>
+                  <input v-model="editName" type="text"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
+                    placeholder="Your name" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Email</label>
+                  <input v-model="editEmail" type="email"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
+                    placeholder="you@example.com" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Avatar URL</label>
+                  <input v-model="editAvatarUrl" type="url"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
+                    placeholder="https://example.com/avatar.jpg" />
+                  <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">Link to an image hosted elsewhere</p>
+                </div>
+                <button @click="saveProfile" :disabled="saving"
+                  class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
+                  <Icon v-if="saving" name="mdi:loading" class="w-4 h-4 animate-spin" />
+                  Save Changes
+                </button>
+              </div>
+
+              <!-- ═══ Change Password ═══ -->
+              <div v-else-if="activeSection === 'password'" class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Current Password</label>
+                  <input v-model="currentPassword" type="password"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">New Password</label>
+                  <input v-model="newPassword" type="password" minlength="8"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm" />
+                  <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">At least 8 characters</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Confirm New Password</label>
+                  <input v-model="confirmNewPassword" type="password"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm" />
+                  <p v-if="confirmNewPassword && newPassword !== confirmNewPassword" class="text-xs text-red-600 dark:text-red-400 mt-1">Passwords do not match</p>
+                </div>
+                <button @click="savePassword" :disabled="saving || !currentPassword || !newPassword || newPassword !== confirmNewPassword"
+                  class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
+                  <Icon v-if="saving" name="mdi:loading" class="w-4 h-4 animate-spin" />
+                  Update Password
+                </button>
+              </div>
+
+              <!-- ═══ Danger Zone ═══ -->
+              <div v-else-if="activeSection === 'danger'" class="space-y-4">
+                <p class="text-xs text-gray-500 dark:text-gray-500">
+                  These actions are irreversible. Your password is required to confirm.
+                </p>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Confirm Password</label>
+                  <input v-model="dangerPassword" type="password"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm" />
+                </div>
+
+                <div class="space-y-2">
+                  <button @click="handleDeleteData" :disabled="saving || !dangerPassword"
+                    class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
+                    <Icon v-if="saving" name="mdi:loading" class="w-4 h-4 animate-spin" />
+                    <Icon v-else name="mdi:database-remove-outline" class="w-4 h-4" />
+                    Delete All Cloud Data
+                  </button>
+                  <p class="text-xs text-gray-500 dark:text-gray-500">Removes all synced notes and shared notes from the server. Your account stays active. Local notes are not affected.</p>
+
+                  <button @click="handleDeleteAccount" :disabled="saving || !dangerPassword"
+                    class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
+                    <Icon v-if="saving" name="mdi:loading" class="w-4 h-4 animate-spin" />
+                    <Icon v-else name="mdi:account-remove-outline" class="w-4 h-4" />
+                    Request Account Deletion
+                  </button>
+                  <p class="text-xs text-gray-500 dark:text-gray-500">Marks your account for permanent deletion. All data will be removed. You will be signed out.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Transition>
+      </div>
+    </Transition>
+  </Teleport>
+</template>
+
+<script setup>
+const props = defineProps({
+  isOpen: { type: Boolean, default: false },
+  user: { type: Object, default: null },
+  lastSyncedAt: { type: String, default: null }
+})
+
+const emit = defineEmits(['close', 'update-profile', 'change-password', 'delete-data', 'delete-account', 'logout'])
+
+const activeSection = ref('main')
+const feedback = ref(null)
+const feedbackType = ref('success')
+const saving = ref(false)
+
+// Edit profile fields
+const editName = ref('')
+const editEmail = ref('')
+const editAvatarUrl = ref('')
+
+// Password fields
+const currentPassword = ref('')
+const newPassword = ref('')
+const confirmNewPassword = ref('')
+
+// Danger zone
+const dangerPassword = ref('')
+
+const sectionTitle = computed(() => {
+  const titles = { edit: 'Edit Profile', password: 'Change Password', danger: 'Data & Account' }
+  return titles[activeSection.value] || 'Profile'
+})
+
+watch(() => props.isOpen, (open) => {
+  if (open) {
+    activeSection.value = 'main'
+    feedback.value = null
+    editName.value = props.user?.name || ''
+    editEmail.value = props.user?.email || ''
+    editAvatarUrl.value = props.user?.avatarUrl || ''
+    currentPassword.value = ''
+    newPassword.value = ''
+    confirmNewPassword.value = ''
+    dangerPassword.value = ''
+  }
+})
+
+const showFeedback = (msg, type = 'success') => {
+  feedback.value = msg
+  feedbackType.value = type
+  if (type === 'success') setTimeout(() => { feedback.value = null }, 3000)
+}
+
+const formatDate = (iso) => {
+  if (!iso) return 'Never'
+  const d = new Date(iso)
+  const now = new Date()
+  const diff = now - d
+  if (diff < 60000) return 'just now'
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`
+  return d.toLocaleDateString()
+}
+
+const saveProfile = async () => {
+  saving.value = true
+  feedback.value = null
+  try {
+    await emit('update-profile', { name: editName.value, email: editEmail.value, avatarUrl: editAvatarUrl.value })
+    showFeedback('Profile updated')
+    activeSection.value = 'main'
+  } catch (err) {
+    showFeedback(err?.data?.statusMessage || 'Failed to update profile', 'error')
+  } finally {
+    saving.value = false
+  }
+}
+
+const savePassword = async () => {
+  saving.value = true
+  feedback.value = null
+  try {
+    await emit('change-password', { currentPassword: currentPassword.value, newPassword: newPassword.value })
+    showFeedback('Password updated')
+    currentPassword.value = ''
+    newPassword.value = ''
+    confirmNewPassword.value = ''
+    activeSection.value = 'main'
+  } catch (err) {
+    showFeedback(err?.data?.statusMessage || 'Failed to change password', 'error')
+  } finally {
+    saving.value = false
+  }
+}
+
+const handleDeleteData = async () => {
+  if (!confirm('This will permanently delete all your cloud notes and shared notes. Continue?')) return
+  saving.value = true
+  feedback.value = null
+  try {
+    await emit('delete-data', dangerPassword.value)
+    showFeedback('All cloud data deleted')
+    dangerPassword.value = ''
+    activeSection.value = 'main'
+  } catch (err) {
+    showFeedback(err?.data?.statusMessage || 'Failed to delete data', 'error')
+  } finally {
+    saving.value = false
+  }
+}
+
+const handleDeleteAccount = async () => {
+  if (!confirm('This will permanently delete your account and all associated data. This cannot be undone. Continue?')) return
+  saving.value = true
+  feedback.value = null
+  try {
+    await emit('delete-account', dangerPassword.value)
+  } catch (err) {
+    showFeedback(err?.data?.statusMessage || 'Failed to request deletion', 'error')
+    saving.value = false
+  }
+}
+</script>
+
+<style scoped>
+.modal-backdrop-enter-active,
+.modal-backdrop-leave-active { transition: opacity 0.2s ease; }
+.modal-backdrop-enter-from,
+.modal-backdrop-leave-to { opacity: 0; }
+.modal-panel-enter-active { transition: all 0.2s ease-out; }
+.modal-panel-leave-active { transition: all 0.15s ease-in; }
+.modal-panel-enter-from,
+.modal-panel-leave-to { opacity: 0; transform: scale(0.95); }
+</style>

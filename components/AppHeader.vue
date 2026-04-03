@@ -60,6 +60,23 @@
         <!-- Separator -->
         <div class="w-px h-5 bg-gray-300 dark:bg-gray-600 mx-1"></div>
 
+        <!-- Share note -->
+        <button v-if="currentNote" @click="$emit('share-note')"
+          class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors leading-none"
+          title="Share note">
+          <Icon name="mdi:share-variant-outline" class="w-5 h-5 block" />
+        </button>
+
+        <!-- Cloud sync -->
+        <button v-if="isLoggedIn" @click="$emit('sync')"
+          class="p-2 rounded-lg transition-colors leading-none"
+          :class="syncing
+            ? 'text-primary-600 dark:text-primary-400'
+            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-850'"
+          :title="syncing ? 'Syncing...' : 'Sync notes'">
+          <Icon name="mdi:cloud-sync-outline" class="w-5 h-5 block" :class="{ 'animate-spin': syncing }" />
+        </button>
+
         <!-- Toggle sidebar -->
         <button @click="$emit('toggle-sidebar')"
           class="p-3 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors leading-none"
@@ -97,6 +114,14 @@ defineProps({
   selectionCount: {
     type: Number,
     default: 0
+  },
+  isLoggedIn: {
+    type: Boolean,
+    default: false
+  },
+  syncing: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -107,6 +132,8 @@ defineEmits([
   'apply-format',
   'toggle-inline',
   'toggle-markdown-preview',
+  'share-note',
+  'sync',
   'file-new',
   'file-open',
   'file-duplicate',

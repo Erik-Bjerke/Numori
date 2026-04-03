@@ -26,11 +26,15 @@
     <AppHeader :current-note="currentNote" :show-inline="showInlineResults" :show-markdown-preview="showMarkdownPreview"
       :hide-alpha="localePrefs.preferences.dismissAlphaWarning" :mod-label="modLabel"
       :selection-count="selectedNoteIds.length"
+      :is-logged-in="auth.isLoggedIn.value"
+      :syncing="syncing"
       @toggle-sidebar="showSidebar = !showSidebar"
       @show-meta="currentNote && (showMetaModal = true)" @apply-format="applyFormat"
       @toggle-inline="showInlineResults = !showInlineResults"
       @toggle-markdown-preview="showMarkdownPreview = !showMarkdownPreview"
       @show-templates="showTemplates = true"
+      @share-note="showShareModal = true"
+      @sync="sync"
       @file-new="addNote"
       @file-open="handleOpenFile"
       @file-duplicate="handleDuplicate"
@@ -50,11 +54,12 @@
       <aside class="flex-shrink-0 hidden lg:block overflow-hidden transition-[width] duration-300 ease-in-out"
         :class="showSidebar ? 'w-80' : 'w-0'">
         <div class="w-80 h-full">
-          <MainSidebar :notes="notes" :current-note-id="currentNoteId" :all-tags="allTags" @new-note="addNote" @select-note="selectNote"
+          <MainSidebar :notes="notes" :current-note-id="currentNoteId" :all-tags="allTags" :is-logged-in="auth.isLoggedIn.value" :user="auth.user.value" @new-note="addNote" @select-note="selectNote"
             @delete-note="confirmDelete" @edit-note="openEditModal"
             @bulk-delete="confirmBulkDelete" @selection-change="onSelectionChange"
             @show-help="showHelp = true"
-            @show-language="showLanguageModal = true" @show-locale-settings="showLocaleSettings = true" />
+            @show-language="showLanguageModal = true" @show-locale-settings="showLocaleSettings = true"
+            @show-auth="showAuthModal = true" @logout="handleLogout" @edit-profile="handleShowProfile" />
         </div>
       </aside>
 
@@ -78,11 +83,12 @@
           leave-to-class="-translate-x-full">
           <aside v-if="showSidebar" class="fixed inset-y-0 left-0 z-30 w-80 shadow-xl lg:hidden"
             :style="{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingLeft: 'env(safe-area-inset-left, 0px)' }">
-            <MainSidebar :notes="notes" :current-note-id="currentNoteId" :all-tags="allTags" @new-note="addNote" @select-note="selectNote"
+            <MainSidebar :notes="notes" :current-note-id="currentNoteId" :all-tags="allTags" :is-logged-in="auth.isLoggedIn.value" :user="auth.user.value" @new-note="addNote" @select-note="selectNote"
               @delete-note="confirmDelete" @edit-note="openEditModal"
               @bulk-delete="confirmBulkDelete" @selection-change="onSelectionChange"
               @show-help="showHelp = true"
-              @show-language="showLanguageModal = true" @show-locale-settings="showLocaleSettings = true" />
+              @show-language="showLanguageModal = true" @show-locale-settings="showLocaleSettings = true"
+              @show-auth="showAuthModal = true" @logout="handleLogout" @edit-profile="handleShowProfile" />
           </aside>
         </Transition>
       </Teleport>
@@ -195,15 +201,43 @@
       :apply-preset="localePrefs.applyPreset"
       :save-preferences="localePrefs.save"
       @complete="welcomeWizard.complete()" />
+
+    <!-- Auth & Share modals -->
+    <AuthModal :is-open="showAuthModal"
+      :loading="auth.loading.value"
+      :error="auth.error.value"
+      @close="showAuthModal = false"
+      @login="handleLogin"
+      @register="handleRegister" />
+
+    <ShareModal :is-open="showShareModal"
+      :note="currentNote"
+      :is-logged-in="auth.isLoggedIn.value"
+      :user-name="auth.user.value?.name || ''"
+      :user-email="auth.user.value?.email || ''"
+      :auth-headers="auth.authHeaders.value"
+      @close="showShareModal = false" />
+
+    <ProfileModal :is-open="showProfileModal"
+      :user="auth.user.value"
+      :last-synced-at="lastSyncedAt"
+      @close="showProfileModal = false"
+      @update-profile="handleUpdateProfile"
+      @change-password="handleChangePassword"
+      @delete-data="handleDeleteData"
+      @delete-account="handleDeleteAccount"
+      @logout="handleLogout" />
   </div>
 </template>
 
 <script setup>
-const { notes, currentNoteId, currentNote, allTags, addNote, deleteNote, updateNoteContent, updateNoteMeta } = useNotes()
+const { notes, currentNoteId, currentNote, allTags, addNote, deleteNote, updateNoteContent, updateNoteMeta, saveNotes } = useNotes()
 const { exportNoteAsText, exportNoteAsJson, exportNoteAsMarkdown, exportNoteAsPdf, exportAllNotes, openFile, importNotes, duplicateNote, copyToClipboard, printNote } = useFileActions()
 const { evaluateLines } = useCalculator()
 const localePrefs = useLocalePreferences()
 const welcomeWizard = useWelcomeWizard()
+const auth = useAuth()
+const { syncing, lastSyncedAt, sync } = useSync(auth, notes, saveNotes)
 
 // Keyboard shortcuts — must be declared before refs so handlers can reference them
 const { isMac, modLabel, handlers: shortcutHandlers } = useKeyboardShortcuts({
@@ -232,6 +266,9 @@ const showMarkdownPreview = ref(false)
 const editorRef = ref(null)
 const showAlphaWarning = ref(false)
 const mobileKeyboardOffset = ref(0)
+const showAuthModal = ref(false)
+const showShareModal = ref(false)
+const showProfileModal = ref(false)
 
 // Track virtual keyboard via visualViewport API
 let vvCleanup = null
@@ -277,6 +314,62 @@ const dismissAlphaWarning = () => {
   showAlphaWarning.value = false
   localStorage.setItem('alpha-warning-dismissed', '1')
 }
+
+// Auth handlers
+const handleLogin = async ({ email, password }) => {
+  try {
+    await auth.login(email, password)
+    showAuthModal.value = false
+  } catch { /* error shown in modal */ }
+}
+
+const handleRegister = async ({ email, password, name }) => {
+  try {
+    await auth.register(email, password, name)
+    showAuthModal.value = false
+  } catch { /* error shown in modal */ }
+}
+
+const handleLogout = () => {
+  auth.logout()
+}
+
+const handleShowProfile = () => {
+  auth.refreshUser()
+  showProfileModal.value = true
+}
+
+const handleUpdateProfile = async (data) => {
+  await auth.updateProfile(data)
+}
+
+const handleChangePassword = async ({ currentPassword, newPassword }) => {
+  await auth.changePassword(currentPassword, newPassword)
+}
+
+const handleDeleteData = async (password) => {
+  await auth.requestDeletion('data', password)
+  await auth.refreshUser()
+}
+
+const handleDeleteAccount = async (password) => {
+  await auth.requestDeletion('account', password)
+  showProfileModal.value = false
+}
+
+// Check for pending import from shared note page
+onMounted(() => {
+  const pending = localStorage.getItem('pending_import')
+  if (pending) {
+    localStorage.removeItem('pending_import')
+    try {
+      const data = JSON.parse(pending)
+      const newNote = addNote()
+      updateNoteMeta(newNote.id, { title: data.title, description: data.description, tags: data.tags })
+      updateNoteContent(newNote.id, data.content)
+    } catch { /* ignore bad data */ }
+  }
+})
 
 const selectNote = (id) => {
   currentNoteId.value = id

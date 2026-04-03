@@ -10,6 +10,7 @@ export async function migrate() {
       id            SERIAL PRIMARY KEY,
       email         TEXT UNIQUE NOT NULL,
       name          TEXT NOT NULL DEFAULT '',
+      avatar_url    TEXT,
       password_hash TEXT NOT NULL,
       created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -61,6 +62,22 @@ export async function migrate() {
 
   await query(`
     CREATE INDEX IF NOT EXISTS idx_shared_notes_hash ON shared_notes(hash)
+  `)
+
+  // Add avatar_url column if missing (for existing databases)
+  await query(`
+    DO $$ BEGIN
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+    EXCEPTION WHEN duplicate_column THEN NULL;
+    END $$
+  `)
+
+  // Add deletion_requested columns if missing
+  await query(`
+    DO $$ BEGIN
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS deletion_requested_at TIMESTAMPTZ;
+    EXCEPTION WHEN duplicate_column THEN NULL;
+    END $$
   `)
 
   console.log('[migrate] Database tables ready')

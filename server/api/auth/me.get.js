@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
   const auth = await requireAuth(event)
 
   const result = await query(
-    'SELECT id, email, name, created_at FROM users WHERE id = $1',
+    'SELECT id, email, name, avatar_url, deletion_requested_at, created_at FROM users WHERE id = $1',
     [auth.userId]
   )
 
@@ -14,5 +14,21 @@ export default defineEventHandler(async (event) => {
   }
 
   const user = result.rows[0]
-  return { id: user.id, email: user.email, name: user.name, createdAt: user.created_at }
+
+  // Fetch summary stats
+  const notesResult = await query('SELECT COUNT(*) as count FROM notes WHERE user_id = $1', [auth.userId])
+  const sharesResult = await query('SELECT COUNT(*) as count FROM shared_notes WHERE user_id = $1', [auth.userId])
+
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    avatarUrl: user.avatar_url,
+    deletionRequestedAt: user.deletion_requested_at,
+    createdAt: user.created_at,
+    stats: {
+      notesCount: parseInt(notesResult.rows[0].count),
+      sharedCount: parseInt(sharesResult.rows[0].count)
+    }
+  }
 })
