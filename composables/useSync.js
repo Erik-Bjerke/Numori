@@ -16,6 +16,9 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
   const lastSyncedAt = ref(null)
   const syncError = ref(null)
 
+  // Unique ID for this tab — used to prevent SSE self-notification
+  const sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+
   // Flag to ignore SSE messages triggered by our own sync
   let expectingSelfEcho = false
   let echoTimer = null
@@ -67,7 +70,7 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
           notes: clientNotes,
           deletedClientIds: [...deletedIds.value],
           lastSyncedAt: lastSyncedAt.value,
-          sessionId: null
+          sessionId
         }
       })
 
@@ -165,8 +168,8 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
     disconnectSSE()
     if (!auth.token.value) return
 
-    const url = apiUrl(`/api/sync/events?token=${auth.token.value}&sessionId=x`)
-    console.debug(`[sync] SSE connecting`)
+    const url = apiUrl(`/api/sync/events?token=${auth.token.value}&sessionId=${sessionId}`)
+    console.debug(`[sync] SSE connecting (sessionId=${sessionId})`)
     eventSource = new EventSource(url)
 
     eventSource.onmessage = (e) => {
