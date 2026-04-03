@@ -7,15 +7,31 @@
       'bg-primary-50 dark:bg-primary-900/20': selectMode && selected
     }">
     <div class="flex items-start justify-between gap-2">
-      <!-- Checkbox for select mode -->
-      <div v-if="selectMode" class="flex-shrink-0 pt-0.5 mr-1" @click.stop="$emit('toggle-select', note.id)">
-        <div class="w-5 h-5 rounded border-2 flex items-center justify-center transition-colors"
-          :class="selected
-            ? 'bg-primary-600 border-primary-600'
-            : 'border-gray-300 dark:border-gray-600'">
-          <Icon v-if="selected" name="mdi:check" class="w-3.5 h-3.5 text-white" />
+      <!-- Animated checkbox for select mode -->
+      <Transition
+        enter-active-class="transition-all duration-200 ease-out"
+        enter-from-class="opacity-0 scale-0 w-0 mr-0"
+        enter-to-class="opacity-100 scale-100 w-5 mr-1"
+        leave-active-class="transition-all duration-150 ease-in"
+        leave-from-class="opacity-100 scale-100 w-5 mr-1"
+        leave-to-class="opacity-0 scale-0 w-0 mr-0">
+        <div v-if="selectMode" class="flex-shrink-0 pt-0.5 mr-1" @click.stop="$emit('toggle-select', note.id)">
+          <div class="w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-150"
+            :class="selected
+              ? 'bg-primary-600 border-primary-600 scale-110'
+              : 'border-gray-300 dark:border-gray-600 scale-100'">
+            <Transition
+              enter-active-class="transition-all duration-150 ease-out"
+              enter-from-class="opacity-0 scale-0"
+              enter-to-class="opacity-100 scale-100"
+              leave-active-class="transition-all duration-100 ease-in"
+              leave-from-class="opacity-100 scale-100"
+              leave-to-class="opacity-0 scale-0">
+              <Icon v-if="selected" name="mdi:check" class="w-3.5 h-3.5 text-white" />
+            </Transition>
+          </div>
         </div>
-      </div>
+      </Transition>
 
       <div class="flex-1 min-w-0">
         <h3 class="font-medium text-gray-900 dark:text-gray-400 truncate">

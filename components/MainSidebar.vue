@@ -1,34 +1,44 @@
 <template>
   <div class="h-full flex flex-col bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
-    <!-- Selection Toolbar (shown in select mode) -->
-    <div v-if="selectMode"
-      class="p-3 border-b border-gray-200 dark:border-gray-800 bg-primary-50 dark:bg-primary-900/20 space-y-2">
-      <div class="flex items-center justify-between">
-        <span class="text-sm font-medium text-primary-700 dark:text-primary-300">
-          {{ selectedIds.size }} selected
-        </span>
-        <button @click="exitSelectMode"
-          class="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-          title="Cancel selection">
-          <Icon name="mdi:close" class="w-5 h-5" />
-        </button>
-      </div>
-      <div class="flex items-center gap-2">
-        <button @click="toggleSelectAll"
-          class="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-          <Icon :name="allSelected ? 'mdi:checkbox-marked-outline' : 'mdi:checkbox-blank-outline'" class="w-4 h-4" />
-          {{ allSelected ? 'Deselect All' : 'Select All' }}
-        </button>
-        <button @click="bulkDelete" :disabled="selectedIds.size === 0"
-          class="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors bg-red-600 hover:bg-red-700 text-white disabled:opacity-40 disabled:cursor-not-allowed">
-          <Icon name="mdi:trash-can-outline" class="w-4 h-4" />
-          Delete
-        </button>
-      </div>
-    </div>
+    <!-- Selection Toolbar / Header — crossfade in a fixed container -->
+    <div class="relative border-b border-gray-200 dark:border-gray-800 flex-shrink-0 overflow-hidden">
+      <!-- Select toolbar -->
+      <Transition
+        enter-active-class="transition-opacity duration-200 ease-out"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition-opacity duration-150 ease-in"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0">
+        <div v-if="selectMode"
+          class="absolute inset-0 z-10 p-4 bg-primary-50 dark:bg-primary-900/20 flex flex-col justify-center space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-medium text-primary-700 dark:text-primary-300">
+              {{ selectedIds.size }} selected
+            </span>
+            <button @click="exitSelectMode"
+              class="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+              title="Cancel selection">
+              <Icon name="mdi:close" class="w-5 h-5" />
+            </button>
+          </div>
+          <div class="flex items-center gap-2">
+            <button @click="toggleSelectAll"
+              class="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+              <Icon :name="allSelected ? 'mdi:checkbox-marked-outline' : 'mdi:checkbox-blank-outline'" class="w-5 h-5" />
+              {{ allSelected ? 'Deselect All' : 'Select All' }}
+            </button>
+            <button @click="bulkDelete" :disabled="selectedIds.size === 0"
+              class="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors bg-red-600 hover:bg-red-700 text-white disabled:opacity-40 disabled:cursor-not-allowed">
+              <Icon name="mdi:trash-can-outline" class="w-5 h-5" />
+              Delete
+            </button>
+          </div>
+        </div>
+      </Transition>
 
-    <!-- Header (hidden in select mode) -->
-    <div v-else class="p-4 border-b border-gray-200 dark:border-gray-800 space-y-3">
+      <!-- Normal header (always in flow to maintain height) -->
+      <div class="p-4 space-y-3" :class="{ 'invisible': selectMode }">
       <button @click="$emit('new-note')"
         class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors shadow-sm hover:shadow-md">
         <Icon name="mdi:plus" class="w-5 h-5" />
@@ -51,63 +61,73 @@
             class="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" />
         </div>
         <button @click="showFilters = !showFilters"
-          class="flex-shrink-0 p-1.5 rounded-lg transition-colors leading-none"
-          :class="hasActiveFilters
+          class="flex-shrink-0 p-1.5 rounded-lg transition-all duration-200 leading-none"
+          :class="showFilters || hasActiveFilters
             ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30'
             : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'"
           title="Filters">
-          <Icon name="mdi:filter-variant" class="w-4 h-4 block" />
+          <Icon :name="showFilters ? 'mdi:filter-variant-remove' : 'mdi:filter-variant'"
+            class="w-4 h-4 block transition-transform duration-200"
+            :class="{ 'rotate-180': showFilters }" />
         </button>
       </div>
 
       <!-- Advanced filters panel -->
-      <div v-if="showFilters" class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-2.5 space-y-2">
-        <!-- Date range -->
-        <select v-model="filters.dateRange"
-          class="w-full px-2.5 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-400 outline-none focus:ring-1 focus:ring-primary-500">
-          <option value="">Modified: Any time</option>
-          <option value="today">Modified: Today</option>
-          <option value="week">Modified: Past 7 days</option>
-          <option value="month">Modified: Past 30 days</option>
-          <option value="older">Modified: Older than 30 days</option>
-        </select>
+      <Transition
+        enter-active-class="transition-all duration-200 ease-out"
+        enter-from-class="opacity-0 -translate-y-1 max-h-0"
+        enter-to-class="opacity-100 translate-y-0 max-h-40"
+        leave-active-class="transition-all duration-150 ease-in"
+        leave-from-class="opacity-100 translate-y-0 max-h-40"
+        leave-to-class="opacity-0 -translate-y-1 max-h-0">
+        <div v-if="showFilters" class="overflow-hidden rounded-lg bg-white dark:bg-gray-800 p-2.5 space-y-2 shadow-sm">
+          <!-- Date range -->
+          <select v-model="filters.dateRange"
+            class="w-full px-2.5 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-400 outline-none focus:ring-1 focus:ring-primary-500">
+            <option value="">Modified: Any time</option>
+            <option value="today">Modified: Today</option>
+            <option value="week">Modified: Past 7 days</option>
+            <option value="month">Modified: Past 30 days</option>
+            <option value="older">Modified: Older than 30 days</option>
+          </select>
 
-        <!-- Toggle chips -->
-        <div class="flex flex-wrap gap-1.5">
-          <button @click="filters.searchContent = !filters.searchContent"
-            class="px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors"
-            :class="filters.searchContent
-              ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'">
-            Content
-          </button>
-          <button @click="filters.hasDescription = !filters.hasDescription"
-            class="px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors"
-            :class="filters.hasDescription
-              ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'">
-            Has desc
-          </button>
-          <button @click="filters.hasTags = !filters.hasTags"
-            class="px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors"
-            :class="filters.hasTags
-              ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'">
-            Has tags
-          </button>
-          <button @click="filters.emptyOnly = !filters.emptyOnly"
-            class="px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors"
-            :class="filters.emptyOnly
-              ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'">
-            Empty
-          </button>
-          <button v-if="hasActiveFilters" @click="clearFilters"
-            class="px-2 py-0.5 rounded-full text-[11px] font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors ml-auto">
-            Clear
-          </button>
+          <!-- Toggle chips -->
+          <div class="flex flex-wrap gap-1.5">
+            <button @click="filters.searchContent = !filters.searchContent"
+              class="px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors"
+              :class="filters.searchContent
+                ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'">
+              Content
+            </button>
+            <button @click="filters.hasDescription = !filters.hasDescription"
+              class="px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors"
+              :class="filters.hasDescription
+                ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'">
+              Has desc
+            </button>
+            <button @click="filters.hasTags = !filters.hasTags"
+              class="px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors"
+              :class="filters.hasTags
+                ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'">
+              Has tags
+            </button>
+            <button @click="filters.emptyOnly = !filters.emptyOnly"
+              class="px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors"
+              :class="filters.emptyOnly
+                ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'">
+              Empty
+            </button>
+            <button v-if="hasActiveFilters" @click="clearFilters"
+              class="px-2 py-0.5 rounded-full text-[11px] font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors ml-auto">
+              Clear
+            </button>
+          </div>
         </div>
-      </div>
+      </Transition>
 
       <!-- Tag filter -->
       <div v-if="allTags.length" class="flex flex-wrap gap-1.5">
@@ -119,6 +139,7 @@
             : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'">
           {{ tag }}
         </button>
+      </div>
       </div>
     </div>
 
