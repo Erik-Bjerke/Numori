@@ -163,5 +163,27 @@ export async function migrate() {
     END $$
   `)
 
+  // Add extra header columns for richer analytics
+  await query(`
+    DO $$ BEGIN
+      ALTER TABLE share_views ADD COLUMN IF NOT EXISTS accept_language TEXT;
+    EXCEPTION WHEN duplicate_column THEN NULL;
+    END $$
+  `)
+
+  await query(`
+    DO $$ BEGIN
+      ALTER TABLE share_views ADD COLUMN IF NOT EXISTS dnt TEXT;
+    EXCEPTION WHEN duplicate_column THEN NULL;
+    END $$
+  `)
+
+  await query(`
+    DO $$ BEGIN
+      ALTER TABLE share_views ADD COLUMN IF NOT EXISTS sec_ch_ua TEXT;
+    EXCEPTION WHEN duplicate_column THEN NULL;
+    END $$
+  `)
+
   console.log('[migrate] Database tables ready')
 }

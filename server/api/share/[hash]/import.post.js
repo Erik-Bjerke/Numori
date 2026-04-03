@@ -21,6 +21,9 @@ export default defineEventHandler(async (event) => {
   const auth = await optionalAuth(event)
   const userAgent = getHeader(event, 'user-agent') || null
   const referrer = getHeader(event, 'referer') || null
+  const acceptLang = getHeader(event, 'accept-language') || null
+  const dnt = getHeader(event, 'dnt') || null
+  const secChUa = getHeader(event, 'sec-ch-ua') || null
   const forwarded = getHeader(event, 'x-forwarded-for')
   const realIp = getHeader(event, 'x-real-ip')
   const ipAddress = forwarded ? forwarded.split(',')[0].trim() : (realIp || null)
@@ -29,6 +32,9 @@ export default defineEventHandler(async (event) => {
   let viewerName = null
   let recordUserAgent = null
   let recordIp = null
+  let recordAcceptLang = null
+  let recordDnt = null
+  let recordSecChUa = null
   let privacyOn = false
 
   if (auth) {
@@ -43,10 +49,16 @@ export default defineEventHandler(async (event) => {
       viewerName = viewer.name || null
       recordUserAgent = userAgent
       recordIp = ipAddress
+      recordAcceptLang = acceptLang
+      recordDnt = dnt
+      recordSecChUa = secChUa
     }
   } else {
     recordUserAgent = userAgent
     recordIp = ipAddress
+    recordAcceptLang = acceptLang
+    recordDnt = dnt
+    recordSecChUa = secChUa
   }
 
   // Build fingerprint
@@ -57,14 +69,14 @@ export default defineEventHandler(async (event) => {
     const raw = `private:${auth.userId}:${row.id}`
     fingerprint = `private:${createHash('sha256').update(raw).digest('hex').slice(0, 16)}`
   } else {
-    const raw = `anon:${ipAddress || 'no-ip'}:${userAgent || 'no-ua'}`
+    const raw = `anon:${ipAddress || 'no-ip'}:${userAgent || 'no-ua'}:${acceptLang || 'no-lang'}:${dnt || 'no-dnt'}`
     fingerprint = `anon:${createHash('sha256').update(raw).digest('hex').slice(0, 16)}`
   }
 
   await query(`
-    INSERT INTO share_views (shared_note_id, viewer_user_id, viewer_name, user_agent, ip_address, referrer, event_type, viewer_fingerprint)
-    VALUES ($1, $2, $3, $4, $5, $6, 'import', $7)
-  `, [row.id, viewerUserId, viewerName, recordUserAgent, recordIp, referrer, fingerprint])
+    INSERT INTO share_views (shared_note_id, viewer_user_id, viewer_name, user_agent, ip_address, referrer, event_type, viewer_fingerprint, accept_language, dnt, sec_ch_ua)
+    VALUES ($1, $2, $3, $4, $5, $6, 'import', $7, $8, $9, $10)
+  `, [row.id, viewerUserId, viewerName, recordUserAgent, recordIp, referrer, fingerprint, recordAcceptLang, recordDnt, recordSecChUa])
 
   return { ok: true }
 })

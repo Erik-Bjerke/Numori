@@ -162,6 +162,17 @@
                           <span><span class="text-gray-400">OS:</span> {{ v.parsed.os }}{{ v.parsed.osVersion ? ' ' + v.parsed.osVersion : '' }}</span>
                           <span><span class="text-gray-400">Browser:</span> {{ v.parsed.browser }}{{ v.parsed.browserVersion ? ' ' + v.parsed.browserVersion.split('.')[0] : '' }}</span>
                         </div>
+                        <div v-if="v.parsedLang" class="text-gray-600 dark:text-gray-400">
+                          <span class="text-gray-400">Language:</span> {{ v.parsedLang.primary }}
+                          <span v-if="v.parsedLang.all.length > 1" class="text-gray-400">(+{{ v.parsedLang.all.length - 1 }} more)</span>
+                        </div>
+                        <div v-if="v.parsedSecChUa" class="text-gray-600 dark:text-gray-400">
+                          <span class="text-gray-400">Client hints:</span>
+                          {{ v.parsedSecChUa.brands.map(b => b.brand + ' ' + b.version).join(', ') }}
+                        </div>
+                        <div v-if="v.raw.dnt" class="text-gray-600 dark:text-gray-400">
+                          <span class="text-gray-400">DNT:</span> {{ v.raw.dnt === '1' ? 'Enabled' : 'Disabled' }}
+                        </div>
                         <div v-if="v.raw.referrer" class="text-gray-500 dark:text-gray-500 truncate">
                           <span class="text-gray-400">From:</span> {{ v.raw.referrer }}
                         </div>
@@ -171,9 +182,18 @@
                         <div v-if="v.fingerprint" class="text-gray-400 dark:text-gray-600 font-mono text-[10px]">
                           Visitor ID: {{ v.fingerprint }}
                         </div>
-                        <div v-if="showRaw && v.raw.userAgent" class="mt-1 px-2 py-1.5 rounded bg-gray-100 dark:bg-gray-800 font-mono text-[10px] text-gray-500 dark:text-gray-500 break-all">
-                          {{ v.raw.userAgent }}
-                        </div>
+                        <!-- Raw data -->
+                        <template v-if="showRaw">
+                          <div v-if="v.raw.userAgent" class="mt-1 px-2 py-1.5 rounded bg-gray-100 dark:bg-gray-800 font-mono text-[10px] text-gray-500 dark:text-gray-500 break-all">
+                            <span class="text-gray-400">UA:</span> {{ v.raw.userAgent }}
+                          </div>
+                          <div v-if="v.raw.acceptLanguage" class="px-2 py-1.5 rounded bg-gray-100 dark:bg-gray-800 font-mono text-[10px] text-gray-500 dark:text-gray-500 break-all">
+                            <span class="text-gray-400">Accept-Language:</span> {{ v.raw.acceptLanguage }}
+                          </div>
+                          <div v-if="v.raw.secChUa" class="px-2 py-1.5 rounded bg-gray-100 dark:bg-gray-800 font-mono text-[10px] text-gray-500 dark:text-gray-500 break-all">
+                            <span class="text-gray-400">Sec-CH-UA:</span> {{ v.raw.secChUa }}
+                          </div>
+                        </template>
                       </div>
                     </div>
                   </div>

@@ -54,32 +54,33 @@ export default defineEventHandler(async (event) => {
 
 /**
  * Build a viewer fingerprint to identify the same person across repeat visits.
- * - Logged-in user with tracking allowed: "user:<id>"
- * - Logged-in user with privacy on: "private:<hash of userId + shared_note_id>"
- *   (unique per share so it can't be correlated across shares)
- * - Anonymous: "anon:<hash of ip + user_agent>"
+ * Uses IP + User-Agent + Accept-Language + DNT for anonymous visitors.
+ * Accept-Language varies per user's locale preferences.
+ * DNT is a binary signal that differs per user's privacy settings.
  */
-function buildFingerprint(auth, privacyOn, ipAddress, userAgent, sharedNoteId) {
+function buildFingerprint(auth, privacyOn, ipAddress, userAgent, acceptLang, dnt, sharedNoteId) {
   if (auth && !privacyOn) {
     return `user:${auth.userId}`
   }
   if (auth && privacyOn) {
-    // Still fingerprint so we can count unique private viewers, but no PII leaks
     const raw = `private:${auth.userId}:${sharedNoteId}`
     return `private:${createHash('sha256').update(raw).digest('hex').slice(0, 16)}`
   }
-  // Anonymous — fingerprint from IP + UA
-  const raw = `anon:${ipAddress || 'no-ip'}:${userAgent || 'no-ua'}`
+  const raw = `anon:${ipAddress || 'no-ip'}:${userAgent || 'no-ua'}:${acceptLang || 'no-lang'}:${dnt || 'no-dnt'}`
   return `anon:${createHash('sha256').update(raw).digest('hex').slice(0, 16)}`
 }
 
 /**
  * Record a view or import event for analytics.
+ * Collects all available passive HTTP headers.
  */
 async function recordEvent(event, sharedNoteId, eventType) {
   const auth = await optionalAuth(event)
   const userAgent = getHeader(event, 'user-agent') || null
   const referrer = getHeader(event, 'referer') || null
+  const acceptLang = getHeader(event, 'accept-language') || null
+  const dnt = getHeader(event, 'dnt') || null
+  const secChUa = getHeader(event, 'sec-ch-ua') || null
 
   const forwarded = getHeader(event, 'x-forwarded-for')
   const realIp = getHeader(event, 'x-real-ip')
@@ -89,6 +90,9 @@ async function recordEvent(event, sharedNoteId, eventType) {
   let viewerName = null
   let recordUserAgent = null
   let recordIp = null
+  let recordAcceptLang = null
+  let recordDnt = null
+  let recordSecChUa = null
   let privacyOn = false
 
   if (auth) {
@@ -103,19 +107,22 @@ async function recordEvent(event, sharedNoteId, eventType) {
       viewerName = viewer.name || null
       recordUserAgent = userAgent
       recordIp = ipAddress
+      recordAcceptLang = acceptLang
+      recordDnt = dnt
+      recordSecChUa = secChUa
     }
   } else {
     recordUserAgent = userAgent
     recordIp = ipAddress
+    recordAcceptLang = acceptLang
+    recordDnt = dnt
+    recordSecChUa = secChUa
   }
 
-  const fingerprint = buildFingerprint(auth, privacyOn, ipAddress, userAgent, sharedNoteId)
+  const fingerprint = buildFingerprint(auth, privacyOn, ipAddress, userAgent, acceptLang, dnt, sharedNoteId)
 
   query(`
-    INSERT INTO share_views (shared_note_id, viewer_user_id, viewer_name, user_agent, ip_address, referrer, event_type, viewer_fingerprint)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-  `, [sharedNoteId, viewerUserId, viewerName, recordUserAgent, recordIp, referrer, eventType, fingerprint]).catch(() => {})
+    INSERT INTO share_views (shared_note_id, viewer_user_id, viewer_name, user_agent, ip_address, referrer, event_type, viewer_fingerprint, accept_language, dnt, sec_ch_ua)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+  `, [sharedNoteId, viewerUserId, viewerName, recordUserAgent, recordIp, referrer, eventType, fingerprint, recordAcceptLang, recordDnt, recordSecChUa]).catch(() => {})
 }
-
-// Export for reuse by import endpoint
-export { buildFingerprint }

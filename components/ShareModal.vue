@@ -112,6 +112,9 @@
                         <li>Viewer's display name (if signed in and they allow tracking)</li>
                         <li>Device, OS, and browser info via user agent</li>
                         <li>IP address and referrer URL</li>
+                        <li>Language preferences (Accept-Language)</li>
+                        <li>Browser client hints (Sec-CH-UA)</li>
+                        <li>Do Not Track (DNT) preference</li>
                         <li>Timestamp of each event</li>
                       </ul>
                       <p class="mt-1.5 text-gray-300">Emails are never collected. Signed-in users with privacy protection will appear as "Unknown" with no device or IP data. Analytics persist even after you stop sharing.</p>

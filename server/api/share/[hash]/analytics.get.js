@@ -48,7 +48,7 @@ export default defineEventHandler(async (event) => {
 
   // Paginated events
   const viewsResult = await query(`
-    SELECT id, viewer_name, viewer_fingerprint, user_agent, ip_address, referrer, event_type, viewed_at
+    SELECT id, viewer_name, viewer_fingerprint, user_agent, ip_address, referrer, event_type, viewed_at, accept_language, dnt, sec_ch_ua
     FROM share_views
     WHERE shared_note_id = $1
     ORDER BY viewed_at DESC
@@ -80,9 +80,14 @@ export default defineEventHandler(async (event) => {
     raw: {
       userAgent: v.user_agent || null,
       ip: v.ip_address || null,
-      referrer: v.referrer || null
+      referrer: v.referrer || null,
+      acceptLanguage: v.accept_language || null,
+      dnt: v.dnt || null,
+      secChUa: v.sec_ch_ua || null
     },
     parsed: parseUserAgent(v.user_agent),
+    parsedLang: parseAcceptLanguage(v.accept_language),
+    parsedSecChUa: parseSecChUa(v.sec_ch_ua),
     viewedAt: v.viewed_at
   }))
 
@@ -160,4 +165,41 @@ function parseUserAgent(ua) {
   const summary = `${browser} ${browserVersion.split('.')[0]} on ${os}${osVersion ? ' ' + osVersion.split('.').slice(0, 2).join('.') : ''}`
 
   return { os, osVersion, browser, browserVersion, deviceType, summary }
+}
+
+/**
+ * Parse Accept-Language header into a human-readable primary language.
+ * e.g. "en-US,en;q=0.9,fr;q=0.8" → { primary: "en-US", all: ["en-US", "en", "fr"] }
+ */
+function parseAcceptLanguage(header) {
+  if (!header) return null
+  const parts = header.split(',').map(p => {
+    const [lang, q] = p.trim().split(';q=')
+    return { lang: lang.trim(), q: parseFloat(q) || 1 }
+  }).sort((a, b) => b.q - a.q)
+
+  return {
+    primary: parts[0]?.lang || null,
+    all: parts.map(p => p.lang)
+  }
+}
+
+/**
+ * Parse Sec-CH-UA client hints header.
+ * e.g. '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"'
+ * → { brands: [{ brand: "Google Chrome", version: "124" }, ...] }
+ */
+function parseSecChUa(header) {
+  if (!header) return null
+  const brands = []
+  const regex = /"([^"]+)";v="([^"]+)"/g
+  let match
+  while ((match = regex.exec(header)) !== null) {
+    const brand = match[1]
+    // Skip the "Not A;Brand" / "Not-A.Brand" filler entries
+    if (!/^Not[-_\s]?A/i.test(brand)) {
+      brands.push({ brand, version: match[2] })
+    }
+  }
+  return brands.length ? { brands } : null
 }
