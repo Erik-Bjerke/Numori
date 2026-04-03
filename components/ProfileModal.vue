@@ -118,14 +118,14 @@
                           <p class="mt-1.5 font-medium">When enabled (default):</p>
                           <ul class="list-disc pl-3 mt-0.5 space-y-0.5">
                             <li>Your name will not be visible to the note sharer</li>
-                            <li>Your device and browser information won't be recorded</li>
+                            <li>Your device, browser, and IP address won't be recorded</li>
                             <li>You will appear as "Unknown" in their analytics</li>
                             <li>Only the fact that someone viewed the note is recorded</li>
                           </ul>
                           <p class="mt-1.5 font-medium">When disabled:</p>
                           <ul class="list-disc pl-3 mt-0.5 space-y-0.5">
                             <li>Your display name may be shown to the note sharer</li>
-                            <li>Your browser and device info may be recorded</li>
+                            <li>Your browser, device, and IP address may be recorded</li>
                           </ul>
                           <p class="mt-1.5 text-gray-300">Your email is never shared regardless of this setting.</p>
                           <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-700"></div>
@@ -243,21 +243,35 @@
                 </div>
                 <template v-else-if="sharedNotes.length">
                   <div v-for="sn in sharedNotes" :key="sn.hash"
-                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg border"
+                    :class="sn.isActive
+                      ? 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800'
+                      : 'bg-gray-50/50 dark:bg-gray-900/50 border-gray-200/50 dark:border-gray-800/50 opacity-60'">
                     <div class="flex-1 min-w-0">
-                      <p class="text-sm font-medium text-gray-900 dark:text-gray-200 truncate">{{ sn.title || 'Untitled' }}</p>
+                      <div class="flex items-center gap-1.5">
+                        <p class="text-sm font-medium text-gray-900 dark:text-gray-200 truncate">{{ sn.title || 'Untitled' }}</p>
+                        <span v-if="!sn.isActive" class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 flex-shrink-0">
+                          unshared
+                        </span>
+                      </div>
                       <p class="text-xs text-gray-500 dark:text-gray-500">
                         {{ sn.anonymous ? 'Anonymous' : '' }}
                         {{ sn.anonymous && sn.expiresAt ? ' · ' : '' }}
                         {{ formatExpiry(sn.expiresAt) }}
+                        {{ sn.collectAnalytics ? ' · Analytics on' : '' }}
                       </p>
                     </div>
-                    <button @click="copySharedLink(sn.hash)"
+                    <button v-if="sn.collectAnalytics" @click="emit('open-analytics', sn.hash)"
+                      class="flex-shrink-0 p-1.5 text-primary-500 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded transition-colors"
+                      title="View analytics">
+                      <Icon name="mdi:chart-bar" class="w-4 h-4" />
+                    </button>
+                    <button v-if="sn.isActive" @click="copySharedLink(sn.hash)"
                       class="flex-shrink-0 p-1.5 text-primary-500 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded transition-colors"
                       title="Copy link">
                       <Icon :name="copiedHash === sn.hash ? 'mdi:check' : 'mdi:content-copy'" class="w-4 h-4" />
                     </button>
-                    <button @click="handleUnshare(sn.hash)"
+                    <button v-if="sn.isActive" @click="handleUnshare(sn.hash)"
                       class="flex-shrink-0 p-1.5 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
                       title="Stop sharing">
                       <Icon name="mdi:link-variant-off" class="w-4 h-4" />
@@ -284,7 +298,7 @@ const props = defineProps({
   lastSyncedAt: { type: String, default: null }
 })
 
-const emit = defineEmits(['close', 'update-profile', 'change-password', 'delete-data', 'delete-account', 'logout', 'unshare'])
+const emit = defineEmits(['close', 'update-profile', 'change-password', 'delete-data', 'delete-account', 'logout', 'unshare', 'open-analytics'])
 
 const activeSection = ref('main')
 const feedback = ref(null)
@@ -441,8 +455,8 @@ const handleUnshare = async (hash) => {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` }
     })
-    sharedNotes.value = sharedNotes.value.filter(n => n.hash !== hash)
-    showFeedback('Shared note removed')
+    await loadSharedNotes()
+    showFeedback('Sharing stopped')
     emit('unshare', hash)
   } catch (err) {
     showFeedback(err?.data?.statusMessage || 'Failed to remove shared note', 'error')

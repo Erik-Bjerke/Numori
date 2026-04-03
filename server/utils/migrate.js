@@ -120,14 +120,39 @@ export async function migrate() {
       viewer_user_id  INTEGER REFERENCES users(id) ON DELETE SET NULL,
       viewer_name     TEXT,
       user_agent      TEXT,
+      ip_address      TEXT,
       referrer        TEXT,
       country         TEXT,
+      event_type      TEXT NOT NULL DEFAULT 'view',
       viewed_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `)
 
   await query(`
     CREATE INDEX IF NOT EXISTS idx_share_views_shared_note_id ON share_views(shared_note_id)
+  `)
+
+  // Add ip_address and event_type columns if missing (for existing databases)
+  await query(`
+    DO $$ BEGIN
+      ALTER TABLE share_views ADD COLUMN IF NOT EXISTS ip_address TEXT;
+    EXCEPTION WHEN duplicate_column THEN NULL;
+    END $$
+  `)
+
+  await query(`
+    DO $$ BEGIN
+      ALTER TABLE share_views ADD COLUMN IF NOT EXISTS event_type TEXT NOT NULL DEFAULT 'view';
+    EXCEPTION WHEN duplicate_column THEN NULL;
+    END $$
+  `)
+
+  // Add deleted_at to shared_notes for soft-delete (analytics persist)
+  await query(`
+    DO $$ BEGIN
+      ALTER TABLE shared_notes ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+    EXCEPTION WHEN duplicate_column THEN NULL;
+    END $$
   `)
 
   console.log('[migrate] Database tables ready')

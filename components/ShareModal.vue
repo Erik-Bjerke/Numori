@@ -26,49 +26,12 @@
                 </button>
               </div>
 
-              <!-- Analytics summary -->
-              <div v-if="analyticsData && analyticsData.enabled" class="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                <button @click="showAnalyticsDetail = !showAnalyticsDetail"
-                  class="w-full flex items-center justify-between px-3 py-2.5 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-850 transition-colors">
-                  <div class="flex items-center gap-2">
-                    <Icon name="mdi:chart-bar" class="w-4 h-4 text-primary-500" />
-                    <span class="text-sm text-gray-700 dark:text-gray-300">
-                      {{ analyticsData.totalViews }} {{ analyticsData.totalViews === 1 ? 'view' : 'views' }}
-                    </span>
-                  </div>
-                  <Icon :name="showAnalyticsDetail ? 'mdi:chevron-up' : 'mdi:chevron-down'" class="w-4 h-4 text-gray-400" />
-                </button>
-                <div v-if="showAnalyticsDetail" class="px-3 py-2 border-t border-gray-200 dark:border-gray-700 space-y-2">
-                  <div class="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
-                    <span>Known viewers</span>
-                    <span class="font-medium">{{ analyticsData.knownViewers }}</span>
-                  </div>
-                  <div class="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
-                    <span>Anonymous views</span>
-                    <span class="font-medium">{{ analyticsData.anonymousViews }}</span>
-                  </div>
-                  <div v-if="analyticsData.views.length" class="pt-1 space-y-1.5">
-                    <p class="text-xs font-medium text-gray-500 dark:text-gray-500">Recent views</p>
-                    <div v-for="(v, i) in analyticsData.views" :key="i"
-                      class="flex items-center justify-between text-xs py-1 border-t border-gray-100 dark:border-gray-800">
-                      <div class="flex items-center gap-1.5 min-w-0">
-                        <Icon :name="v.viewerName ? 'mdi:account' : 'mdi:incognito'" class="w-3.5 h-3.5 flex-shrink-0 text-gray-400" />
-                        <span class="text-gray-700 dark:text-gray-300 truncate">{{ v.viewerName || 'Unknown' }}</span>
-                        <span v-if="v.device" class="text-gray-400 truncate hidden sm:inline">· {{ v.device }}</span>
-                      </div>
-                      <span class="text-gray-400 flex-shrink-0 ml-2">{{ formatTimeAgo(v.viewedAt) }}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div v-else-if="analyticsData && !analyticsData.enabled"
-                class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
-                <Icon name="mdi:chart-bar" class="w-4 h-4 text-gray-400" />
-                <span class="text-xs text-gray-500 dark:text-gray-500">Analytics not enabled for this share</span>
-              </div>
-              <div v-else-if="loadingAnalytics" class="flex items-center justify-center py-3">
-                <Icon name="mdi:loading" class="w-5 h-5 text-gray-400 animate-spin" />
-              </div>
+              <!-- Analytics link -->
+              <button v-if="isLoggedIn" @click="$emit('open-analytics', activeHash)"
+                class="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 hover:bg-primary-100 dark:hover:bg-primary-900/30 rounded-lg transition-colors">
+                <Icon name="mdi:chart-bar" class="w-4 h-4" />
+                View analytics
+              </button>
 
               <div class="flex gap-2">
                 <button @click="$emit('close')"
@@ -143,15 +106,15 @@
                     <Icon name="mdi:information-outline" class="w-4 h-4 text-gray-400 cursor-help" />
                     <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 px-3 py-2 rounded-lg bg-gray-900 dark:bg-gray-700 text-white text-xs leading-relaxed shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
                       <p class="font-medium mb-1">View Analytics</p>
-                      <p>When enabled, the following data is collected each time someone opens your shared note:</p>
+                      <p>When enabled, the following data is collected each time someone opens or imports your shared note:</p>
                       <ul class="list-disc pl-3 mt-1 space-y-0.5">
-                        <li>Total number of views</li>
+                        <li>View and import counts</li>
                         <li>Viewer's display name (if signed in and they allow tracking)</li>
-                        <li>Device and browser info via user agent (if viewer allows it)</li>
-                        <li>Referrer URL (where they came from)</li>
-                        <li>Timestamp of each view</li>
+                        <li>Device, OS, and browser info via user agent</li>
+                        <li>IP address and referrer URL</li>
+                        <li>Timestamp of each event</li>
                       </ul>
-                      <p class="mt-1.5 text-gray-300">Emails are never collected. Signed-in users who have privacy protection enabled will appear as "Unknown" and their device info won't be recorded.</p>
+                      <p class="mt-1.5 text-gray-300">Emails are never collected. Signed-in users with privacy protection will appear as "Unknown" with no device or IP data. Analytics persist even after you stop sharing.</p>
                       <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-gray-700"></div>
                     </div>
                   </div>
@@ -183,7 +146,7 @@ const props = defineProps({
   existingHash: { type: String, default: null }
 })
 
-const emit = defineEmits(['close', 'unshare'])
+const emit = defineEmits(['close', 'unshare', 'open-analytics'])
 
 const { copy: clipboardCopy } = useClipboard()
 const { apiFetch, apiUrl } = useApi()
@@ -198,12 +161,6 @@ const error = ref(null)
 const newShareHash = ref(null)
 const copied = ref(false)
 
-// Analytics
-const analyticsData = ref(null)
-const loadingAnalytics = ref(false)
-const showAnalyticsDetail = ref(false)
-
-// Use existing hash if note is already shared, or the newly created one
 const activeHash = computed(() => newShareHash.value || props.existingHash)
 
 const activeShareUrl = computed(() => {
@@ -222,27 +179,8 @@ watch(() => props.isOpen, (open) => {
     error.value = null
     newShareHash.value = null
     copied.value = false
-    analyticsData.value = null
-    showAnalyticsDetail.value = false
-    // Load analytics if already shared
-    if (props.existingHash && props.isLoggedIn) {
-      loadAnalytics(props.existingHash)
-    }
   }
 })
-
-const loadAnalytics = async (hash) => {
-  loadingAnalytics.value = true
-  try {
-    analyticsData.value = await apiFetch(`/api/share/${hash}/analytics`, {
-      headers: props.authHeaders
-    })
-  } catch {
-    analyticsData.value = null
-  } finally {
-    loadingAnalytics.value = false
-  }
-}
 
 const handleShare = async () => {
   if (!props.note) return
@@ -272,9 +210,6 @@ const handleShare = async () => {
     })
 
     newShareHash.value = data.hash
-    if (collectAnalytics.value && props.isLoggedIn) {
-      loadAnalytics(data.hash)
-    }
   } catch (err) {
     error.value = err.data?.statusMessage || err.message || 'Failed to share'
   } finally {
@@ -300,17 +235,6 @@ const copyLink = async () => {
   await clipboardCopy(activeShareUrl.value)
   copied.value = true
   setTimeout(() => { copied.value = false }, 2000)
-}
-
-const formatTimeAgo = (iso) => {
-  const d = new Date(iso)
-  const now = new Date()
-  const diff = now - d
-  if (diff < 60000) return 'just now'
-  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`
-  if (diff < 604800000) return `${Math.floor(diff / 86400000)}d ago`
-  return d.toLocaleDateString()
 }
 </script>
 

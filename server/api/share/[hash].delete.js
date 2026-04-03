@@ -2,15 +2,15 @@ import { requireAuth } from '../../utils/auth.js'
 import { query } from '../../utils/db.js'
 
 /**
- * DELETE /api/share/:hash — Delete a shared note.
- * Only the owner (authenticated user who created it) can delete.
+ * DELETE /api/share/:hash — Soft-delete a shared note (stop sharing).
+ * Analytics data is preserved. Only the owner can do this.
  */
 export default defineEventHandler(async (event) => {
   const auth = await requireAuth(event)
   const hash = getRouterParam(event, 'hash')
 
   const result = await query(
-    'DELETE FROM shared_notes WHERE hash = $1 AND user_id = $2 RETURNING id',
+    'UPDATE shared_notes SET deleted_at = NOW() WHERE hash = $1 AND user_id = $2 AND deleted_at IS NULL RETURNING id',
     [hash, auth.userId]
   )
 

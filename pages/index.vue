@@ -204,7 +204,13 @@
       :auth-headers="auth.authHeaders.value"
       :existing-hash="currentNote ? (sharedNotesMap.get(currentNote.id) || null) : null"
       @close="handleShareModalClose"
-      @unshare="handleShareModalUnshare" />
+      @unshare="handleShareModalUnshare"
+      @open-analytics="handleOpenAnalytics" />
+
+    <ShareAnalyticsModal :is-open="showAnalyticsModal"
+      :hash="analyticsHash"
+      :auth-headers="auth.authHeaders.value"
+      @close="showAnalyticsModal = false" />
 
     <ProfileModal :is-open="showProfileModal"
       :user="auth.user.value"
@@ -215,7 +221,8 @@
       @delete-data="handleDeleteData"
       @delete-account="handleDeleteAccount"
       @logout="handleLogout"
-      @unshare="handleProfileUnshare" />
+      @unshare="handleProfileUnshare"
+      @open-analytics="handleOpenAnalytics" />
 
     <SyncIndicator :syncing="syncing" />
   </div>
@@ -272,6 +279,8 @@ const mobileKeyboardOffset = ref(0)
 const showAuthModal = ref(false)
 const showShareModal = ref(false)
 const showProfileModal = ref(false)
+const showAnalyticsModal = ref(false)
+const analyticsHash = ref(null)
 
 // Track which notes are currently shared (by note title match from /api/share/my)
 const sharedNoteIds = ref([])
@@ -281,10 +290,11 @@ const loadSharedNotes = async () => {
   if (!auth.isLoggedIn.value) { sharedNoteIds.value = []; sharedNotesMap.value = new Map(); return }
   try {
     const shared = await apiFetch('/api/share/my', { headers: auth.authHeaders.value })
-    // Match shared notes to local notes by title
+    // Match active (non-deleted) shared notes to local notes by title
     const map = new Map()
     const ids = []
     for (const sn of shared) {
+      if (!sn.isActive) continue
       const match = notes.value.find(n => n.title === sn.title)
       if (match) {
         ids.push(match.id)
@@ -417,6 +427,12 @@ const handleShareModalClose = () => {
 const handleShareModalUnshare = () => {
   showShareModal.value = false
   if (auth.isLoggedIn.value) loadSharedNotes()
+}
+
+// Open analytics modal
+const handleOpenAnalytics = (hash) => {
+  analyticsHash.value = hash
+  showAnalyticsModal.value = true
 }
 
 // Handle unshare from profile modal

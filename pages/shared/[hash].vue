@@ -77,7 +77,10 @@ onMounted(async () => {
 
 const importNote = () => {
   if (!note.value) return
-  // Store in localStorage so the main app picks it up
+
+  // Track the import (fire and forget)
+  apiFetch(`/api/share/${hash}/import`, { method: 'POST' }).catch(() => {})
+
   const pending = {
     title: note.value.title,
     description: note.value.description || '',

@@ -13,7 +13,8 @@ export default defineEventHandler(async (event) => {
   }
 
   const result = await query(`
-    SELECT id, hash, title, description, tags, content, sharer_name, sharer_email, anonymous, expires_at, created_at, collect_analytics
+    SELECT id, hash, title, description, tags, content, sharer_name, sharer_email,
+           anonymous, expires_at, created_at, collect_analytics, deleted_at
     FROM shared_notes WHERE hash = $1
   `, [hash])
 
@@ -23,6 +24,11 @@ export default defineEventHandler(async (event) => {
 
   const row = result.rows[0]
 
+  // Soft-deleted = no longer shared
+  if (row.deleted_at) {
+    throw createError({ statusCode: 410, statusMessage: 'This shared note is no longer available' })
+  }
+
   // Check expiration
   if (row.expires_at && new Date(row.expires_at) < new Date()) {
     throw createError({ statusCode: 410, statusMessage: 'This shared note has expired' })
@@ -30,38 +36,7 @@ export default defineEventHandler(async (event) => {
 
   // Record view if analytics enabled
   if (row.collect_analytics) {
-    const auth = await optionalAuth(event)
-    const userAgent = getHeader(event, 'user-agent') || null
-    const referrer = getHeader(event, 'referer') || null
-
-    let viewerUserId = null
-    let viewerName = null
-    let recordUserAgent = null
-
-    if (auth) {
-      // Check if viewer has privacy_no_tracking enabled
-      const privResult = await query(
-        'SELECT privacy_no_tracking, name FROM users WHERE id = $1',
-        [auth.userId]
-      )
-      const viewer = privResult.rows[0]
-      if (viewer && !viewer.privacy_no_tracking) {
-        // Viewer allows tracking — record identity and device info
-        viewerUserId = auth.userId
-        viewerName = viewer.name || null
-        recordUserAgent = userAgent
-      }
-      // If privacy_no_tracking is true, we still record the view but without identity/device
-    } else {
-      // Anonymous viewer — record user agent (no account = no privacy preference)
-      recordUserAgent = userAgent
-    }
-
-    // Fire and forget — don't block the response
-    query(`
-      INSERT INTO share_views (shared_note_id, viewer_user_id, viewer_name, user_agent, referrer)
-      VALUES ($1, $2, $3, $4, $5)
-    `, [row.id, viewerUserId, viewerName, recordUserAgent, referrer]).catch(() => {})
+    await recordEvent(event, row.id, 'view')
   }
 
   return {
@@ -78,3 +53,46 @@ export default defineEventHandler(async (event) => {
     expiresAt: row.expires_at
   }
 })
+
+/**
+ * Record a view or import event for analytics.
+ */
+async function recordEvent(event, sharedNoteId, eventType) {
+  const auth = await optionalAuth(event)
+  const userAgent = getHeader(event, 'user-agent') || null
+  const referrer = getHeader(event, 'referer') || null
+
+  // Extract IP from common headers
+  const forwarded = getHeader(event, 'x-forwarded-for')
+  const realIp = getHeader(event, 'x-real-ip')
+  let ipAddress = forwarded ? forwarded.split(',')[0].trim() : (realIp || null)
+
+  let viewerUserId = null
+  let viewerName = null
+  let recordUserAgent = null
+  let recordIp = null
+
+  if (auth) {
+    const privResult = await query(
+      'SELECT privacy_no_tracking, name FROM users WHERE id = $1',
+      [auth.userId]
+    )
+    const viewer = privResult.rows[0]
+    if (viewer && !viewer.privacy_no_tracking) {
+      viewerUserId = auth.userId
+      viewerName = viewer.name || null
+      recordUserAgent = userAgent
+      recordIp = ipAddress
+    }
+    // Privacy on: record anonymous view only
+  } else {
+    // No account: record UA and IP (no privacy preference)
+    recordUserAgent = userAgent
+    recordIp = ipAddress
+  }
+
+  query(`
+    INSERT INTO share_views (shared_note_id, viewer_user_id, viewer_name, user_agent, ip_address, referrer, event_type)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+  `, [sharedNoteId, viewerUserId, viewerName, recordUserAgent, recordIp, referrer, eventType]).catch(() => {})
+}

@@ -3,12 +3,13 @@ import { query } from '../../utils/db.js'
 
 /**
  * GET /api/share/my — List all shared notes created by the authenticated user.
+ * Includes soft-deleted (unshared) notes so analytics remain accessible.
  */
 export default defineEventHandler(async (event) => {
   const auth = await requireAuth(event)
 
   const result = await query(`
-    SELECT hash, title, anonymous, expires_at, created_at, collect_analytics
+    SELECT hash, title, anonymous, expires_at, created_at, collect_analytics, deleted_at
     FROM shared_notes
     WHERE user_id = $1
     ORDER BY created_at DESC
@@ -20,6 +21,7 @@ export default defineEventHandler(async (event) => {
     anonymous: row.anonymous,
     expiresAt: row.expires_at,
     createdAt: row.created_at,
-    collectAnalytics: row.collect_analytics
+    collectAnalytics: row.collect_analytics,
+    isActive: !row.deleted_at
   }))
 })
