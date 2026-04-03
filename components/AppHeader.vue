@@ -74,7 +74,8 @@
             ? 'text-primary-600 dark:text-primary-400'
             : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-850'"
           :title="syncing ? 'Syncing...' : 'Sync notes'">
-          <Icon name="mdi:cloud-sync-outline" class="w-5 h-5 block" :class="{ 'animate-spin': syncing }" />
+          <Icon v-if="syncing" name="mdi:sync" class="w-5 h-5 block animate-spin" />
+          <Icon v-else name="mdi:cloud-sync-outline" class="w-5 h-5 block" />
         </button>
 
         <!-- Toggle sidebar -->

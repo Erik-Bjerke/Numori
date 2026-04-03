@@ -1,11 +1,16 @@
 /**
  * Composable for cloud sync. Pushes local notes to server and pulls remote changes.
- * Requires authentication (useAuth).
+ * Supports manual sync, auto-sync on interval, and debounced sync on note changes.
  */
 export const useSync = (auth, notes, saveNotes) => {
   const syncing = ref(false)
   const lastSyncedAt = ref(null)
   const syncError = ref(null)
+
+  let intervalId = null
+  let debounceTimer = null
+  const AUTO_SYNC_INTERVAL = 2 * 60 * 1000 // 2 minutes
+  const DEBOUNCE_DELAY = 5000 // 5 seconds after last change
 
   // Restore last sync timestamp
   onMounted(() => {
@@ -15,12 +20,11 @@ export const useSync = (auth, notes, saveNotes) => {
   })
 
   const sync = async () => {
-    if (!auth.isLoggedIn.value) return
+    if (!auth.isLoggedIn.value || syncing.value) return
     syncing.value = true
     syncError.value = null
 
     try {
-      // Map local notes to sync format
       const clientNotes = notes.value.map(n => ({
         clientId: n.id,
         title: n.title,
@@ -41,7 +45,6 @@ export const useSync = (auth, notes, saveNotes) => {
       for (const remote of data.pulled) {
         const existing = notes.value.find(n => n.id === remote.clientId)
         if (existing) {
-          // Update if remote is newer
           if (new Date(remote.updatedAt) > new Date(existing.updatedAt)) {
             existing.title = remote.title
             existing.description = remote.description
@@ -50,7 +53,6 @@ export const useSync = (auth, notes, saveNotes) => {
             existing.updatedAt = remote.updatedAt
           }
         } else {
-          // New note from server — add locally
           notes.value.push({
             id: remote.clientId || remote.id.toString(),
             title: remote.title,
@@ -72,6 +74,45 @@ export const useSync = (auth, notes, saveNotes) => {
       syncing.value = false
     }
   }
+
+  /** Debounced sync — called when notes change */
+  const debouncedSync = () => {
+    if (!auth.isLoggedIn.value) return
+    clearTimeout(debounceTimer)
+    debounceTimer = setTimeout(() => sync(), DEBOUNCE_DELAY)
+  }
+
+  // Start/stop auto-sync based on auth state
+  const startAutoSync = () => {
+    stopAutoSync()
+    // Initial sync on login
+    sync()
+    intervalId = setInterval(() => sync(), AUTO_SYNC_INTERVAL)
+  }
+
+  const stopAutoSync = () => {
+    clearInterval(intervalId)
+    clearTimeout(debounceTimer)
+    intervalId = null
+  }
+
+  // Watch auth state to start/stop auto-sync
+  watch(() => auth.isLoggedIn.value, (loggedIn) => {
+    if (loggedIn) {
+      startAutoSync()
+    } else {
+      stopAutoSync()
+    }
+  }, { immediate: true })
+
+  // Watch notes for changes and trigger debounced sync
+  watch(notes, () => {
+    debouncedSync()
+  }, { deep: true })
+
+  onBeforeUnmount(() => {
+    stopAutoSync()
+  })
 
   return { syncing, lastSyncedAt, syncError, sync }
 }
