@@ -1,5 +1,5 @@
 /**
- * Composable for authentication state and API calls.
+ * Authentication state and API calls.
  * Stores JWT in localStorage. Completely optional — app works without auth.
  */
 export const useAuth = () => {
@@ -20,19 +20,14 @@ export const useAuth = () => {
   const restore = async () => {
     if (!import.meta.client) return
     const stored = localStorage.getItem('auth_token')
-    if (!stored) {
-      console.debug('[auth] no stored token')
-      return
-    }
+    if (!stored) return
 
     token.value = stored
     try {
       user.value = await apiFetch('/api/auth/me', {
         headers: { Authorization: `Bearer ${stored}` }
       })
-      console.debug('[auth] restored session, isLoggedIn=', isLoggedIn.value)
-    } catch (err) {
-      console.debug('[auth] restore failed:', err.message || err)
+    } catch {
       token.value = null
       localStorage.removeItem('auth_token')
     }

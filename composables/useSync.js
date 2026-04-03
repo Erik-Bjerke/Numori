@@ -1,13 +1,9 @@
 /**
- * Composable for cloud sync.
+ * Cloud sync composable.
  *
- * Sync triggers:
- * - syncNow() — create, delete, reorder (immediate)
- * - debouncedSync() — content/meta edits (3s debounce)
- * - interval — every 2 minutes
- * - SSE — when another client syncs
- *
- * No deep watcher on notes — avoids feedback loops.
+ * Triggers: syncNow() for create/delete/reorder, debouncedSync() for edits,
+ * 2-minute interval, and SSE push from other clients.
+ * No deep watcher on notes to avoid feedback loops.
  */
 export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => {
   const { apiFetch, apiUrl } = useApi()
@@ -16,15 +12,14 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
   const lastSyncedAt = ref(null)
   const syncError = ref(null)
 
-  // Unique ID for this tab — used to prevent SSE self-notification
   const sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
 
-  // Flag to ignore SSE messages triggered by our own sync
   let expectingSelfEcho = false
   let echoTimer = null
-
   let intervalId = null
   let debounceTimer = null
+  let pendingSync = null
+
   const AUTO_SYNC_INTERVAL = 2 * 60 * 1000
   const DEBOUNCE_DELAY = 3000
 
@@ -34,24 +29,17 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
     }
   })
 
-  let pendingSync = null // queued source if a sync was requested while one is running
-
   const sync = async (source = 'unknown') => {
-    if (!auth.isLoggedIn.value) {
-      console.debug(`[sync] skipped — not logged in (source=${source})`)
-      return
-    }
+    if (!auth.isLoggedIn.value) return
     if (syncing.value) {
-      console.debug(`[sync] queued (source=${source}, already syncing)`)
       pendingSync = source
       return
     }
 
-    console.debug(`[sync] starting (source=${source})`)
     syncing.value = true
     syncError.value = null
 
-    // SSE-triggered syncs are pull-only reactions — don't broadcast back
+    // SSE-triggered syncs don't broadcast back to avoid ping-pong
     const shouldBroadcast = source !== 'sse'
 
     try {
@@ -78,7 +66,6 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
         }
       })
 
-      // Remove notes that were deleted on another device
       if (data.deletedClientIds?.length) {
         for (const id of data.deletedClientIds) {
           const idx = notes.value.findIndex(n => n.id === id)
@@ -86,7 +73,6 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
         }
       }
 
-      // Merge pulled notes into local state
       for (const remote of data.pulled) {
         const localId = remote.clientId || remote.id.toString()
         const existing = notes.value.find(n => n.id === localId)
@@ -98,7 +84,6 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
             existing.content = remote.content
             existing.updatedAt = remote.updatedAt
           }
-          // Always take server's sort order
           existing.sortOrder = remote.sortOrder ?? existing.sortOrder
         } else {
           notes.value.push({
@@ -121,9 +106,6 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
       localStorage.setItem('last_synced_at', data.syncedAt)
       saveNotes()
 
-      console.debug(`[sync] done (pulled=${data.pulled.length}, deleted=${data.deletedClientIds?.length || 0})`)
-
-      // Only expect self-echo if we asked the server to broadcast
       if (shouldBroadcast) {
         expectingSelfEcho = true
         clearTimeout(echoTimer)
@@ -131,31 +113,27 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
       }
     } catch (err) {
       syncError.value = err.data?.statusMessage || err.message || 'Sync failed'
-      console.debug(`[sync] error: ${syncError.value}`)
     } finally {
       syncing.value = false
-      // Run queued sync if one was requested while we were busy
       if (pendingSync) {
-        const queuedSource = pendingSync
+        const queued = pendingSync
         pendingSync = null
-        console.debug(`[sync] running queued sync (source=${queuedSource})`)
-        sync(queuedSource)
+        sync(queued)
       }
     }
   }
 
+  /** Immediate sync for create/delete/reorder. Queues if auth is still restoring. */
   const syncNow = () => {
-    console.debug('[sync] syncNow called')
     clearTimeout(debounceTimer)
     if (!auth.isLoggedIn.value) {
-      // Auth might still be restoring — queue it
-      console.debug('[sync] syncNow: not logged in, queuing')
       pendingSync = 'syncNow'
       return
     }
     sync('syncNow')
   }
 
+  /** Debounced sync for content/meta edits. */
   const debouncedSync = () => {
     if (!auth.isLoggedIn.value) return
     clearTimeout(debounceTimer)
@@ -164,12 +142,10 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
 
   const startAutoSync = () => {
     stopAutoSync()
-    // Flush any sync that was queued before login completed
     if (pendingSync) {
-      const queuedSource = pendingSync
+      const queued = pendingSync
       pendingSync = null
-      console.debug(`[sync] flushing queued sync (source=${queuedSource})`)
-      sync(queuedSource)
+      sync(queued)
     } else {
       sync('login')
     }
@@ -182,33 +158,27 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
     intervalId = null
   }
 
-  // SSE
+  // SSE — real-time notifications from other clients
   let eventSource = null
 
   const connectSSE = () => {
     disconnectSSE()
     if (!auth.token.value) return
 
-    const url = apiUrl(`/api/sync/events?token=${auth.token.value}&sessionId=${sessionId}`)
-    console.debug(`[sync] SSE connecting (sessionId=${sessionId})`)
-    eventSource = new EventSource(url)
+    eventSource = new EventSource(
+      apiUrl(`/api/sync/events?token=${auth.token.value}&sessionId=${sessionId}`)
+    )
 
     eventSource.onmessage = (e) => {
       try {
         const msg = JSON.parse(e.data)
-        if (msg.type === 'sync') {
-          if (syncing.value || expectingSelfEcho) {
-            console.debug(`[sync] SSE ignored (syncing=${syncing.value}, selfEcho=${expectingSelfEcho})`)
-            return
-          }
-          console.debug(`[sync] SSE triggering sync`)
+        if (msg.type === 'sync' && !syncing.value && !expectingSelfEcho) {
           sync('sse')
         }
       } catch { /* ignore */ }
     }
 
     eventSource.onerror = () => {
-      console.debug('[sync] SSE error, reconnecting in 5s')
       disconnectSSE()
       setTimeout(() => {
         if (auth.isLoggedIn.value) connectSSE()
@@ -224,7 +194,6 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
   }
 
   watch(() => auth.isLoggedIn.value, (loggedIn) => {
-    console.debug(`[sync] auth watch fired: loggedIn=${loggedIn}`)
     if (loggedIn) {
       startAutoSync()
       connectSSE()
@@ -234,7 +203,6 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
     }
   }, { immediate: true })
 
-  // Clean up SSE before page unload to avoid "connection interrupted" warnings
   const onBeforeUnload = () => disconnectSSE()
 
   if (import.meta.client) {
