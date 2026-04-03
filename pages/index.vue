@@ -35,7 +35,7 @@
       @show-templates="showTemplates = true"
       @share-note="showShareModal = true"
       @sync="sync"
-      @file-new="addNote"
+      @file-new="createNote"
       @file-open="handleOpenFile"
       @file-duplicate="handleDuplicate"
       @file-export-text="handleExportText"
@@ -54,7 +54,7 @@
       <aside class="flex-shrink-0 hidden lg:block overflow-hidden transition-[width] duration-300 ease-in-out"
         :class="showSidebar ? 'w-80' : 'w-0'">
         <div class="w-80 h-full">
-          <MainSidebar :notes="notes" :current-note-id="currentNoteId" :all-tags="allTags" :is-logged-in="auth.isLoggedIn.value" :user="auth.user.value" @new-note="addNote" @select-note="selectNote"
+          <MainSidebar :notes="notes" :current-note-id="currentNoteId" :all-tags="allTags" :is-logged-in="auth.isLoggedIn.value" :user="auth.user.value" @new-note="createNote" @select-note="selectNote"
             @delete-note="confirmDelete" @edit-note="openEditModal"
             @bulk-delete="confirmBulkDelete" @selection-change="onSelectionChange"
             @show-help="showHelp = true"
@@ -83,7 +83,7 @@
           leave-to-class="-translate-x-full">
           <aside v-if="showSidebar" class="fixed inset-y-0 left-0 z-30 w-80 shadow-xl lg:hidden"
             :style="{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingLeft: 'env(safe-area-inset-left, 0px)' }">
-            <MainSidebar :notes="notes" :current-note-id="currentNoteId" :all-tags="allTags" :is-logged-in="auth.isLoggedIn.value" :user="auth.user.value" @new-note="addNote" @select-note="selectNote"
+            <MainSidebar :notes="notes" :current-note-id="currentNoteId" :all-tags="allTags" :is-logged-in="auth.isLoggedIn.value" :user="auth.user.value" @new-note="createNote" @select-note="selectNote"
               @delete-note="confirmDelete" @edit-note="openEditModal"
               @bulk-delete="confirmBulkDelete" @selection-change="onSelectionChange"
               @show-help="showHelp = true"
@@ -116,7 +116,7 @@
 
             <!-- Action buttons -->
             <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <button @click="addNote"
+              <button @click="createNote"
                 class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm hover:shadow-md">
                 <Icon name="mdi:plus" class="w-5 h-5" />
                 Create new note
@@ -237,14 +237,21 @@ const { evaluateLines } = useCalculator()
 const localePrefs = useLocalePreferences()
 const welcomeWizard = useWelcomeWizard()
 const auth = useAuth()
-const { syncing, lastSyncedAt, sync } = useSync(auth, notes, saveNotes, deletedIds, clearDeletedIds)
+const { syncing, lastSyncedAt, sync, syncNow } = useSync(auth, notes, saveNotes, deletedIds, clearDeletedIds)
+
+// Wrapper: create note + instant sync
+const createNote = () => {
+  const note = addNote()
+  syncNow()
+  return note
+}
 
 // Keyboard shortcuts — must be declared before refs so handlers can reference them
 const { isMac, modLabel, handlers: shortcutHandlers } = useKeyboardShortcuts({
   save: () => {
     // Notes auto-save, but we still intercept to prevent browser save dialog
   },
-  newNote: () => addNote(),
+  newNote: () => createNote(),
   openFile: () => handleOpenFile(),
   print: () => handlePrint(),
   duplicate: () => handleDuplicate(),
@@ -364,7 +371,7 @@ onMounted(() => {
     localStorage.removeItem('pending_import')
     try {
       const data = JSON.parse(pending)
-      const newNote = addNote()
+      const newNote = createNote()
       updateNoteMeta(newNote.id, { title: data.title, description: data.description, tags: data.tags })
       updateNoteContent(newNote.id, data.content)
     } catch { /* ignore bad data */ }
@@ -405,6 +412,7 @@ const handleDeleteConfirm = () => {
   if (pendingDeleteId.value) {
     deleteNote(pendingDeleteId.value)
     pendingDeleteId.value = null
+    syncNow()
   }
 }
 
@@ -455,6 +463,7 @@ const handleBulkDeleteConfirm = () => {
     deleteNote(id)
   }
   pendingBulkDeleteIds.value = []
+  syncNow()
 }
 
 const askExportOptions = (action) => {
@@ -478,7 +487,7 @@ const handleExportConfirm = (withResults) => {
 const handleOpenFile = async () => {
   try {
     const data = await openFile()
-    const newNote = addNote()
+    const newNote = createNote()
     updateNoteMeta(newNote.id, { title: data.title, description: data.description, tags: data.tags })
     updateNoteContent(newNote.id, data.content)
   } catch {
@@ -490,7 +499,7 @@ const handleDuplicate = () => {
   if (!currentNote.value) return
   const data = duplicateNote(currentNote.value)
   if (data) {
-    const newNote = addNote()
+    const newNote = createNote()
     updateNoteMeta(newNote.id, { title: data.title, description: data.description, tags: data.tags })
     updateNoteContent(newNote.id, data.content)
   }
@@ -542,7 +551,7 @@ const handleImport = async () => {
   try {
     const result = await importNotes()
     for (const noteData of result.notes) {
-      const newNote = addNote()
+      const newNote = createNote()
       updateNoteMeta(newNote.id, { title: noteData.title, description: noteData.description, tags: noteData.tags })
       updateNoteContent(newNote.id, noteData.content)
     }

@@ -11,10 +11,10 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
   let intervalId = null
   let debounceTimer = null
   const AUTO_SYNC_INTERVAL = 2 * 60 * 1000 // 2 minutes
-  const DEBOUNCE_DELAY = 5000 // 5 seconds after last change
+  const DEBOUNCE_DELAY = 3000 // 3 seconds after last change
 
   onMounted(() => {
-    if (process.client) {
+    if (import.meta.client) {
       lastSyncedAt.value = localStorage.getItem('last_synced_at') || null
     }
   })
@@ -94,6 +94,12 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
     }
   }
 
+  /** Immediate sync — bypasses debounce. For create/delete actions. */
+  const syncNow = () => {
+    clearTimeout(debounceTimer)
+    sync()
+  }
+
   const debouncedSync = () => {
     if (!auth.isLoggedIn.value) return
     clearTimeout(debounceTimer)
@@ -121,5 +127,5 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
 
   onBeforeUnmount(() => stopAutoSync())
 
-  return { syncing, lastSyncedAt, syncError, sync }
+  return { syncing, lastSyncedAt, syncError, sync, syncNow }
 }

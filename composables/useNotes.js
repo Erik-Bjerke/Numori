@@ -5,7 +5,7 @@ export const useNotes = () => {
 
   // Load notes from localStorage
   const loadNotes = () => {
-    if (process.client) {
+    if (import.meta.client) {
       const stored = localStorage.getItem('notes')
       if (stored) {
         try {
@@ -35,13 +35,13 @@ export const useNotes = () => {
 
   // Save notes to localStorage
   const saveNotes = () => {
-    if (process.client) {
+    if (import.meta.client) {
       localStorage.setItem('notes', JSON.stringify(notes.value))
     }
   }
 
   const saveDeletedIds = () => {
-    if (process.client) {
+    if (import.meta.client) {
       localStorage.setItem('deleted_note_ids', JSON.stringify(deletedIds.value))
     }
   }
@@ -49,7 +49,7 @@ export const useNotes = () => {
   /** Clear the deleted IDs list (called after successful sync) */
   const clearDeletedIds = () => {
     deletedIds.value = []
-    if (process.client) {
+    if (import.meta.client) {
       localStorage.removeItem('deleted_note_ids')
     }
   }

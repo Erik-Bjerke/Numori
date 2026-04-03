@@ -18,7 +18,7 @@ export const useAuth = () => {
 
   // Restore session from localStorage
   const restore = async () => {
-    if (!process.client) return
+    if (!import.meta.client) return
     const stored = localStorage.getItem('auth_token')
     if (!stored) return
 
