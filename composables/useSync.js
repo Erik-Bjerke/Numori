@@ -16,8 +16,9 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
   const lastSyncedAt = ref(null)
   const syncError = ref(null)
 
-  // Unique ID for this browser tab — used to prevent SSE self-notification
-  const sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+  // Track when this client last synced to ignore SSE echoes
+  let lastSyncFinishedAt = 0
+  const SSE_IGNORE_WINDOW = 2000 // ignore SSE sync messages within 2s of our own sync
 
   let intervalId = null
   let debounceTimer = null
@@ -59,7 +60,7 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
           notes: clientNotes,
           deletedClientIds: [...deletedIds.value],
           lastSyncedAt: lastSyncedAt.value,
-          sessionId
+          sessionId: null
         }
       })
 
@@ -111,6 +112,7 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
       console.debug(`[sync] error: ${syncError.value}`)
     } finally {
       syncing.value = false
+      lastSyncFinishedAt = Date.now()
     }
   }
 
@@ -144,15 +146,20 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
     disconnectSSE()
     if (!auth.token.value) return
 
-    const url = apiUrl(`/api/sync/events?token=${auth.token.value}&sessionId=${sessionId}`)
-    console.debug(`[sync] SSE connecting (sessionId=${sessionId})`)
+    const url = apiUrl(`/api/sync/events?token=${auth.token.value}&sessionId=x`)
+    console.debug(`[sync] SSE connecting`)
     eventSource = new EventSource(url)
 
     eventSource.onmessage = (e) => {
       try {
         const msg = JSON.parse(e.data)
-        console.debug(`[sync] SSE message:`, msg.type)
-        if (msg.type === 'sync' && !syncing.value) {
+        if (msg.type === 'sync') {
+          const timeSinceOurSync = Date.now() - lastSyncFinishedAt
+          if (syncing.value || timeSinceOurSync < SSE_IGNORE_WINDOW) {
+            console.debug(`[sync] SSE ignored (syncing=${syncing.value}, timeSince=${timeSinceOurSync}ms)`)
+            return
+          }
+          console.debug(`[sync] SSE triggering sync`)
           sync('sse')
         }
       } catch { /* ignore */ }
