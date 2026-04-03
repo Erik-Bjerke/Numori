@@ -147,6 +147,12 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
   const syncNow = () => {
     console.debug('[sync] syncNow called')
     clearTimeout(debounceTimer)
+    if (!auth.isLoggedIn.value) {
+      // Auth might still be restoring — queue it
+      console.debug('[sync] syncNow: not logged in, queuing')
+      pendingSync = 'syncNow'
+      return
+    }
     sync('syncNow')
   }
 
@@ -158,7 +164,15 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
 
   const startAutoSync = () => {
     stopAutoSync()
-    sync('login')
+    // Flush any sync that was queued before login completed
+    if (pendingSync) {
+      const queuedSource = pendingSync
+      pendingSync = null
+      console.debug(`[sync] flushing queued sync (source=${queuedSource})`)
+      sync(queuedSource)
+    } else {
+      sync('login')
+    }
     intervalId = setInterval(() => sync('interval'), AUTO_SYNC_INTERVAL)
   }
 
