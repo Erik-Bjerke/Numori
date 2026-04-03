@@ -29,7 +29,7 @@
       <aside class="flex-shrink-0 hidden lg:block overflow-hidden transition-[width] duration-300 ease-in-out"
         :class="showSidebar ? 'w-80' : 'w-0'">
         <div class="w-80 h-full">
-          <MainSidebar :notes="notes" :current-note-id="currentNoteId" :all-tags="allTags" :is-logged-in="auth.isLoggedIn.value" :user="auth.user.value" :shared-note-ids="sharedNoteIds" :shared-notes-map="sharedNotesMap" @new-note="createNote" @select-note="selectNote"
+          <MainSidebar :notes="notes" :current-note-id="currentNoteId" :all-tags="allTags" :is-logged-in="auth.isLoggedIn.value" :user="auth.user.value" :shared-note-ids="sharedNoteIds" :shared-notes-map="sharedNotesMap" :analytics-notes-map="analyticsNotesMap" @new-note="createNote" @select-note="selectNote"
             @delete-note="confirmDelete" @edit-note="openEditModal"
             @bulk-delete="confirmBulkDelete" @selection-change="onSelectionChange"
             @show-help="showHelp = true"
@@ -37,6 +37,7 @@
             @show-auth="showAuthModal = true" @logout="handleLogout" @edit-profile="handleShowProfile"
             @share-note="handleShareNote" @show-properties="handleShowProperties"
             @unshare-note="handleUnshareNote"
+            @open-analytics="handleOpenAnalytics"
             @reorder="handleReorder" />
         </div>
       </aside>
@@ -61,7 +62,7 @@
           leave-to-class="-translate-x-full">
           <aside v-if="showSidebar" class="fixed inset-y-0 left-0 z-30 w-80 shadow-xl lg:hidden"
             :style="{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingLeft: 'env(safe-area-inset-left, 0px)' }">
-            <MainSidebar :notes="notes" :current-note-id="currentNoteId" :all-tags="allTags" :is-logged-in="auth.isLoggedIn.value" :user="auth.user.value" :shared-note-ids="sharedNoteIds" :shared-notes-map="sharedNotesMap" @new-note="createNote" @select-note="selectNote"
+            <MainSidebar :notes="notes" :current-note-id="currentNoteId" :all-tags="allTags" :is-logged-in="auth.isLoggedIn.value" :user="auth.user.value" :shared-note-ids="sharedNoteIds" :shared-notes-map="sharedNotesMap" :analytics-notes-map="analyticsNotesMap" @new-note="createNote" @select-note="selectNote"
               @delete-note="confirmDelete" @edit-note="openEditModal"
               @bulk-delete="confirmBulkDelete" @selection-change="onSelectionChange"
               @show-help="showHelp = true"
@@ -69,6 +70,7 @@
               @show-auth="showAuthModal = true" @logout="handleLogout" @edit-profile="handleShowProfile"
               @share-note="handleShareNote" @show-properties="handleShowProperties"
               @unshare-note="handleUnshareNote"
+              @open-analytics="handleOpenAnalytics"
               @reorder="handleReorder" />
           </aside>
         </Transition>
@@ -150,10 +152,12 @@
       :note-id="currentNote?.id"
       :shared="currentNote ? sharedNoteIds.includes(currentNote.id) : false"
       :share-hash="currentNote ? (sharedNotesMap.get(currentNote.id) || null) : null"
+      :analytics-hash="currentNote ? (analyticsNotesMap.get(currentNote.id) || null) : null"
       @close="showMetaModal = false"
       @save="updateMeta" @delete="confirmDelete"
       @share="handleShareNote"
-      @unshare="handleUnshareNote" />
+      @unshare="handleUnshareNote"
+      @open-analytics="handleOpenAnalytics" />
 
     <HelpModal :is-open="showHelp" :mod-label="modLabel" @close="showHelp = false" />
     <AboutModal :is-open="showAbout" @close="showAbout = false" />
@@ -284,35 +288,42 @@ const analyticsHash = ref(null)
 
 // Track which notes are currently shared (by note title match from /api/share/my)
 const sharedNoteIds = ref([])
-const sharedNotesMap = ref(new Map()) // noteId -> hash
+const sharedNotesMap = ref(new Map()) // noteId -> hash (active shares only)
+const analyticsNotesMap = ref(new Map()) // noteId -> hash (any share with analytics, including unshared)
 
 const loadSharedNotes = async () => {
-  if (!auth.isLoggedIn.value) { sharedNoteIds.value = []; sharedNotesMap.value = new Map(); return }
+  if (!auth.isLoggedIn.value) { sharedNoteIds.value = []; sharedNotesMap.value = new Map(); analyticsNotesMap.value = new Map(); return }
   try {
     const shared = await apiFetch('/api/share/my', { headers: auth.authHeaders.value })
-    // Match active (non-deleted) shared notes to local notes by title
     const map = new Map()
+    const analyticsMap = new Map()
     const ids = []
     for (const sn of shared) {
-      if (!sn.isActive) continue
       const match = notes.value.find(n => n.title === sn.title)
       if (match) {
-        ids.push(match.id)
-        map.set(match.id, sn.hash)
+        if (sn.isActive) {
+          ids.push(match.id)
+          map.set(match.id, sn.hash)
+        }
+        if (sn.collectAnalytics) {
+          analyticsMap.set(match.id, sn.hash)
+        }
       }
     }
     sharedNoteIds.value = ids
     sharedNotesMap.value = map
+    analyticsNotesMap.value = analyticsMap
   } catch {
     sharedNoteIds.value = []
     sharedNotesMap.value = new Map()
+    analyticsNotesMap.value = new Map()
   }
 }
 
 // Reload shared notes when auth changes or after sharing
 watch(() => auth.isLoggedIn.value, (loggedIn) => {
   if (loggedIn) loadSharedNotes()
-  else { sharedNoteIds.value = []; sharedNotesMap.value = new Map() }
+  else { sharedNoteIds.value = []; sharedNotesMap.value = new Map(); analyticsNotesMap.value = new Map() }
 })
 
 onMounted(() => {

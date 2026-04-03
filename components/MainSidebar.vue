@@ -167,11 +167,13 @@
           :selected="selectedIds.has(note.id)"
           :shared="sharedNoteIds.includes(note.id)"
           :share-hash="sharedNotesMap.get(note.id) || null"
+          :analytics-hash="analyticsNotesMap.get(note.id) || null"
           @select="id => $emit('select-note', id)"
           @delete="id => $emit('delete-note', id)"
           @share="id => $emit('share-note', id)"
           @unshare="id => $emit('unshare-note', id)"
           @properties="id => $emit('show-properties', id)"
+          @open-analytics="hash => $emit('open-analytics', hash)"
           @toggle-select="toggleNoteSelection" />
       </div>
     </div>
@@ -197,7 +199,8 @@ const props = defineProps({
   isLoggedIn: { type: Boolean, default: false },
   user: { type: Object, default: null },
   sharedNoteIds: { type: Array, default: () => [] },
-  sharedNotesMap: { type: Map, default: () => new Map() }
+  sharedNotesMap: { type: Map, default: () => new Map() },
+  analyticsNotesMap: { type: Map, default: () => new Map() }
 })
 
 const emit = defineEmits([
@@ -205,7 +208,7 @@ const emit = defineEmits([
   'show-help', 'show-locale-settings', 'show-language',
   'show-auth', 'logout', 'edit-profile',
   'bulk-delete', 'selection-change', 'reorder',
-  'share-note', 'unshare-note', 'show-properties'
+  'share-note', 'unshare-note', 'show-properties', 'open-analytics'
 ])
 
 const searchQuery = ref('')

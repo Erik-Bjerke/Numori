@@ -85,6 +85,11 @@
               <Icon name="mdi:link-variant-off" class="w-4 h-4" />
               Stop sharing
             </button>
+            <button v-if="analyticsHash" @click.stop="handleAction('analytics')"
+              class="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+              <Icon name="mdi:chart-bar" class="w-4 h-4" />
+              View analytics
+            </button>
             <div class="my-1 border-t border-gray-200 dark:border-gray-700" />
             <button @click.stop="handleAction('properties')"
               class="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
@@ -111,10 +116,11 @@ const props = defineProps({
   selectMode: { type: Boolean, default: false },
   selected: { type: Boolean, default: false },
   shared: { type: Boolean, default: false },
-  shareHash: { type: String, default: null }
+  shareHash: { type: String, default: null },
+  analyticsHash: { type: String, default: null }
 })
 
-const emit = defineEmits(['select', 'delete', 'toggle-select', 'share', 'unshare', 'properties'])
+const emit = defineEmits(['select', 'delete', 'toggle-select', 'share', 'unshare', 'properties', 'open-analytics'])
 
 const { copy: clipboardCopy } = useClipboard()
 const { apiUrl } = useApi()
@@ -137,6 +143,7 @@ const handleAction = (action) => {
   else if (action === 'unshare') emit('unshare', props.note.id)
   else if (action === 'delete') emit('delete', props.note.id)
   else if (action === 'properties') emit('properties', props.note.id)
+  else if (action === 'analytics') emit('open-analytics', props.analyticsHash)
 }
 
 const handleCopyLink = async () => {

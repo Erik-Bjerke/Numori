@@ -98,6 +98,11 @@
                 <Icon :name="copiedLink ? 'mdi:check' : 'mdi:content-copy'" class="w-3.5 h-3.5 block" />
               </button>
             </div>
+            <button v-if="props.analyticsHash" @click="emit('open-analytics', props.analyticsHash)"
+              class="w-full flex items-center justify-center gap-1.5 mt-2 px-2 py-1.5 text-xs text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 hover:bg-primary-100 dark:hover:bg-primary-900/30 rounded transition-colors">
+              <Icon name="mdi:chart-bar" class="w-3.5 h-3.5" />
+              View analytics
+            </button>
           </div>
 
           <div class="flex justify-between gap-2 mt-6">
@@ -131,10 +136,11 @@ const props = defineProps({
   allTags: { type: Array, default: () => [] },
   noteId: { type: String, default: null },
   shared: { type: Boolean, default: false },
-  shareHash: { type: String, default: null }
+  shareHash: { type: String, default: null },
+  analyticsHash: { type: String, default: null }
 })
 
-const emit = defineEmits(['close', 'save', 'delete', 'share', 'unshare'])
+const emit = defineEmits(['close', 'save', 'delete', 'share', 'unshare', 'open-analytics'])
 
 const { copy: clipboardCopy } = useClipboard()
 const { apiUrl } = useApi()
