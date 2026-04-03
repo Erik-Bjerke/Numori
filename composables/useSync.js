@@ -234,9 +234,19 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
     }
   }, { immediate: true })
 
+  // Clean up SSE before page unload to avoid "connection interrupted" warnings
+  const onBeforeUnload = () => disconnectSSE()
+
+  if (import.meta.client) {
+    window.addEventListener('beforeunload', onBeforeUnload)
+  }
+
   onBeforeUnmount(() => {
     stopAutoSync()
     disconnectSSE()
+    if (import.meta.client) {
+      window.removeEventListener('beforeunload', onBeforeUnload)
+    }
   })
 
   return { syncing, lastSyncedAt, syncError, sync, syncNow, debouncedSync }
