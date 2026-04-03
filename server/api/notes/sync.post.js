@@ -51,15 +51,15 @@ export default defineEventHandler(async (event) => {
 
     const result = await query(`
       INSERT INTO notes (user_id, client_id, title, description, tags, content, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       ON CONFLICT (user_id, client_id) WHERE client_id IS NOT NULL
       DO UPDATE SET
-        title = CASE WHEN EXCLUDED.updated_at > notes.updated_at THEN EXCLUDED.title ELSE notes.title END,
-        description = CASE WHEN EXCLUDED.updated_at > notes.updated_at THEN EXCLUDED.description ELSE notes.description END,
-        tags = CASE WHEN EXCLUDED.updated_at > notes.updated_at THEN EXCLUDED.tags ELSE notes.tags END,
-        content = CASE WHEN EXCLUDED.updated_at > notes.updated_at THEN EXCLUDED.content ELSE notes.content END,
-        updated_at = GREATEST(EXCLUDED.updated_at, notes.updated_at)
-      WHERE notes.deleted_at IS NULL
+        title = EXCLUDED.title,
+        description = EXCLUDED.description,
+        tags = EXCLUDED.tags,
+        content = EXCLUDED.content,
+        updated_at = EXCLUDED.updated_at
+      WHERE notes.deleted_at IS NULL AND EXCLUDED.updated_at >= notes.updated_at
       RETURNING id, client_id, title, description, tags, content, created_at, updated_at
     `, [
       auth.userId,
@@ -68,7 +68,8 @@ export default defineEventHandler(async (event) => {
       note.description || '',
       JSON.stringify(note.tags || []),
       note.content || '',
-      note.createdAt || new Date().toISOString()
+      note.createdAt || new Date().toISOString(),
+      note.updatedAt || new Date().toISOString()
     ])
 
     if (result.rows.length > 0) {

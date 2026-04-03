@@ -78,6 +78,9 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
         }
       }
 
+      // Sort by most recently updated
+      notes.value.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+
       // Deletions synced successfully — clear the queue
       clearDeletedIds()
 

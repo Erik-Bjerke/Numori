@@ -177,6 +177,6 @@ const filteredNotes = computed(() => {
       selectedTags.value.every(t => (n.tags || []).includes(t))
     )
   }
-  return result
+  return result.slice().sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
 })
 </script>
