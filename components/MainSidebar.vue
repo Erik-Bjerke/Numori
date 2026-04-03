@@ -373,7 +373,6 @@ const toggleNoteSelection = (noteId) => {
   else next.add(noteId)
   selectedIds.value = next
   emit('selection-change', [...next])
-  if (next.size === 0) selectMode.value = false
 }
 
 const toggleSelectAll = () => {
