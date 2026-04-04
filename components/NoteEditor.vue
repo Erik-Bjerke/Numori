@@ -92,6 +92,7 @@ import { closeBrackets as cmCloseBrackets } from '@codemirror/autocomplete'
 import { undo as cmUndo, redo as cmRedo, undoDepth, redoDepth } from '@codemirror/commands'
 import { calcnotesLanguage, calcnotesLightTheme, calcnotesDarkTheme } from '~/composables/useCalcLanguage'
 import { formatDisplay } from '~/composables/useDisplayFormatter'
+import { highlightCode } from '~/composables/useCodeHighlight'
 
 const props = defineProps({
   content: { type: String, default: '' },
@@ -423,7 +424,7 @@ const buildMdDecorations = (view) => {
     const text = doc.line(ln).text
     const trimmed = text.trim()
     if (fenceStart === null) {
-      const fenceMatch = trimmed.match(/^```(\w*)$/)
+      const fenceMatch = trimmed.match(/^```([\w+#.-]*)$/)
       if (fenceMatch) {
         fenceStart = ln
         fenceLang = fenceMatch[1] || ''
@@ -443,6 +444,25 @@ const buildMdDecorations = (view) => {
 
   // Helper to check if a line is inside a code block
   const getCodeBlock = (ln) => codeBlockRanges.find(r => ln >= r.startLn && ln <= r.endLn)
+
+  // Pre-highlight code blocks
+  const codeBlockHighlights = new Map()
+  for (const block of codeBlockRanges) {
+    const contentStart = block.startLn + 1
+    const contentEnd = block.endLn - (doc.line(block.endLn).text.trim() === '```' ? 1 : 0)
+    if (contentStart > contentEnd) continue
+    const lines = []
+    for (let ln = contentStart; ln <= contentEnd; ln++) {
+      lines.push(doc.line(ln).text)
+    }
+    const code = lines.join('\n')
+    try {
+      const spans = highlightCode(code, block.lang)
+      codeBlockHighlights.set(block, spans)
+    } catch (e) {
+      console.warn('[calcnotes] highlightCode failed:', e)
+    }
+  }
 
   for (let ln = 1; ln <= doc.lines; ln++) {
     const docLine = doc.line(ln)
@@ -470,8 +490,32 @@ const buildMdDecorations = (view) => {
         widgets.push(Decoration.mark({ class: 'calcnotes-md-hidden-syntax' }).range(docLine.from, docLine.to))
         widgets.push(Decoration.line({ class: 'calcnotes-md-code-block-line calcnotes-md-code-block-last' }).range(docLine.from))
       } else {
-        // Content line inside code block
+        // Content line inside code block — apply syntax highlighting
         widgets.push(Decoration.line({ class: 'calcnotes-md-code-block-line' }).range(docLine.from))
+
+        const spans = codeBlockHighlights.get(codeBlock)
+        if (spans) {
+          // Calculate offset of this line within the code block content
+          const contentStartLn = codeBlock.startLn + 1
+          let charOffset = 0
+          for (let cl = contentStartLn; cl < ln; cl++) {
+            charOffset += doc.line(cl).text.length + 1 // +1 for \n
+          }
+          const lineLen = text.length
+
+          for (const span of spans) {
+            if (!span.className) continue
+            const spanEnd = span.offset + span.text.length
+            // Check if this span overlaps with the current line
+            if (spanEnd <= charOffset || span.offset >= charOffset + lineLen) continue
+            const from = Math.max(0, span.offset - charOffset)
+            const to = Math.min(lineLen, spanEnd - charOffset)
+            if (from >= to) continue
+            widgets.push(Decoration.mark({
+              class: 'calcnotes-hl ' + span.className
+            }).range(docLine.from + from, docLine.from + to))
+          }
+        }
       }
       continue
     }
@@ -567,7 +611,17 @@ const buildMdDecorations = (view) => {
     applyInlineMarkdown(text, docLine.from, widgets)
   }
 
-  return Decoration.set(widgets, true)
+  try {
+    return Decoration.set(widgets, true)
+  } catch (e) {
+    console.warn('[calcnotes] Decoration.set failed, falling back to sorted:', e.message)
+    widgets.sort((a, b) => a.from - b.from || a.value.startSide - b.value.startSide)
+    try {
+      return Decoration.set(widgets)
+    } catch {
+      return Decoration.none
+    }
+  }
 }
 
 // --- Dispatch decoration updates ---
@@ -1206,7 +1260,11 @@ const reformatDisplay = () => {
 const injectInlineStyles = () => {
   if (inlineStylesInjected) return
   inlineStylesInjected = true
+  // Remove any stale style element from HMR
+  const existing = document.getElementById('calcnotes-inline-styles')
+  if (existing) existing.remove()
   const style = document.createElement('style')
+  style.id = 'calcnotes-inline-styles'
   style.textContent = `
     .calcnotes-inline-result { color: #CC2D56; font-style: italic; opacity: 0.75; cursor: pointer; }
     .cm-theme-dark .calcnotes-inline-result,
@@ -1264,6 +1322,96 @@ const injectInlineStyles = () => {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
       font-size: 0.75em !important; opacity: 0.5 !important; font-style: italic !important;
     }
+    /* highlight.js syntax colors — light */
+    .calcnotes-hl.hljs-keyword,
+    .calcnotes-hl.hljs-selector-tag,
+    .calcnotes-hl.hljs-built_in,
+    .calcnotes-hl.hljs-name { color: #d73a49 !important; }
+    .calcnotes-hl.hljs-string,
+    .calcnotes-hl.hljs-attr,
+    .calcnotes-hl.hljs-addition { color: #032f62 !important; }
+    .calcnotes-hl.hljs-comment,
+    .calcnotes-hl.hljs-quote { color: #6a737d !important; font-style: italic !important; }
+    .calcnotes-hl.hljs-number,
+    .calcnotes-hl.hljs-literal { color: #005cc5 !important; }
+    .calcnotes-hl.hljs-title,
+    .calcnotes-hl.hljs-title.class_,
+    .calcnotes-hl.hljs-title.function_ { color: #6f42c1 !important; }
+    .calcnotes-hl.hljs-type,
+    .calcnotes-hl.hljs-template-variable { color: #e36209 !important; }
+    .calcnotes-hl.hljs-variable,
+    .calcnotes-hl.hljs-params { color: #24292e !important; }
+    .calcnotes-hl.hljs-regexp { color: #032f62 !important; }
+    .calcnotes-hl.hljs-symbol,
+    .calcnotes-hl.hljs-bullet { color: #005cc5 !important; }
+    .calcnotes-hl.hljs-meta,
+    .calcnotes-hl.hljs-meta .hljs-keyword { color: #735c0f !important; }
+    .calcnotes-hl.hljs-deletion { color: #b31d28 !important; background: rgba(255,0,0,0.1) !important; }
+    .calcnotes-hl.hljs-section { color: #005cc5 !important; font-weight: 700 !important; }
+    .calcnotes-hl.hljs-tag { color: #22863a !important; }
+    .calcnotes-hl.hljs-attribute { color: #005cc5 !important; }
+    .calcnotes-hl.hljs-selector-class,
+    .calcnotes-hl.hljs-selector-id { color: #6f42c1 !important; }
+    .calcnotes-hl.hljs-property { color: #005cc5 !important; }
+    /* highlight.js syntax colors — dark */
+    .cm-theme-dark .calcnotes-hl.hljs-keyword,
+    .dark .calcnotes-hl.hljs-keyword,
+    .cm-theme-dark .calcnotes-hl.hljs-selector-tag,
+    .dark .calcnotes-hl.hljs-selector-tag,
+    .cm-theme-dark .calcnotes-hl.hljs-built_in,
+    .dark .calcnotes-hl.hljs-built_in,
+    .cm-theme-dark .calcnotes-hl.hljs-name,
+    .dark .calcnotes-hl.hljs-name { color: #ff7b72 !important; }
+    .cm-theme-dark .calcnotes-hl.hljs-string,
+    .dark .calcnotes-hl.hljs-string,
+    .cm-theme-dark .calcnotes-hl.hljs-attr,
+    .dark .calcnotes-hl.hljs-attr,
+    .cm-theme-dark .calcnotes-hl.hljs-addition,
+    .dark .calcnotes-hl.hljs-addition { color: #a5d6ff !important; }
+    .cm-theme-dark .calcnotes-hl.hljs-comment,
+    .dark .calcnotes-hl.hljs-comment,
+    .cm-theme-dark .calcnotes-hl.hljs-quote,
+    .dark .calcnotes-hl.hljs-quote { color: #8b949e !important; font-style: italic !important; }
+    .cm-theme-dark .calcnotes-hl.hljs-number,
+    .dark .calcnotes-hl.hljs-number,
+    .cm-theme-dark .calcnotes-hl.hljs-literal,
+    .dark .calcnotes-hl.hljs-literal { color: #79c0ff !important; }
+    .cm-theme-dark .calcnotes-hl.hljs-title,
+    .dark .calcnotes-hl.hljs-title,
+    .cm-theme-dark .calcnotes-hl.hljs-title.class_,
+    .dark .calcnotes-hl.hljs-title.class_,
+    .cm-theme-dark .calcnotes-hl.hljs-title.function_,
+    .dark .calcnotes-hl.hljs-title.function_ { color: #d2a8ff !important; }
+    .cm-theme-dark .calcnotes-hl.hljs-type,
+    .dark .calcnotes-hl.hljs-type,
+    .cm-theme-dark .calcnotes-hl.hljs-template-variable,
+    .dark .calcnotes-hl.hljs-template-variable { color: #ffa657 !important; }
+    .cm-theme-dark .calcnotes-hl.hljs-variable,
+    .dark .calcnotes-hl.hljs-variable,
+    .cm-theme-dark .calcnotes-hl.hljs-params,
+    .dark .calcnotes-hl.hljs-params { color: #c9d1d9 !important; }
+    .cm-theme-dark .calcnotes-hl.hljs-regexp,
+    .dark .calcnotes-hl.hljs-regexp { color: #a5d6ff !important; }
+    .cm-theme-dark .calcnotes-hl.hljs-symbol,
+    .dark .calcnotes-hl.hljs-symbol,
+    .cm-theme-dark .calcnotes-hl.hljs-bullet,
+    .dark .calcnotes-hl.hljs-bullet { color: #79c0ff !important; }
+    .cm-theme-dark .calcnotes-hl.hljs-meta,
+    .dark .calcnotes-hl.hljs-meta { color: #d29922 !important; }
+    .cm-theme-dark .calcnotes-hl.hljs-deletion,
+    .dark .calcnotes-hl.hljs-deletion { color: #ffa198 !important; background: rgba(255,0,0,0.15) !important; }
+    .cm-theme-dark .calcnotes-hl.hljs-section,
+    .dark .calcnotes-hl.hljs-section { color: #79c0ff !important; font-weight: 700 !important; }
+    .cm-theme-dark .calcnotes-hl.hljs-tag,
+    .dark .calcnotes-hl.hljs-tag { color: #7ee787 !important; }
+    .cm-theme-dark .calcnotes-hl.hljs-attribute,
+    .dark .calcnotes-hl.hljs-attribute { color: #79c0ff !important; }
+    .cm-theme-dark .calcnotes-hl.hljs-selector-class,
+    .dark .calcnotes-hl.hljs-selector-class,
+    .cm-theme-dark .calcnotes-hl.hljs-selector-id,
+    .dark .calcnotes-hl.hljs-selector-id { color: #d2a8ff !important; }
+    .cm-theme-dark .calcnotes-hl.hljs-property,
+    .dark .calcnotes-hl.hljs-property { color: #79c0ff !important; }
     .calcnotes-inline-copied-toast {
       position: absolute; pointer-events: none; z-index: 100;
       padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 500;

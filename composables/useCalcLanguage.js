@@ -27,8 +27,31 @@ import { tags as t } from '@lezer/highlight'
 import { EditorView } from '@codemirror/view'
 
 const calcnotesStreamParser = {
-  startState() { return {} },
-  token(stream) {
+  startState() { return { inCodeBlock: false } },
+  token(stream, state) {
+    // ── Fenced code block tracking ───────────────────────────────
+    if (stream.sol()) {
+      if (!state.inCodeBlock && stream.match(/^```[\w+#.\-]*$/, false)) {
+        state.inCodeBlock = true
+        stream.skipToEnd()
+        return 'comment'
+      }
+      if (state.inCodeBlock) {
+        if (stream.match(/^```$/, false)) {
+          state.inCodeBlock = false
+          stream.skipToEnd()
+          return 'comment'
+        }
+        // Inside code block — consume entire line, return null so
+        // HighlightStyle does not colour it (highlight.js handles it)
+        stream.skipToEnd()
+        return null
+      }
+    } else if (state.inCodeBlock) {
+      stream.skipToEnd()
+      return null
+    }
+
     // ── Start-of-line constructs ──────────────────────────────────
     if (stream.sol()) {
       if (stream.match(/^#.*$/)) return 'heading'
