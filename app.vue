@@ -40,6 +40,23 @@ body {
   transition: none !important;
 }
 
+/* Disable text selection everywhere except inputs, textareas, and CodeMirror */
+*,
+*::before,
+*::after {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input,
+textarea,
+[contenteditable="true"],
+.cm-editor,
+.cm-editor * {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 /* Full-screen modals: respect safe areas on mobile */
 @media (max-width: 767px) {
   .safe-area-modal {
