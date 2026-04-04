@@ -54,7 +54,7 @@
     </div>
 
     <!-- Shared note content -->
-    <main v-else-if="note" class="flex-1 max-w-3xl mx-auto w-full px-4 py-6 space-y-4">
+    <main v-else-if="note" class="flex-1 max-w-3xl mx-auto w-full px-4 py-6 space-y-4 flex flex-col">
       <div class="space-y-1">
         <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-200">{{ note.title }}</h1>
         <p v-if="note.description" class="text-sm text-gray-500 dark:text-gray-500">{{ note.description }}</p>
@@ -69,11 +69,77 @@
         </div>
       </div>
 
-      <pre class="whitespace-pre-wrap font-mono text-sm text-gray-800 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-800 overflow-x-auto">{{ note.content }}</pre>
+      <!-- Toolbar -->
+      <div class="flex items-center gap-1">
+        <!-- Markdown mode group -->
+        <span class="text-xs text-gray-400 dark:text-gray-500 mr-1">Markdown</span>
+        <div class="inline-flex items-center bg-gray-200/50 dark:bg-gray-800 rounded-lg" role="group">
+          <button @click="renderMarkdown = true"
+            class="p-2 rounded-lg transition-all leading-none"
+            :class="renderMarkdown
+              ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
+              : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
+            title="Render Markdown">
+            <Icon name="mdi:language-markdown" class="w-5 h-5 block" />
+          </button>
+          <button @click="renderMarkdown = false"
+            class="p-2 rounded-lg transition-all leading-none"
+            :class="!renderMarkdown
+              ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
+              : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
+            title="Raw text">
+            <Icon name="mdi:format-text" class="w-5 h-5 block" />
+          </button>
+        </div>
+
+        <div class="w-px h-5 bg-gray-300/60 dark:bg-gray-700 mx-1"></div>
+
+        <!-- Inline results mode group -->
+        <span class="text-xs text-gray-400 dark:text-gray-500 mr-1">Results</span>
+        <div class="inline-flex items-center bg-gray-200/50 dark:bg-gray-800 rounded-lg" role="group">
+          <button @click="resultsPosition = 'left'"
+            class="p-2 rounded-lg transition-all leading-none"
+            :class="resultsPosition === 'left'
+              ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
+              : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
+            title="Results on left">
+            <Icon name="mdi:dock-left" class="w-5 h-5 block" />
+          </button>
+          <button @click="resultsPosition = 'off'"
+            class="p-2 rounded-lg transition-all leading-none"
+            :class="resultsPosition === 'off'
+              ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
+              : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
+            title="Results off">
+            <Icon name="mdi:eye-off-outline" class="w-5 h-5 block" />
+          </button>
+          <button @click="resultsPosition = 'right'"
+            class="p-2 rounded-lg transition-all leading-none"
+            :class="resultsPosition === 'right'
+              ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
+              : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
+            title="Results on right">
+            <Icon name="mdi:dock-right" class="w-5 h-5 block" />
+          </button>
+        </div>
+      </div>
+
+      <!-- Editor -->
+      <div class="flex-1 min-h-[300px] rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <NoteEditor
+          :content="note.content"
+          :editable="false"
+          :show-inline="resultsPosition !== 'off'"
+          :inline-align="resultsPosition === 'off' ? 'left' : resultsPosition"
+          :markdown-mode="renderMarkdown ? 'full' : 'off'"
+          :bordered="false"
+          placeholder=""
+        />
+      </div>
 
       <!-- Import into own notes -->
       <button @click="importNote"
-        class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm">
+        class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm self-start">
         <Icon name="mdi:download" class="w-4 h-4" />
         Import to my notes
       </button>
@@ -93,26 +159,24 @@ const loading = ref(true)
 const error = ref(null)
 
 // Encryption state
-const rawEncryptedData = ref(null) // raw server response when encrypted
+const rawEncryptedData = ref(null)
 const needsPassword = ref(false)
 const passwordInput = ref('')
 const passwordHint = ref(null)
 const decryptError = ref(null)
 const decrypting = ref(false)
 
+// View options
+const renderMarkdown = ref(true)
+const resultsPosition = ref('left')
+
 onMounted(async () => {
   try {
     const data = await apiFetch(`/api/share/${hash}`)
 
     if (data.encrypted && isEncrypted(data.content)) {
-      // Check if a key is provided in the URL query parameter (passwordless sharing)
       const urlKey = route.query.key
       if (urlKey) {
-        // Passwordless sharing: the random password is in the URL.
-        // The encryption/decryption flow is identical to password-protected sharing.
-        // However, since the password travels in the URL, the server can see it —
-        // the intent here is light obfuscation in transit, not security against
-        // a server-side observer.
         try {
           const shareKey = await deriveShareKey(urlKey)
           const decrypted = await decryptSharedNote(data, shareKey)
@@ -127,13 +191,11 @@ onMounted(async () => {
           error.value = 'Failed to decrypt this shared note. The link may be invalid.'
         }
       } else {
-        // Password-protected sharing: prompt the user for the password
         rawEncryptedData.value = data
         passwordHint.value = data.passwordHint || null
         needsPassword.value = true
       }
     } else {
-      // Unencrypted (legacy) shared note
       note.value = data
     }
   } catch (err) {
@@ -167,10 +229,7 @@ const decryptWithPassword = async () => {
 
 const importNote = async () => {
   if (!note.value) return
-
-  // Track the import (fire and forget)
   apiFetch(`/api/share/${hash}/import`, { method: 'POST' }).catch(() => {})
-
   const { default: db } = await import('~/db.js')
   const pending = {
     title: note.value.title,

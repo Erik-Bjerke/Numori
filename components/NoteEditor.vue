@@ -34,7 +34,7 @@
           :extensions="cmExtensions"
           :theme="cmThemeMode"
           :basic-setup="cmBasicSetup"
-          :editable="true"
+          :editable="props.editable"
           height="100%"
           class="h-full"
           :placeholder="placeholder"
@@ -103,7 +103,8 @@ const props = defineProps({
   bordered: { type: Boolean, default: false },
   localePreferences: { type: Object, default: null },
   markdownMode: { type: String, default: 'full' },
-  shortcutHandlers: { type: Object, default: null }
+  shortcutHandlers: { type: Object, default: null },
+  editable: { type: Boolean, default: true }
 })
 
 const emit = defineEmits(['update:content'])
@@ -928,6 +929,7 @@ const handleMdClick = (event, view) => {
 
   // Checkbox click
   if (el?.classList?.contains('calcnotes-md-check-icon') || el?.classList?.contains('calcnotes-md-check-icon-nested')) {
+    if (!props.editable) return false
     const lineNum = parseInt(el.dataset?.line, 10)
     if (!lineNum || lineNum < 1) return false
     const doc = view.state.doc
@@ -947,7 +949,7 @@ const handleMdClick = (event, view) => {
   }
 
   // Ctrl+click on raw checklist text (edit mode, cursor line shows raw syntax)
-  if (event.ctrlKey) {
+  if (event.ctrlKey && props.editable) {
     const pos = view.posAtCoords({ x: event.clientX, y: event.clientY })
     if (pos != null) {
       const line = view.state.doc.lineAt(pos)
@@ -1025,6 +1027,7 @@ const handleMdTouchEnd = (event, view) => {
 
   // Checkbox touch
   if (el?.classList?.contains('calcnotes-md-check-icon') || el?.classList?.contains('calcnotes-md-check-icon-nested')) {
+    if (!props.editable) return false
     const lineNum = parseInt(el.dataset?.line, 10)
     if (!lineNum || lineNum < 1) return false
     const doc = view.state.doc
