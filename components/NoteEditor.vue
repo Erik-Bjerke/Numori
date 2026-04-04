@@ -1322,96 +1322,105 @@ const injectInlineStyles = () => {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
       font-size: 0.75em !important; opacity: 0.5 !important; font-style: italic !important;
     }
-    /* highlight.js syntax colors — light */
+    /* highlight.js syntax colors — light (aligned with calcnotes palette) */
     .calcnotes-hl.hljs-keyword,
     .calcnotes-hl.hljs-selector-tag,
-    .calcnotes-hl.hljs-built_in,
-    .calcnotes-hl.hljs-name { color: #d73a49 !important; }
+    .calcnotes-hl.hljs-built_in { color: #CC2D56 !important; }
     .calcnotes-hl.hljs-string,
-    .calcnotes-hl.hljs-attr,
-    .calcnotes-hl.hljs-addition { color: #032f62 !important; }
+    .calcnotes-hl.hljs-addition { color: #4D8C2A !important; }
     .calcnotes-hl.hljs-comment,
-    .calcnotes-hl.hljs-quote { color: #6a737d !important; font-style: italic !important; }
+    .calcnotes-hl.hljs-quote { color: #939293 !important; font-style: italic !important; }
     .calcnotes-hl.hljs-number,
-    .calcnotes-hl.hljs-literal { color: #005cc5 !important; }
+    .calcnotes-hl.hljs-literal { color: #A68A1B !important; }
     .calcnotes-hl.hljs-title,
     .calcnotes-hl.hljs-title.class_,
-    .calcnotes-hl.hljs-title.function_ { color: #6f42c1 !important; }
+    .calcnotes-hl.hljs-title.function_ { color: #7B5FC4 !important; }
     .calcnotes-hl.hljs-type,
-    .calcnotes-hl.hljs-template-variable { color: #e36209 !important; }
+    .calcnotes-hl.hljs-template-variable { color: #1A8A9A !important; }
     .calcnotes-hl.hljs-variable,
-    .calcnotes-hl.hljs-params { color: #24292e !important; }
-    .calcnotes-hl.hljs-regexp { color: #032f62 !important; }
+    .calcnotes-hl.hljs-params { color: #2D2A2E !important; }
+    .calcnotes-hl.hljs-regexp { color: #C4621A !important; }
     .calcnotes-hl.hljs-symbol,
-    .calcnotes-hl.hljs-bullet { color: #005cc5 !important; }
+    .calcnotes-hl.hljs-bullet { color: #7B5FC4 !important; }
     .calcnotes-hl.hljs-meta,
-    .calcnotes-hl.hljs-meta .hljs-keyword { color: #735c0f !important; }
-    .calcnotes-hl.hljs-deletion { color: #b31d28 !important; background: rgba(255,0,0,0.1) !important; }
-    .calcnotes-hl.hljs-section { color: #005cc5 !important; font-weight: 700 !important; }
-    .calcnotes-hl.hljs-tag { color: #22863a !important; }
-    .calcnotes-hl.hljs-attribute { color: #005cc5 !important; }
+    .calcnotes-hl.hljs-meta .hljs-keyword { color: #C4621A !important; }
+    .calcnotes-hl.hljs-deletion { color: #CC2D56 !important; background: rgba(204,45,86,0.08) !important; }
+    .calcnotes-hl.hljs-section { color: #2D2A2E !important; font-weight: 700 !important; }
+    .calcnotes-hl.hljs-name,
+    .calcnotes-hl.hljs-tag { color: #CC2D56 !important; }
+    .calcnotes-hl.hljs-attr,
+    .calcnotes-hl.hljs-attribute { color: #C4621A !important; }
     .calcnotes-hl.hljs-selector-class,
-    .calcnotes-hl.hljs-selector-id { color: #6f42c1 !important; }
-    .calcnotes-hl.hljs-property { color: #005cc5 !important; }
-    /* highlight.js syntax colors — dark */
+    .calcnotes-hl.hljs-selector-id { color: #7B5FC4 !important; }
+    .calcnotes-hl.hljs-property { color: #1A8A9A !important; }
+    .calcnotes-hl.hljs-operator { color: #939293 !important; }
+    .calcnotes-hl.hljs-punctuation { color: #727072 !important; }
+    .calcnotes-hl.hljs-subst { color: #2D2A2E !important; }
+    /* highlight.js syntax colors — dark (aligned with calcnotes palette) */
     .cm-theme-dark .calcnotes-hl.hljs-keyword,
     .dark .calcnotes-hl.hljs-keyword,
     .cm-theme-dark .calcnotes-hl.hljs-selector-tag,
     .dark .calcnotes-hl.hljs-selector-tag,
     .cm-theme-dark .calcnotes-hl.hljs-built_in,
-    .dark .calcnotes-hl.hljs-built_in,
-    .cm-theme-dark .calcnotes-hl.hljs-name,
-    .dark .calcnotes-hl.hljs-name { color: #ff7b72 !important; }
+    .dark .calcnotes-hl.hljs-built_in { color: #FF6188 !important; }
     .cm-theme-dark .calcnotes-hl.hljs-string,
     .dark .calcnotes-hl.hljs-string,
-    .cm-theme-dark .calcnotes-hl.hljs-attr,
-    .dark .calcnotes-hl.hljs-attr,
     .cm-theme-dark .calcnotes-hl.hljs-addition,
-    .dark .calcnotes-hl.hljs-addition { color: #a5d6ff !important; }
+    .dark .calcnotes-hl.hljs-addition { color: #A9DC76 !important; }
     .cm-theme-dark .calcnotes-hl.hljs-comment,
     .dark .calcnotes-hl.hljs-comment,
     .cm-theme-dark .calcnotes-hl.hljs-quote,
-    .dark .calcnotes-hl.hljs-quote { color: #8b949e !important; font-style: italic !important; }
+    .dark .calcnotes-hl.hljs-quote { color: #727072 !important; font-style: italic !important; }
     .cm-theme-dark .calcnotes-hl.hljs-number,
     .dark .calcnotes-hl.hljs-number,
     .cm-theme-dark .calcnotes-hl.hljs-literal,
-    .dark .calcnotes-hl.hljs-literal { color: #79c0ff !important; }
+    .dark .calcnotes-hl.hljs-literal { color: #FFD866 !important; }
     .cm-theme-dark .calcnotes-hl.hljs-title,
     .dark .calcnotes-hl.hljs-title,
     .cm-theme-dark .calcnotes-hl.hljs-title.class_,
     .dark .calcnotes-hl.hljs-title.class_,
     .cm-theme-dark .calcnotes-hl.hljs-title.function_,
-    .dark .calcnotes-hl.hljs-title.function_ { color: #d2a8ff !important; }
+    .dark .calcnotes-hl.hljs-title.function_ { color: #AB9DF2 !important; }
     .cm-theme-dark .calcnotes-hl.hljs-type,
     .dark .calcnotes-hl.hljs-type,
     .cm-theme-dark .calcnotes-hl.hljs-template-variable,
-    .dark .calcnotes-hl.hljs-template-variable { color: #ffa657 !important; }
+    .dark .calcnotes-hl.hljs-template-variable { color: #78DCE8 !important; }
     .cm-theme-dark .calcnotes-hl.hljs-variable,
     .dark .calcnotes-hl.hljs-variable,
     .cm-theme-dark .calcnotes-hl.hljs-params,
-    .dark .calcnotes-hl.hljs-params { color: #c9d1d9 !important; }
+    .dark .calcnotes-hl.hljs-params { color: #FCFCFA !important; }
     .cm-theme-dark .calcnotes-hl.hljs-regexp,
-    .dark .calcnotes-hl.hljs-regexp { color: #a5d6ff !important; }
+    .dark .calcnotes-hl.hljs-regexp { color: #FC9867 !important; }
     .cm-theme-dark .calcnotes-hl.hljs-symbol,
     .dark .calcnotes-hl.hljs-symbol,
     .cm-theme-dark .calcnotes-hl.hljs-bullet,
-    .dark .calcnotes-hl.hljs-bullet { color: #79c0ff !important; }
+    .dark .calcnotes-hl.hljs-bullet { color: #AB9DF2 !important; }
     .cm-theme-dark .calcnotes-hl.hljs-meta,
-    .dark .calcnotes-hl.hljs-meta { color: #d29922 !important; }
+    .dark .calcnotes-hl.hljs-meta { color: #FC9867 !important; }
     .cm-theme-dark .calcnotes-hl.hljs-deletion,
-    .dark .calcnotes-hl.hljs-deletion { color: #ffa198 !important; background: rgba(255,0,0,0.15) !important; }
+    .dark .calcnotes-hl.hljs-deletion { color: #FF6188 !important; background: rgba(255,97,136,0.1) !important; }
     .cm-theme-dark .calcnotes-hl.hljs-section,
-    .dark .calcnotes-hl.hljs-section { color: #79c0ff !important; font-weight: 700 !important; }
+    .dark .calcnotes-hl.hljs-section { color: #FCFCFA !important; font-weight: 700 !important; }
+    .cm-theme-dark .calcnotes-hl.hljs-name,
+    .dark .calcnotes-hl.hljs-name,
     .cm-theme-dark .calcnotes-hl.hljs-tag,
-    .dark .calcnotes-hl.hljs-tag { color: #7ee787 !important; }
+    .dark .calcnotes-hl.hljs-tag { color: #FF6188 !important; }
+    .cm-theme-dark .calcnotes-hl.hljs-attr,
+    .dark .calcnotes-hl.hljs-attr,
     .cm-theme-dark .calcnotes-hl.hljs-attribute,
-    .dark .calcnotes-hl.hljs-attribute { color: #79c0ff !important; }
+    .dark .calcnotes-hl.hljs-attribute { color: #FC9867 !important; }
     .cm-theme-dark .calcnotes-hl.hljs-selector-class,
     .dark .calcnotes-hl.hljs-selector-class,
     .cm-theme-dark .calcnotes-hl.hljs-selector-id,
-    .dark .calcnotes-hl.hljs-selector-id { color: #d2a8ff !important; }
+    .dark .calcnotes-hl.hljs-selector-id { color: #AB9DF2 !important; }
     .cm-theme-dark .calcnotes-hl.hljs-property,
-    .dark .calcnotes-hl.hljs-property { color: #79c0ff !important; }
+    .dark .calcnotes-hl.hljs-property { color: #78DCE8 !important; }
+    .cm-theme-dark .calcnotes-hl.hljs-operator,
+    .dark .calcnotes-hl.hljs-operator { color: #727072 !important; }
+    .cm-theme-dark .calcnotes-hl.hljs-punctuation,
+    .dark .calcnotes-hl.hljs-punctuation { color: #939293 !important; }
+    .cm-theme-dark .calcnotes-hl.hljs-subst,
+    .dark .calcnotes-hl.hljs-subst { color: #FCFCFA !important; }
     .calcnotes-inline-copied-toast {
       position: absolute; pointer-events: none; z-index: 100;
       padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 500;

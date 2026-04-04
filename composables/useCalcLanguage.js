@@ -26,7 +26,7 @@ import { HighlightStyle, syntaxHighlighting } from '@codemirror/language'
 import { tags as t } from '@lezer/highlight'
 import { EditorView } from '@codemirror/view'
 
-const calcnotesStreamParser = {
+export const calcnotesStreamParser = {
   startState() { return { inCodeBlock: false } },
   token(stream, state) {
     // ── Fenced code block tracking ───────────────────────────────
