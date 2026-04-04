@@ -31,6 +31,13 @@ export default defineNuxtConfig({
     '@nuxtjs/color-mode',
     'nuxt-codemirror'
   ],
+  icon: {
+    clientBundle: {
+      // Bundle all used MDI icons into the app JS — no runtime API calls
+      scan: true,
+      includeCustomCollections: true,
+    },
+  },
   colorMode: {
     classSuffix: '',
     preference: 'system',
