@@ -41,6 +41,45 @@
           @onCreateEditor="onEditorCreate"
         />
       </ClientOnly>
+
+      <!-- Link action popup -->
+      <Transition
+        enter-active-class="transition duration-100 ease-out"
+        enter-from-class="opacity-0 scale-95"
+        enter-to-class="opacity-100 scale-100"
+        leave-active-class="transition duration-75 ease-in"
+        leave-from-class="opacity-100 scale-100"
+        leave-to-class="opacity-0 scale-95">
+        <div v-if="linkPopup.show"
+          class="absolute z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 w-56"
+          :style="{ left: linkPopup.x + 'px', top: (linkPopup.y + 20) + 'px' }">
+          <div v-if="linkPopup.isExternal" class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-amber-600 dark:text-amber-400">
+            <Icon name="mdi:alert-outline" class="w-3.5 h-3.5 block flex-shrink-0" />
+            <span>Be careful, this is an external link</span>
+          </div>
+          <button @click="openLink"
+            class="w-full flex items-center gap-2.5 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors">
+            <Icon name="mdi:open-in-new" class="w-4 h-4 block flex-shrink-0" />
+            <span>Open Link</span>
+          </button>
+          <button @click="copyLinkUrl"
+            class="w-full flex items-center gap-2.5 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors">
+            <Icon name="mdi:content-copy" class="w-4 h-4 block flex-shrink-0" />
+            <span>Copy Link</span>
+          </button>
+          <button @click="copyLinkName"
+            class="w-full flex items-center gap-2.5 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors">
+            <Icon name="mdi:format-text" class="w-4 h-4 block flex-shrink-0" />
+            <span>Copy Link Name</span>
+          </button>
+          <div class="px-3 py-1 text-xs text-gray-400 dark:text-gray-500 truncate border-t border-gray-100 dark:border-gray-700 mt-1 pt-1">
+            {{ linkPopup.url }}
+          </div>
+        </div>
+      </Transition>
+
+      <!-- Backdrop to close link popup -->
+      <div v-if="linkPopup.show" class="fixed inset-0 z-40" @click="closeLinkPopup" />
     </div>
   </div>
 </template>
@@ -182,18 +221,23 @@ class InlineResultWidget extends WidgetType {
 
 // --- Markdown preview widget (prefix replacement) ---
 class MdPrefixWidget extends WidgetType {
-  constructor(content, className) {
+  constructor(content, className, lineNumber) {
     super()
     this.content = content
     this.className = className
+    this.lineNumber = lineNumber ?? -1
   }
   toDOM() {
     const span = document.createElement('span')
     span.className = this.className
     span.textContent = this.content
+    if (this.lineNumber >= 0) {
+      span.dataset.line = String(this.lineNumber)
+    }
     return span
   }
-  eq(other) { return this.content === other.content && this.className === other.className }
+  eq(other) { return this.content === other.content && this.className === other.className && this.lineNumber === other.lineNumber }
+  ignoreEvent() { return false }
 }
 
 // --- StateEffect for updating inline results ---
@@ -332,7 +376,7 @@ const applyInlineMarkdown = (text, lineFrom, widgets) => {
       widgets.push(Decoration.mark({ class: 'calcnotes-md-hidden-syntax' }).range(lineFrom + s.from, lineFrom + s.from + 1))
       // Style link text
       const textEnd = s.from + 1 + s.linkText.length
-      widgets.push(Decoration.mark({ class: 'calcnotes-md-link', attributes: { title: s.linkUrl } }).range(lineFrom + s.from + 1, lineFrom + textEnd))
+      widgets.push(Decoration.mark({ class: 'calcnotes-md-link', attributes: { title: s.linkUrl, 'data-href': s.linkUrl } }).range(lineFrom + s.from + 1, lineFrom + textEnd))
       // Hide ](url)
       widgets.push(Decoration.mark({ class: 'calcnotes-md-hidden-syntax' }).range(lineFrom + textEnd, lineFrom + s.to))
     } else {
@@ -401,7 +445,7 @@ const buildMdDecorations = (view) => {
       }
       const iconClass = nestLevel === 0 ? 'calcnotes-md-check-icon' : 'calcnotes-md-check-icon-nested'
       widgets.push(Decoration.widget({
-        widget: new MdPrefixWidget(padStr + icon, iconClass),
+        widget: new MdPrefixWidget(padStr + icon, iconClass, ln),
         side: -1,
       }).range(docLine.from + prefixEnd))
       widgets.push(Decoration.mark({
@@ -601,8 +645,26 @@ const cmExtensions = computed(() => [
   }),
   // Click handler for inline results (copy on click)
   EditorView.domEventHandlers({
-    click: handleResultClick,
-    touchend: handleResultTouch,
+    click: (event, view) => {
+      if (handleMdClick(event, view)) return true
+      return handleResultClick(event, view)
+    },
+    touchstart: (event, view) => {
+      return handleMdTouchStart(event, view)
+    },
+    touchmove: (event) => {
+      return handleMdTouchMove(event)
+    },
+    touchend: (event, view) => {
+      if (handleMdTouchEnd(event, view)) return true
+      return handleResultTouch(event, view)
+    },
+    contextmenu: (event) => {
+      if (props.markdownMode !== 'full') return false
+      const el = event.target
+      if (findLinkEl(el)) { event.preventDefault(); return true }
+      return false
+    },
   }),
 ])
 
@@ -645,6 +707,174 @@ const handleResultTouch = (event, view) => {
   return false
 }
 
+// --- Link popup state ---
+const linkPopup = reactive({ show: false, url: '', text: '', x: 0, y: 0, isExternal: false })
+
+const closeLinkPopup = () => { linkPopup.show = false }
+
+const isExternalUrl = (url) => {
+  try {
+    const u = new URL(url, window.location.origin)
+    return u.origin !== window.location.origin
+  } catch { return true }
+}
+
+const showLinkPopup = (url, text, x, y) => {
+  linkPopup.url = url
+  linkPopup.text = text
+  linkPopup.x = x
+  linkPopup.y = y
+  linkPopup.isExternal = isExternalUrl(url)
+  linkPopup.show = true
+}
+
+const openLink = () => {
+  closeLinkPopup()
+  window.open(linkPopup.url, '_blank', 'noopener,noreferrer')
+}
+
+const copyLinkUrl = async () => {
+  closeLinkPopup()
+  try { await navigator.clipboard.writeText(linkPopup.url) } catch {}
+}
+
+const copyLinkName = async () => {
+  closeLinkPopup()
+  try { await navigator.clipboard.writeText(linkPopup.text) } catch {}
+}
+
+// --- Markdown click handler (links + checkboxes) ---
+const isMac = import.meta.client && /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent)
+let longPressTimer = null
+let longPressTriggered = false
+
+const findLinkEl = (el) => el?.closest?.('.calcnotes-md-link') || (el?.classList?.contains('calcnotes-md-link') ? el : null)
+
+const triggerLinkPopup = (linkEl, view, x, y) => {
+  const url = linkEl.getAttribute('data-href')
+  const text = linkEl.textContent
+  if (!url) return
+  const rect = view.dom.getBoundingClientRect()
+  showLinkPopup(url, text, x - rect.left, y - rect.top)
+}
+
+const handleMdClick = (event, view) => {
+  if (props.markdownMode !== 'full') return false
+  const el = event.target
+
+  // Link: require Cmd (mac) or Ctrl (other) click
+  const linkEl = findLinkEl(el)
+  if (linkEl) {
+    const modHeld = isMac ? event.metaKey : event.ctrlKey
+    if (modHeld) {
+      event.preventDefault()
+      triggerLinkPopup(linkEl, view, event.clientX, event.clientY)
+      return true
+    }
+  }
+
+  // Checkbox click
+  if (el?.classList?.contains('calcnotes-md-check-icon') || el?.classList?.contains('calcnotes-md-check-icon-nested')) {
+    const lineNum = parseInt(el.dataset?.line, 10)
+    if (!lineNum || lineNum < 1) return false
+    const doc = view.state.doc
+    if (lineNum > doc.lines) return false
+    const line = doc.line(lineNum)
+    const lineText = line.text
+    const checkMatch = lineText.match(/^(\s*)- \[([ x])\]\s/)
+    if (checkMatch) {
+      event.preventDefault()
+      const bracketOffset = checkMatch[1].length + 3 // indent + "- ["
+      const from = line.from + bracketOffset
+      const to = from + 1
+      const newChar = checkMatch[2] === 'x' ? ' ' : 'x'
+      view.dispatch({ changes: { from, to, insert: newChar } })
+      return true
+    }
+  }
+
+  // Close link popup if clicking elsewhere
+  if (linkPopup.show) closeLinkPopup()
+
+  return false
+}
+
+// Touch: long-press on link shows popup, tap on checkbox toggles
+const handleMdTouchStart = (event, view) => {
+  if (props.markdownMode !== 'full') return false
+  const touch = event.touches?.[0]
+  if (!touch) return false
+
+  const el = document.elementFromPoint(touch.clientX, touch.clientY)
+  const linkEl = findLinkEl(el)
+  if (!linkEl) return false
+
+  // Prevent OS long-press actions (context menu, text selection) on links
+  event.preventDefault()
+
+  longPressTriggered = false
+  const startX = touch.clientX
+  const startY = touch.clientY
+
+  longPressTimer = setTimeout(() => {
+    longPressTriggered = true
+    triggerLinkPopup(linkEl, view, startX, startY)
+  }, 500)
+
+  return true
+}
+
+const handleMdTouchMove = (event) => {
+  if (!longPressTimer) return false
+  // Cancel long-press if finger moves too far
+  const touch = event.touches?.[0]
+  if (touch) {
+    clearTimeout(longPressTimer)
+    longPressTimer = null
+  }
+  return false
+}
+
+const handleMdTouchEnd = (event, view) => {
+  if (longPressTimer) {
+    clearTimeout(longPressTimer)
+    longPressTimer = null
+  }
+  // If long-press already triggered the popup, swallow the touchend
+  if (longPressTriggered) {
+    longPressTriggered = false
+    event.preventDefault()
+    return true
+  }
+
+  if (props.markdownMode !== 'full') return false
+  const touch = event.changedTouches?.[0]
+  if (!touch) return false
+  const el = document.elementFromPoint(touch.clientX, touch.clientY)
+
+  // Checkbox touch
+  if (el?.classList?.contains('calcnotes-md-check-icon') || el?.classList?.contains('calcnotes-md-check-icon-nested')) {
+    const lineNum = parseInt(el.dataset?.line, 10)
+    if (!lineNum || lineNum < 1) return false
+    const doc = view.state.doc
+    if (lineNum > doc.lines) return false
+    const line = doc.line(lineNum)
+    const lineText = line.text
+    const checkMatch = lineText.match(/^(\s*)- \[([ x])\]\s/)
+    if (checkMatch) {
+      event.preventDefault()
+      const bracketOffset = checkMatch[1].length + 3
+      const from = line.from + bracketOffset
+      const to = from + 1
+      const newChar = checkMatch[2] === 'x' ? ' ' : 'x'
+      view.dispatch({ changes: { from, to, insert: newChar } })
+      return true
+    }
+  }
+
+  return false
+}
+
 // --- Editor lifecycle ---
 const initEditor = (view) => {
   if (editorReady.value) return
@@ -682,6 +912,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   if (initPollTimer) clearInterval(initPollTimer)
+  if (longPressTimer) clearTimeout(longPressTimer)
 })
 
 // Compute initial results on mount
@@ -881,8 +1112,8 @@ const injectInlineStyles = () => {
     .calcnotes-md-bullet { opacity: 0.6; }
     .calcnotes-md-checked { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; text-decoration: line-through !important; opacity: 0.6 !important; }
     .calcnotes-md-unchecked { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; }
-    .calcnotes-md-check-icon { font-style: normal !important; font-size: 1.1em !important; vertical-align: baseline !important; }
-    .calcnotes-md-check-icon-nested { font-style: normal !important; font-size: 1.05em !important; vertical-align: baseline !important; }
+    .calcnotes-md-check-icon { font-style: normal !important; font-size: 1.1em !important; vertical-align: baseline !important; cursor: pointer !important; }
+    .calcnotes-md-check-icon-nested { font-style: normal !important; font-size: 1.05em !important; vertical-align: baseline !important; cursor: pointer !important; }
     .calcnotes-md-quote { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; font-style: italic !important; opacity: 0.85 !important; }
     .calcnotes-md-quote-bar { color: #FF6188 !important; font-style: normal !important; }
     .cm-theme-dark .calcnotes-md-quote-bar,
@@ -1070,6 +1301,11 @@ defineExpose({
   outdentLine,
   canUndo,
   canRedo,
+  linkPopup,
+  closeLinkPopup,
+  openLink,
+  copyLinkUrl,
+  copyLinkName,
   undo: () => { if (editorView) { cmUndo(editorView); updateUndoRedoState(); editorView.focus() } },
   redo: () => { if (editorView) { cmRedo(editorView); updateUndoRedoState(); editorView.focus() } },
 })
