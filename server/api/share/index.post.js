@@ -18,7 +18,7 @@ import { query } from '../../utils/db.js'
 export default defineEventHandler(async (event) => {
   const auth = await optionalAuth(event)
   const body = await readBody(event)
-  const { title, content, description, tags, anonymous, sharerName, sharerEmail, expiresInDays, collectAnalytics, encrypted } = body || {}
+  const { title, content, description, tags, anonymous, sharerName, sharerEmail, expiresInDays, collectAnalytics, encrypted, passwordHint } = body || {}
 
   if (!content && !title) {
     throw createError({ statusCode: 400, statusMessage: 'Title or content is required to share' })
@@ -52,8 +52,8 @@ export default defineEventHandler(async (event) => {
   const tagsValue = typeof tags === 'string' ? tags : JSON.stringify(tags || [])
 
   await query(`
-    INSERT INTO shared_notes (hash, user_id, title, description, tags, content, sharer_name, sharer_email, anonymous, expires_at, collect_analytics, encrypted, source_client_id)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+    INSERT INTO shared_notes (hash, user_id, title, description, tags, content, sharer_name, sharer_email, anonymous, expires_at, collect_analytics, encrypted, source_client_id, password_hint)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
   `, [
     hash,
     userId,
@@ -67,7 +67,8 @@ export default defineEventHandler(async (event) => {
     expiresAt,
     collectAnalytics === true,
     encrypted === true,
-    body.sourceClientId || null
+    body.sourceClientId || null,
+    passwordHint || null
   ])
 
   return { hash }

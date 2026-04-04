@@ -34,6 +34,10 @@
         <Icon name="mdi:lock-outline" class="w-12 h-12 text-gray-400 mx-auto" />
         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-200">This note is password-protected</h2>
         <p class="text-sm text-gray-500 dark:text-gray-500">Enter the password to view this shared note.</p>
+        <p v-if="passwordHint" class="text-sm text-amber-600 dark:text-amber-400">
+          <Icon name="mdi:lightbulb-outline" class="w-3.5 h-3.5 inline" />
+          Hint: {{ passwordHint }}
+        </p>
         <div v-if="decryptError" class="px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-xs">
           {{ decryptError }}
         </div>
@@ -92,6 +96,7 @@ const error = ref(null)
 const rawEncryptedData = ref(null) // raw server response when encrypted
 const needsPassword = ref(false)
 const passwordInput = ref('')
+const passwordHint = ref(null)
 const decryptError = ref(null)
 const decrypting = ref(false)
 
@@ -124,6 +129,7 @@ onMounted(async () => {
       } else {
         // Password-protected sharing: prompt the user for the password
         rawEncryptedData.value = data
+        passwordHint.value = data.passwordHint || null
         needsPassword.value = true
       }
     } else {

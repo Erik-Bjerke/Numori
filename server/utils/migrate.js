@@ -233,5 +233,13 @@ export async function migrate() {
     END $$
   `)
 
+  // Add password_hint to shared_notes for password-protected shares
+  await query(`
+    DO $ BEGIN
+      ALTER TABLE shared_notes ADD COLUMN IF NOT EXISTS password_hint TEXT;
+    EXCEPTION WHEN duplicate_column THEN NULL;
+    END $
+  `)
+
   console.log('[migrate] Database tables ready')
 }

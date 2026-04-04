@@ -130,7 +130,7 @@
                   </div>
 
                   <!-- Select all on page -->
-                  <label v-if="data.views.length > 0" class="flex items-center gap-2 cursor-pointer px-1">
+                  <label v-if="uniqueDetailViewers.length > 0" class="flex items-center gap-2 cursor-pointer px-1">
                     <input type="checkbox" :checked="allOnPageSelected"
                       @change="toggleSelectAll"
                       class="w-3.5 h-3.5 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500" />
@@ -138,8 +138,8 @@
                   </label>
 
                   <!-- Event list -->
-                  <div v-if="data.views.length" class="space-y-2">
-                    <div v-for="v in data.views" :key="v.id"
+                  <div v-if="uniqueDetailViewers.length" class="space-y-2">
+                    <div v-for="v in uniqueDetailViewers" :key="v.id"
                       class="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                       <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-900">
                         <input type="checkbox" :checked="selectedIds.has(v.id)"
@@ -270,8 +270,8 @@ const selectedIds = ref(new Set())
 const currentPage = ref(1)
 
 const allOnPageSelected = computed(() => {
-  if (!data.value || !data.value.views.length) return false
-  return data.value.views.every(v => selectedIds.value.has(v.id))
+  if (!data.value || !uniqueDetailViewers.value.length) return false
+  return uniqueDetailViewers.value.every(v => selectedIds.value.has(v.id))
 })
 
 let autoRefreshTimer = null
@@ -343,6 +343,21 @@ const recentUniqueViewers = computed(() => {
   return unique
 })
 
+// Deduplicate views by fingerprint for the details tab — show each unique visitor once
+const uniqueDetailViewers = computed(() => {
+  if (!data.value?.views?.length) return []
+  const seen = new Set()
+  const unique = []
+  for (const v of data.value.views) {
+    const key = v.fingerprint || v.id
+    if (!seen.has(key)) {
+      seen.add(key)
+      unique.push(v)
+    }
+  }
+  return unique
+})
+
 const viewerLabel = (v) => {
   if (v.viewerName) return v.viewerName
   if (v.fingerprint?.startsWith('user:')) return 'User #' + v.fingerprint.split(':')[1]
@@ -362,7 +377,7 @@ const toggleSelectAll = () => {
   if (allOnPageSelected.value) {
     selectedIds.value = new Set()
   } else {
-    selectedIds.value = new Set(data.value.views.map(v => v.id))
+    selectedIds.value = new Set(uniqueDetailViewers.value.map(v => v.id))
   }
 }
 

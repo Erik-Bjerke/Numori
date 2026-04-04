@@ -123,11 +123,19 @@
               </div>
 
               <!-- Custom password input -->
-              <div v-if="sharePasswordMode === 'custom'">
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Share password</label>
-                <input v-model="sharePassword" type="password"
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
-                  placeholder="Enter a password for this share" />
+              <div v-if="sharePasswordMode === 'custom'" class="space-y-2">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Share password</label>
+                  <input v-model="sharePassword" type="password"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
+                    placeholder="Enter a password for this share" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Password hint <span class="font-normal text-gray-400 dark:text-gray-600">(optional)</span></label>
+                  <input v-model="passwordHint" type="text" maxlength="255"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
+                    placeholder="A hint to help the recipient remember the password" />
+                </div>
               </div>
 
               <!-- Expiration -->
@@ -215,6 +223,7 @@ const copied = ref(false)
 // Encryption mode for shared notes
 const sharePasswordMode = ref('none') // 'none' = passwordless (random key in URL), 'custom' = user-set password
 const sharePassword = ref('')
+const passwordHint = ref('')
 const usedSharePassword = ref(false)
 
 const activeHash = computed(() => newShareHash.value || props.existingHash)
@@ -242,6 +251,7 @@ watch(() => props.isOpen, (open) => {
     copied.value = false
     sharePasswordMode.value = 'none'
     sharePassword.value = ''
+    passwordHint.value = ''
     usedSharePassword.value = false
   }
 })
@@ -287,7 +297,8 @@ const handleShare = async () => {
       anonymous: anonymous.value,
       expiresInDays: expiresInDays.value,
       collectAnalytics: collectAnalytics.value,
-      sourceClientId: props.note.id
+      sourceClientId: props.note.id,
+      passwordHint: sharePasswordMode.value === 'custom' && passwordHint.value ? passwordHint.value : undefined
     }
 
     if (!props.isLoggedIn && !anonymous.value) {

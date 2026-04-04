@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
 
   const result = await query(`
     SELECT id, hash, title, description, tags, content, sharer_name, sharer_email,
-           anonymous, expires_at, created_at, collect_analytics, deleted_at, encrypted
+           anonymous, expires_at, created_at, collect_analytics, deleted_at, encrypted, password_hint
     FROM shared_notes WHERE hash = $1
   `, [hash])
 
@@ -49,7 +49,8 @@ export default defineEventHandler(async (event) => {
       email: row.sharer_email
     },
     createdAt: row.created_at,
-    expiresAt: row.expires_at
+    expiresAt: row.expires_at,
+    passwordHint: row.password_hint || null
   }
 })
 
