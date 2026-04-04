@@ -15,7 +15,34 @@ export const useNotes = () => {
       db.notes.orderBy('sortOrder').toArray()
     )
     subscription = observable.subscribe({
-      next: (rows) => { notes.value = rows },
+      next: (rows) => {
+        // Merge instead of replace: only update notes whose data actually
+        // changed so that Vue reactive references (and downstream watchers
+        // like the editor's props.content) stay stable when nothing changed.
+        const incoming = new Map(rows.map(r => [r.id, r]))
+        // Remove notes that no longer exist in DB
+        for (let i = notes.value.length - 1; i >= 0; i--) {
+          if (!incoming.has(notes.value[i].id)) notes.value.splice(i, 1)
+        }
+        // Update existing / add new
+        for (const row of rows) {
+          const existing = notes.value.find(n => n.id === row.id)
+          if (existing) {
+            // Only assign fields that actually differ
+            for (const key of Object.keys(row)) {
+              const oldVal = existing[key]
+              const newVal = row[key]
+              if (oldVal !== newVal && JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
+                existing[key] = newVal
+              }
+            }
+          } else {
+            notes.value.push(row)
+          }
+        }
+        // Ensure sort order matches DB
+        notes.value.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+      },
       error: (err) => console.error('liveQuery error:', err),
     })
   }
