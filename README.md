@@ -48,7 +48,7 @@ npm run dev                 # http://localhost:3000
 ├── composables/
 │   ├── useCalculator.js       # Core calculator engine (all math/units/currency logic)
 │   ├── useCalcLanguage.js       # Custom CodeMirror language definition + tokenizer
-│   ├── useNotes.js            # Note persistence (localStorage) and state
+│   ├── useNotes.js            # Note persistence (Dexie/IndexedDB) and state
 │   └── useTemplates.js        # Predefined calculation templates
 ├── locales/                   # i18n translation files
 │   ├── en-GB.json
@@ -65,13 +65,13 @@ npm run dev                 # http://localhost:3000
 
 ## Architecture
 
-The app is a pure client-side SPA (`ssr: false` in `nuxt.config.ts`). All data is stored in the browser's localStorage — there is no backend or database required for the current feature set.
+The app is a pure client-side SPA (`ssr: false` in `nuxt.config.ts`). All data is stored locally in IndexedDB via Dexie.js — there is no backend or database required for the current feature set.
 
 ### Key modules
 
 - `useCalculator.js` — The core engine. Parses natural language input and evaluates arithmetic, percentages, unit conversions, currency exchange, date/time, variables, and aggregation (sum/average). This is where most of the logic lives and where most contributions will happen.
 - `useCalcLanguage.js` — Registers a custom CodeMirror language (`calcnotes`) with syntax highlighting for numbers, operators, units, currencies, functions, and comments.
-- `useNotes.js` — Manages multiple notes with auto-save to localStorage.
+- `useNotes.js` — Manages multiple notes with auto-save to IndexedDB via Dexie.js.
 - `useTemplates.js` — Provides predefined templates (budget, cooking, fitness, etc.).
 
 ### Calculator engine overview

@@ -308,7 +308,8 @@
 const props = defineProps({
   isOpen: { type: Boolean, default: false },
   user: { type: Object, default: null },
-  lastSyncedAt: { type: String, default: null }
+  lastSyncedAt: { type: String, default: null },
+  authHeaders: { type: Object, default: () => ({}) }
 })
 
 const emit = defineEmits(['close', 'update-profile', 'change-password', 'delete-data', 'delete-account', 'logout', 'unshare', 'open-analytics', 'sync-now', 'show-notes'])
@@ -495,10 +496,9 @@ const handleDeleteAccount = async () => {
 const loadSharedNotes = async () => {
   loadingShared.value = true
   try {
-    const token = localStorage.getItem('auth_token')
-    if (!token) return
+    if (!props.authHeaders?.Authorization) return
     sharedNotes.value = await apiFetch('/api/share/my', {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: props.authHeaders
     })
   } catch {
     sharedNotes.value = []
@@ -519,10 +519,9 @@ const copySharedLink = async (hash) => {
 
 const handleUnshare = async (hash) => {
   try {
-    const token = localStorage.getItem('auth_token')
     await apiFetch(`/api/share/${hash}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` }
+      headers: props.authHeaders
     })
     await loadSharedNotes()
     showFeedback('Sharing stopped')
@@ -535,10 +534,9 @@ const handleUnshare = async (hash) => {
 const handlePurge = async (hash) => {
   if (!confirm('Permanently delete this shared note and all its analytics? This cannot be undone.')) return
   try {
-    const token = localStorage.getItem('auth_token')
     await apiFetch(`/api/share/${hash}?purge=true`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` }
+      headers: props.authHeaders
     })
     await loadSharedNotes()
     showFeedback('Shared note deleted')
@@ -564,10 +562,9 @@ const togglePrivacy = async () => {
   savingPrivacy.value = true
   const newVal = !privacyNoTracking.value
   try {
-    const token = localStorage.getItem('auth_token')
     await apiFetch('/api/auth/privacy', {
       method: 'PUT',
-      headers: { Authorization: `Bearer ${token}` },
+      headers: props.authHeaders,
       body: { noTracking: newVal }
     })
     privacyNoTracking.value = newVal

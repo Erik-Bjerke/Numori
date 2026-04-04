@@ -1,7 +1,9 @@
 /**
  * Authentication state and API calls.
- * Stores JWT in localStorage. Completely optional — app works without auth.
+ * Stores JWT in Dexie (appState table). Completely optional — app works without auth.
  */
+import db from '~/db.js'
+
 export const useAuth = () => {
   const { apiFetch } = useApi()
 
@@ -17,19 +19,29 @@ export const useAuth = () => {
     return { Authorization: `Bearer ${token.value}` }
   })
 
+  /** Persist token to IndexedDB */
+  const _saveToken = async (t) => {
+    token.value = t
+    if (t) {
+      await db.appState.put({ key: 'auth_token', value: t })
+    } else {
+      await db.appState.delete('auth_token')
+    }
+  }
+
   const restore = async () => {
     if (!import.meta.client) return
-    const stored = localStorage.getItem('auth_token')
-    if (!stored) return
+    const row = await db.appState.get('auth_token')
+    if (!row?.value) return
 
-    token.value = stored
+    token.value = row.value
     try {
       user.value = await apiFetch('/api/auth/me', {
-        headers: { Authorization: `Bearer ${stored}` }
+        headers: { Authorization: `Bearer ${row.value}` }
       })
     } catch {
       token.value = null
-      localStorage.removeItem('auth_token')
+      await db.appState.delete('auth_token')
     }
   }
 
@@ -41,9 +53,8 @@ export const useAuth = () => {
         method: 'POST',
         body: { email, password, name }
       })
-      token.value = data.token
+      await _saveToken(data.token)
       user.value = data.user
-      localStorage.setItem('auth_token', data.token)
       return data
     } catch (err) {
       error.value = err.data?.statusMessage || err.message || 'Registration failed'
@@ -61,9 +72,8 @@ export const useAuth = () => {
         method: 'POST',
         body: { email, password }
       })
-      token.value = data.token
+      await _saveToken(data.token)
       user.value = data.user
-      localStorage.setItem('auth_token', data.token)
       return data
     } catch (err) {
       error.value = err.data?.statusMessage || err.message || 'Login failed'
@@ -73,11 +83,10 @@ export const useAuth = () => {
     }
   }
 
-  const logout = () => {
+  const logout = async () => {
     token.value = null
     user.value = null
-    localStorage.removeItem('auth_token')
-    localStorage.removeItem('last_synced_at')
+    await db.appState.bulkDelete(['auth_token', 'last_synced_at'])
   }
 
   const updateProfile = async ({ name, email, avatarUrl }) => {
@@ -125,7 +134,7 @@ export const useAuth = () => {
         headers: authHeaders.value,
         body: { type, password }
       })
-      if (type === 'account') logout()
+      if (type === 'account') await logout()
       return data
     } catch (err) {
       error.value = err.data?.statusMessage || err.message || 'Deletion request failed'

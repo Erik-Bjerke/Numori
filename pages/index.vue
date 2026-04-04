@@ -248,6 +248,7 @@
     <ProfileModal :is-open="showProfileModal"
       :user="auth.user.value"
       :last-synced-at="lastSyncedAt"
+      :auth-headers="auth.authHeaders.value"
       @close="showProfileModal = false"
       @update-profile="handleUpdateProfile"
       @change-password="handleChangePassword"
@@ -397,11 +398,11 @@ onBeforeUnmount(() => {
 })
 
 // Hide sidebar on mobile by default + welcome wizard
-onMounted(() => {
+onMounted(async () => {
   if (window.innerWidth < 1024) {
     showSidebar.value = false
   }
-  welcomeWizard.showIfFirstTime()
+  await welcomeWizard.showIfFirstTime()
 })
 
 // Auth handlers
@@ -510,12 +511,13 @@ const handleShowNotes = () => {
 }
 
 // Check for pending import from shared note page
-onMounted(() => {
-  const pending = localStorage.getItem('pending_import')
-  if (pending) {
-    localStorage.removeItem('pending_import')
+onMounted(async () => {
+  const { default: db } = await import('~/db.js')
+  const row = await db.appState.get('pending_import')
+  if (row?.value) {
+    await db.appState.delete('pending_import')
     try {
-      const data = JSON.parse(pending)
+      const data = JSON.parse(row.value)
       const newNote = createNote()
       updateNoteMeta(newNote.id, { title: data.title, description: data.description, tags: data.tags })
       updateNoteContent(newNote.id, data.content)

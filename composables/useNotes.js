@@ -1,60 +1,81 @@
+import { liveQuery } from 'dexie'
+import db from '~/db.js'
+
 export const useNotes = () => {
   const notes = ref([])
   const currentNoteId = ref(null)
-  const deletedIds = ref([]) // Track deleted note IDs for sync
+  const deletedIds = ref([])
 
-  // Load notes from localStorage
-  const loadNotes = () => {
-    if (import.meta.client) {
-      const stored = localStorage.getItem('notes')
-      if (stored) {
-        try {
-          notes.value = JSON.parse(stored)
-        } catch (e) {
-          console.error('Failed to load notes:', e)
-          notes.value = []
-        }
-      }
+  // ── Reactive liveQuery: auto-updates `notes` when DB changes ──────────
+  let subscription = null
 
-      // Load deleted IDs
-      const storedDeleted = localStorage.getItem('deleted_note_ids')
-      if (storedDeleted) {
-        try { deletedIds.value = JSON.parse(storedDeleted) } catch { deletedIds.value = [] }
-      }
+  const startLiveQuery = () => {
+    if (!import.meta.client) return
+    const observable = liveQuery(() =>
+      db.notes.orderBy('sortOrder').toArray()
+    )
+    subscription = observable.subscribe({
+      next: (rows) => { notes.value = rows },
+      error: (err) => console.error('liveQuery error:', err),
+    })
+  }
 
-      // Create a default note only if none exist AND user has never synced
-      // (prevents Welcome note from being recreated after sync)
-      const hasSynced = !!localStorage.getItem('last_synced_at')
-      if (notes.value.length === 0 && !hasSynced) {
-        const defaultNote = createNote('Welcome', 'Notes with calculator features')
-        notes.value.push(defaultNote)
-        saveNotes()
-      }
+  const stopLiveQuery = () => {
+    if (subscription) {
+      subscription.unsubscribe()
+      subscription = null
     }
   }
 
-  // Save notes to localStorage
-  const saveNotes = () => {
-    if (import.meta.client) {
-      localStorage.setItem('notes', JSON.stringify(notes.value))
+  // ── Load initial state from Dexie ─────────────────────────────────────
+  const loadNotes = async () => {
+    if (!import.meta.client) return
+
+    // Load notes
+    notes.value = await db.notes.orderBy('sortOrder').toArray()
+
+    // Load deleted IDs
+    const row = await db.appState.get('deleted_note_ids')
+    if (row?.value) {
+      try { deletedIds.value = JSON.parse(row.value) } catch { deletedIds.value = [] }
     }
+
+    // Create a default note only if none exist AND user has never synced
+    const syncRow = await db.appState.get('last_synced_at')
+    const hasSynced = !!syncRow?.value
+    if (notes.value.length === 0 && !hasSynced) {
+      const defaultNote = createNote('Welcome', 'Notes with calculator features')
+      await db.notes.put(defaultNote)
+      notes.value = [defaultNote]
+    }
+
+    // Start live reactivity after initial load
+    startLiveQuery()
   }
 
-  const saveDeletedIds = () => {
-    if (import.meta.client) {
-      localStorage.setItem('deleted_note_ids', JSON.stringify(deletedIds.value))
-    }
+  // ── Persist helpers ───────────────────────────────────────────────────
+  // IndexedDB uses structured clone — Vue Proxy objects can't be cloned,
+  // so we must unwrap to plain objects before every write.
+  const toRaw = (obj) => JSON.parse(JSON.stringify(obj))
+
+  const saveNotes = async () => {
+    if (!import.meta.client) return
+    await db.notes.bulkPut(toRaw(notes.value))
   }
 
-  /** Clear the deleted IDs list (called after successful sync) */
-  const clearDeletedIds = () => {
+  const saveDeletedIds = async () => {
+    if (!import.meta.client) return
+    await db.appState.put({ key: 'deleted_note_ids', value: JSON.stringify(deletedIds.value) })
+  }
+
+  const clearDeletedIds = async () => {
     deletedIds.value = []
     if (import.meta.client) {
-      localStorage.removeItem('deleted_note_ids')
+      await db.appState.delete('deleted_note_ids')
     }
   }
 
-  // Get all unique tags across notes
+  // ── Computed ──────────────────────────────────────────────────────────
   const allTags = computed(() => {
     const tagSet = new Set()
     notes.value.forEach(n => {
@@ -63,7 +84,7 @@ export const useNotes = () => {
     return [...tagSet].sort()
   })
 
-  // Create a new note
+  // ── CRUD ──────────────────────────────────────────────────────────────
   const createNote = (title = 'Untitled Note', description = '') => {
     const defaultContent = title === 'Welcome' ? `# Welcome to CalcNotes!
 
@@ -154,9 +175,7 @@ Discounted: prev - 10%
     }
   }
 
-  // Add a new note (always at the top)
   const addNote = () => {
-    // Shift all existing notes down and bump updatedAt so sync picks up the new order
     const now = new Date().toISOString()
     notes.value.forEach(n => {
       n.sortOrder = (n.sortOrder ?? 0) + 1
@@ -170,13 +189,11 @@ Discounted: prev - 10%
     return newNote
   }
 
-  // Delete a note
   const deleteNote = (id) => {
     const index = notes.value.findIndex(n => n.id === id)
     if (index !== -1) {
       notes.value.splice(index, 1)
 
-      // Track deletion for sync
       if (!deletedIds.value.includes(id)) {
         deletedIds.value.push(id)
         saveDeletedIds()
@@ -186,11 +203,12 @@ Discounted: prev - 10%
         currentNoteId.value = notes.value.length > 0 ? notes.value[0].id : null
       }
 
+      // Remove from DB
+      db.notes.delete(id)
       saveNotes()
     }
   }
 
-  // Update note content
   const updateNoteContent = (id, content) => {
     const note = notes.value.find(n => n.id === id)
     if (note) {
@@ -200,7 +218,6 @@ Discounted: prev - 10%
     }
   }
 
-  // Update note metadata
   const updateNoteMeta = (id, { title, description, tags }) => {
     const note = notes.value.find(n => n.id === id)
     if (note) {
@@ -212,7 +229,6 @@ Discounted: prev - 10%
     }
   }
 
-  // Reorder notes — accepts the new ordered array of IDs
   const reorderNotes = (orderedIds) => {
     orderedIds.forEach((id, index) => {
       const note = notes.value.find(n => n.id === id)
@@ -225,15 +241,12 @@ Discounted: prev - 10%
     saveNotes()
   }
 
-  // Get current note
   const currentNote = computed(() => {
     return notes.value.find(n => n.id === currentNoteId.value) || null
   })
 
-  // Initialize on mount
-  onMounted(() => {
-    loadNotes()
-  })
+  onMounted(() => { loadNotes() })
+  onBeforeUnmount(() => { stopLiveQuery() })
 
   return {
     notes,

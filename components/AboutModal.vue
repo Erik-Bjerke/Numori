@@ -73,6 +73,7 @@
                   <li><a href="https://nuxt.com/modules/nuxt-codemirror" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline">nuxt-codemirror</a></li>
                   <li><a href="https://codemirror.net" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline">CodeMirror</a> (commands, language, state, view)</li>
                   <li><a href="https://capacitorjs.com" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline">Capacitor</a> (core, android, ios, filesystem, share, status-bar)</li>
+                  <li><a href="https://dexie.org" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline">Dexie.js</a></li>
                   <li><a href="https://github.com/dcodeIO/bcrypt.js" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline">bcryptjs</a></li>
                   <li><a href="https://node-postgres.com" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline">pg (node-postgres)</a></li>
                   <li><a href="https://vitest.dev" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline">Vitest</a></li>

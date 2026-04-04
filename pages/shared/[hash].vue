@@ -75,19 +75,20 @@ onMounted(async () => {
   }
 })
 
-const importNote = () => {
+const importNote = async () => {
   if (!note.value) return
 
   // Track the import (fire and forget)
   apiFetch(`/api/share/${hash}/import`, { method: 'POST' }).catch(() => {})
 
+  const { default: db } = await import('~/db.js')
   const pending = {
     title: note.value.title,
     description: note.value.description || '',
     tags: note.value.tags || [],
     content: note.value.content
   }
-  localStorage.setItem('pending_import', JSON.stringify(pending))
+  await db.appState.put({ key: 'pending_import', value: JSON.stringify(pending) })
   navigateTo('/')
 }
 </script>

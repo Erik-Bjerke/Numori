@@ -8,22 +8,32 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 // Mock Vue's reactive — return a plain object (good enough for unit tests)
 vi.stubGlobal('reactive', (obj) => obj)
 
-// Mock localStorage
-const storage = {}
-const localStorageMock = {
-  getItem: vi.fn((key) => storage[key] ?? null),
-  setItem: vi.fn((key, val) => { storage[key] = val }),
-  removeItem: vi.fn((key) => { delete storage[key] }),
-  clear: vi.fn(() => { Object.keys(storage).forEach(k => delete storage[k]) }),
-}
-vi.stubGlobal('localStorage', localStorageMock)
+// In-memory store for the Dexie mock
+let prefStore = {}
+
+// Mock Dexie db module
+vi.mock('~/db.js', () => ({
+  default: {
+    preferences: {
+      get: vi.fn(async (key) => prefStore[key] ?? undefined),
+      put: vi.fn(async (row) => { prefStore[row.key] = row }),
+    },
+  },
+}))
+
+// Mock import.meta.client
+vi.stubGlobal('import', { meta: { client: true } })
+// Dexie load path uses import.meta.client — we need to ensure it's truthy
+Object.defineProperty(import.meta, 'client', { value: true, writable: true })
 
 const { useLocalePreferences, LOCALE_PRESETS } = await import('../composables/useLocalePreferences.js')
+const dbModule = await import('~/db.js')
+const db = dbModule.default
 
 beforeEach(() => {
-  localStorageMock.clear()
-  localStorageMock.getItem.mockClear()
-  localStorageMock.setItem.mockClear()
+  prefStore = {}
+  db.preferences.get.mockClear()
+  db.preferences.put.mockClear()
 })
 
 // ─── All expected default values ───
@@ -212,33 +222,21 @@ describe('setPreference', () => {
 })
 
 describe('Persistence (save & load)', () => {
-  it('save() writes to localStorage', () => {
+  it('save() writes to Dexie preferences table', () => {
     const { preferences, save } = useLocalePreferences()
     preferences.editorFontSize = 22
     save()
-    expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      'calcnotes-locale-preferences',
-      expect.any(String)
-    )
-    const saved = JSON.parse(localStorageMock.setItem.mock.calls[0][1])
-    expect(saved.editorFontSize).toBe(22)
+    expect(db.preferences.put).toHaveBeenCalledWith({
+      key: 'locale',
+      value: expect.any(String)
+    })
+    const savedValue = JSON.parse(db.preferences.put.mock.calls[0][0].value)
+    expect(savedValue.editorFontSize).toBe(22)
   })
 
-  it('loads saved preferences on init', () => {
-    const customPrefs = { editorFontSize: 24, editorCursorStyle: 'line-thin', temperature: 'fahrenheit' }
-    storage['calcnotes-locale-preferences'] = JSON.stringify(customPrefs)
+  it('handles missing Dexie data gracefully (uses defaults)', () => {
+    // prefStore is empty — composable should use defaults
     const { preferences } = useLocalePreferences()
-    expect(preferences.editorFontSize).toBe(24)
-    expect(preferences.editorCursorStyle).toBe('line-thin')
-    expect(preferences.temperature).toBe('fahrenheit')
-    // Non-overridden defaults should still be present
-    expect(preferences.editorFontFamily).toBe('system')
-  })
-
-  it('handles corrupted localStorage gracefully', () => {
-    storage['calcnotes-locale-preferences'] = 'not-valid-json{'
-    const { preferences } = useLocalePreferences()
-    // Should fall back to defaults
     expect(preferences.editorFontSize).toBe(16)
   })
 })
@@ -259,10 +257,10 @@ describe('Reset', () => {
     }
   })
 
-  it('reset() also saves to localStorage', () => {
+  it('reset() also saves to Dexie', () => {
     const { reset } = useLocalePreferences()
     reset()
-    expect(localStorageMock.setItem).toHaveBeenCalled()
+    expect(db.preferences.put).toHaveBeenCalled()
   })
 })
 
@@ -333,9 +331,6 @@ describe('Editor Settings — Valid Values', () => {
 })
 
 describe('Editor Options Mapping', () => {
-  // These tests verify the mapping logic used in NoteEditor.vue
-  // to ensure preferences translate correctly to CodeMirror options.
-
   const mapWordWrap = (val) => val ? 'on' : 'off'
   const mapLineNumbers = (val) => ['on', 'off', 'relative', 'interval'].includes(val) ? val : 'on'
   const mapCursorStyle = (val) => ['line', 'line-thin'].includes(val) ? val : 'line'

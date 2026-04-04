@@ -1,7 +1,8 @@
 // Locale preferences for units, date formats, number formats, etc.
 // Provides global presets (UK, US, ES, etc.) with granular per-setting overrides.
+// Persisted to Dexie (preferences table).
 
-const STORAGE_KEY = 'calcnotes-locale-preferences'
+import db from '~/db.js'
 
 // Global presets — sensible defaults per country/region
 export const LOCALE_PRESETS = {
@@ -99,17 +100,23 @@ const DEFAULT_PREFERENCES = {
 }
 
 export const useLocalePreferences = () => {
-  // Try to load from localStorage
-  let initial = { ...DEFAULT_PREFERENCES }
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) {
-      const parsed = JSON.parse(stored)
-      initial = { ...DEFAULT_PREFERENCES, ...parsed }
-    }
-  } catch { /* use defaults */ }
+  // Start with defaults; async load from Dexie will merge on top
+  const preferences = reactive({ ...DEFAULT_PREFERENCES })
 
-  const preferences = reactive(initial)
+  // Load saved preferences from Dexie — store promise so callers can await if needed
+  let _ready
+  if (import.meta.client) {
+    _ready = db.preferences.get('locale').then((row) => {
+      if (row?.value) {
+        try {
+          const parsed = typeof row.value === 'string' ? JSON.parse(row.value) : row.value
+          Object.assign(preferences, parsed)
+        } catch { /* use defaults */ }
+      }
+    }).catch(() => { /* use defaults */ })
+  } else {
+    _ready = Promise.resolve()
+  }
 
   const applyPreset = (presetName) => {
     const preset = LOCALE_PRESETS[presetName]
@@ -133,7 +140,9 @@ export const useLocalePreferences = () => {
 
   const save = () => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences))
+      // Unwrap reactive proxy — IndexedDB structured clone can't handle Proxies
+      const plain = JSON.parse(JSON.stringify(preferences))
+      db.preferences.put({ key: 'locale', value: JSON.stringify(plain) })
     } catch { /* silent */ }
   }
 
@@ -144,6 +153,7 @@ export const useLocalePreferences = () => {
 
   return {
     preferences,
+    ready: _ready,
     applyPreset,
     setPreference,
     getActivePreset,

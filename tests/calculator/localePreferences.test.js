@@ -9,17 +9,21 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { vi } from 'vitest'
 
-// Mock localStorage
-const localStorageMock = (() => {
-  let store = {}
-  return {
-    getItem: vi.fn((key) => store[key] ?? null),
-    setItem: vi.fn((key, value) => { store[key] = value }),
-    removeItem: vi.fn((key) => { delete store[key] }),
-    clear: vi.fn(() => { store = {} }),
-  }
-})()
-vi.stubGlobal('localStorage', localStorageMock)
+// In-memory store for the Dexie mock
+let prefStore = {}
+
+// Mock Dexie db module
+vi.mock('~/db.js', () => ({
+  default: {
+    preferences: {
+      get: vi.fn(async (key) => prefStore[key] ?? undefined),
+      put: vi.fn(async (row) => { prefStore[row.key] = row }),
+    },
+  },
+}))
+
+// Mock import.meta.client
+Object.defineProperty(import.meta, 'client', { value: true, writable: true })
 
 // Mock Vue's ref/reactive/watch for the composable
 vi.stubGlobal('ref', (val) => ({ value: val }))
@@ -28,10 +32,12 @@ vi.stubGlobal('computed', (fn) => ({ value: fn() }))
 vi.stubGlobal('watch', () => {})
 
 const { useLocalePreferences, LOCALE_PRESETS } = await import('../../composables/useLocalePreferences.js')
+const dbModule = await import('~/db.js')
+const db = dbModule.default
 
 describe('Locale Presets', () => {
   beforeEach(() => {
-    localStorageMock.clear()
+    prefStore = {}
   })
 
   it('LOCALE_PRESETS contains UK, US, and ES presets', () => {
@@ -70,7 +76,7 @@ describe('Locale Presets', () => {
 
 describe('useLocalePreferences', () => {
   beforeEach(() => {
-    localStorageMock.clear()
+    prefStore = {}
   })
 
   it('returns default preferences (metric)', () => {
@@ -126,27 +132,19 @@ describe('useLocalePreferences', () => {
     expect(getActivePreset()).toBe('Custom')
   })
 
-  it('saves preferences to localStorage', () => {
+  it('saves preferences to Dexie', () => {
     const { applyPreset, save } = useLocalePreferences()
     applyPreset('US')
     save()
-    expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      'calcnotes-locale-preferences',
-      expect.any(String)
-    )
-    const saved = JSON.parse(localStorageMock.setItem.mock.calls.at(-1)[1])
+    expect(db.preferences.put).toHaveBeenCalledWith({
+      key: 'locale',
+      value: expect.any(String)
+    })
+    const saved = JSON.parse(db.preferences.put.mock.calls.at(-1)[0].value)
     expect(saved.fuelEconomy).toBe('mpg')
   })
 
-  it('loads preferences from localStorage', () => {
-    localStorageMock.getItem.mockReturnValueOnce(JSON.stringify({
-      volume: 'uk_gallon',
-      fuelEconomy: 'mpg_uk',
-      distance: 'miles',
-      temperature: 'celsius',
-      dateFormat: 'DD/MM/YYYY',
-      numberFormat: 'comma_dot',
-    }))
+  it('uses defaults when no saved preferences exist', () => {
     const { preferences } = useLocalePreferences()
     expect(preferences.volume).toBe('uk_gallon')
     expect(preferences.fuelEconomy).toBe('mpg_uk')

@@ -5,6 +5,8 @@
  * 2-minute interval, and SSE push from other clients.
  * No deep watcher on notes to avoid feedback loops.
  */
+import db from '~/db.js'
+
 export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => {
   const { apiFetch, apiUrl } = useApi()
 
@@ -23,9 +25,10 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
   const AUTO_SYNC_INTERVAL = 2 * 60 * 1000
   const DEBOUNCE_DELAY = 3000
 
-  onMounted(() => {
+  onMounted(async () => {
     if (import.meta.client) {
-      lastSyncedAt.value = localStorage.getItem('last_synced_at') || null
+      const row = await db.appState.get('last_synced_at')
+      lastSyncedAt.value = row?.value || null
     }
   })
 
@@ -101,10 +104,10 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
 
       notes.value.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
 
-      clearDeletedIds()
+      await clearDeletedIds()
       lastSyncedAt.value = data.syncedAt
-      localStorage.setItem('last_synced_at', data.syncedAt)
-      saveNotes()
+      await db.appState.put({ key: 'last_synced_at', value: data.syncedAt })
+      await saveNotes()
 
       if (shouldBroadcast) {
         expectingSelfEcho = true

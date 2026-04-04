@@ -5,7 +5,7 @@
     "documentation": "Documentación",
     "shortcuts": "Atajos de teclado",
     "templates": "Plantillas",
-    "footer": "Escribe cálculos naturalmente. Las notas se guardan automáticamente en el almacenamiento local."
+    "footer": "Escribe cálculos naturalmente. Las notas se guardan automáticamente."
   },
   "editor": {
     "placeholder": "Empieza a escribir... (ej., 10 + 20)"

@@ -5,7 +5,7 @@
     "documentation": "Documentation",
     "shortcuts": "Keyboard shortcuts",
     "templates": "Templates",
-    "footer": "Type calculations naturally. Notes auto-save to local storage."
+    "footer": "Type calculations naturally. Notes auto-save locally."
   },
   "editor": {
     "placeholder": "Start typing... (e.g., 10 + 20)"
