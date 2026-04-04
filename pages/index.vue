@@ -355,6 +355,25 @@ const showShareModal = ref(false)
 const { platform } = usePlatform()
 const isAppleNative = platform === 'ios'
 
+// Browser: sync focus mode with fullscreen
+if (import.meta.client && platform === 'web') {
+  watch(focusMode, async (on) => {
+    try {
+      if (on && !document.fullscreenElement) {
+        await document.documentElement.requestFullscreen()
+      } else if (!on && document.fullscreenElement) {
+        await document.exitFullscreen()
+      }
+    } catch { /* fullscreen not supported or denied */ }
+  })
+
+  useEventListener(document, 'fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+      focusMode.value = false
+    }
+  })
+}
+
 // Set up native keyboard toolbar on iOS
 if (import.meta.client && isAppleNative) {
   useNativeKeyboardToolbar({
