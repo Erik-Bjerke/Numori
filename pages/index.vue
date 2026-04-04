@@ -157,8 +157,8 @@
       </main>
     </div>
 
-    <!-- Mobile: formatting toolbar -->
-    <div v-if="currentNote" class="lg:hidden fixed left-0 right-0 z-10 transition-[bottom] duration-150 ease-out"
+    <!-- Mobile: formatting toolbar (hidden on iOS where native keyboard toolbar is used) -->
+    <div v-if="currentNote && !isAppleNative" class="lg:hidden fixed left-0 right-0 z-10 transition-[bottom] duration-150 ease-out"
       :style="{ bottom: mobileKeyboardOffset + 'px' }">
       <div class="overflow-hidden bg-gray-50 dark:bg-gray-900"
         :style="{ paddingBottom: mobileKeyboardOffset === 0 ? 'env(safe-area-inset-bottom, 0px)' : '0px', paddingLeft: 'env(safe-area-inset-left, 0px)', paddingRight: 'env(safe-area-inset-right, 0px)' }">
@@ -323,6 +323,21 @@ const editorRef = ref(null)
 const mobileKeyboardOffset = ref(0)
 const showAuthModal = ref(false)
 const showShareModal = ref(false)
+
+// On iOS/iPadOS, hide the HTML toolbar — native keyboard accessory is used instead
+const { platform } = usePlatform()
+const isAppleNative = platform === 'ios'
+
+// Set up native keyboard toolbar on iOS
+if (import.meta.client && isAppleNative) {
+  useNativeKeyboardToolbar({
+    onFormat: (before, after) => editorRef.value?.wrapSelection(before, after),
+    onUndo: () => editorRef.value?.undo(),
+    onRedo: () => editorRef.value?.redo(),
+    canUndo: () => editorRef.value?.canUndo ?? false,
+    canRedo: () => editorRef.value?.canRedo ?? false,
+  })
+}
 const showProfileModal = ref(false)
 const showAnalyticsModal = ref(false)
 const analyticsHash = ref(null)
