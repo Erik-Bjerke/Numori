@@ -392,8 +392,16 @@ const buildMdDecorations = (view) => {
       widgets.push(Decoration.mark({ class: 'calcnotes-md-hidden-syntax' }).range(docLine.from, docLine.from + prefixEnd))
       const nestLevel = Math.floor(indent / 2)
       const padStr = '\u2003'.repeat(nestLevel) // em-space per nesting level
+      // Top-level: square checkboxes, nested: circle checkboxes
+      let icon
+      if (nestLevel === 0) {
+        icon = checked ? '\u25A3\u2009' : '\u25A2\u2009' // ▣ / ▢
+      } else {
+        icon = checked ? '\u25C9\u2009' : '\u25CB\u2009' // ◉ / ○
+      }
+      const iconClass = nestLevel === 0 ? 'calcnotes-md-check-icon' : 'calcnotes-md-check-icon-nested'
       widgets.push(Decoration.widget({
-        widget: new MdPrefixWidget(padStr + (checked ? '\u2611\u2009' : '\u2610\u2009'), 'calcnotes-md-check-icon'),
+        widget: new MdPrefixWidget(padStr + icon, iconClass),
         side: -1,
       }).range(docLine.from + prefixEnd))
       widgets.push(Decoration.mark({
@@ -873,7 +881,8 @@ const injectInlineStyles = () => {
     .calcnotes-md-bullet { opacity: 0.6; }
     .calcnotes-md-checked { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; text-decoration: line-through !important; opacity: 0.6 !important; }
     .calcnotes-md-unchecked { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; }
-    .calcnotes-md-check-icon { font-style: normal !important; }
+    .calcnotes-md-check-icon { font-style: normal !important; font-size: 1.1em !important; vertical-align: baseline !important; }
+    .calcnotes-md-check-icon-nested { font-style: normal !important; font-size: 1.05em !important; vertical-align: baseline !important; }
     .calcnotes-md-quote { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; font-style: italic !important; opacity: 0.85 !important; }
     .calcnotes-md-quote-bar { color: #FF6188 !important; font-style: normal !important; }
     .cm-theme-dark .calcnotes-md-quote-bar,
