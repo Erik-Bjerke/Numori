@@ -748,11 +748,39 @@ watch(currentLine, () => {
   }
 })
 
-// External content changes (switching notes, inserting templates)
+// External content changes (switching notes, sync from other devices, inserting templates).
+// When the editor is live and content genuinely differs, we apply changes via
+// a CodeMirror transaction so cursor position, selection, scroll and undo
+// history are preserved. Setting localContent directly would cause
+// NuxtCodeMirror to replace the entire document (hard reload).
+let suppressEmit = false
+
 watch(() => props.content, (newContent) => {
-  if (localContent.value !== newContent) {
+  if (localContent.value === newContent) return
+
+  if (editorView) {
+    const currentDoc = editorView.state.doc.toString()
+    if (currentDoc === newContent) {
+      // CM doc already matches — just align the ref silently
+      suppressEmit = true
+      localContent.value = newContent
+      nextTick(() => { suppressEmit = false })
+      return
+    }
+    // Content genuinely changed (remote edit) — apply via CM transaction
+    // to preserve cursor, selection, scroll and undo history.
+    suppressEmit = true
+    editorView.dispatch({
+      changes: { from: 0, to: currentDoc.length, insert: newContent },
+    })
+    // The dispatch updates CM's doc which flows back through v-model
+    // into localContent. We suppress the emit so the parent doesn't
+    // re-save the same content it just gave us.
+    nextTick(() => { suppressEmit = false })
+    updateLines(newContent)
+  } else {
+    // Editor not ready yet (initial load / note switch) — direct assign is fine
     localContent.value = newContent
-    // Evaluate immediately (skip debounce) so results appear instantly
     updateLines(newContent)
   }
 })
@@ -760,7 +788,9 @@ watch(() => props.content, (newContent) => {
 const debouncedUpdateLines = useDebounceFn((text) => updateLines(text), 80)
 
 watch(localContent, (newContent) => {
-  emit('update:content', newContent)
+  if (!suppressEmit) {
+    emit('update:content', newContent)
+  }
   debouncedUpdateLines(newContent)
 })
 
