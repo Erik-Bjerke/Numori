@@ -101,7 +101,8 @@
       </Teleport>
 
       <!-- Editor Area -->
-      <main class="flex-1 overflow-hidden flex flex-col isolate">
+      <main class="flex-1 overflow-hidden flex flex-col isolate transition-[padding] duration-300"
+        :style="focusMode ? { paddingTop: 'env(safe-area-inset-top, 0px)', paddingLeft: 'env(safe-area-inset-left, 0px)', paddingRight: 'env(safe-area-inset-right, 0px)' } : {}">
         <NoteEditor v-if="currentNote" ref="editorRef" :content="currentNote.content" :show-inline="showInlineResults !== 'off'"
           :inline-align="showInlineResults === 'off' ? 'left' : showInlineResults"
           :locale-preferences="localePrefs.preferences"
@@ -262,7 +263,8 @@
 
     <!-- Focus mode exit button -->
     <button v-if="focusMode" @click="focusMode = false"
-      class="fixed top-0 right-0 z-50 pl-2.5 pb-2.5 pr-1 pt-1 rounded-bl-xl text-gray-400 dark:text-gray-500 hover:bg-black/15 dark:hover:bg-white/15 hover:text-gray-700 dark:hover:text-gray-200 transition-colors focus-exit-enter"
+      class="fixed z-50 pl-2.5 pb-2.5 rounded-bl-xl text-gray-400 dark:text-gray-500 hover:bg-black/15 dark:hover:bg-white/15 hover:text-gray-700 dark:hover:text-gray-200 transition-colors focus-exit-enter"
+      :style="{ top: 'env(safe-area-inset-top, 0px)', right: 'env(safe-area-inset-right, 0px)', paddingRight: '4px', paddingTop: '4px' }"
       title="Exit focus mode">
       <Icon name="mdi:fullscreen-exit" class="w-4 h-4 block" />
     </button>
