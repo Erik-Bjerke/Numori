@@ -18,7 +18,7 @@
       leave-active-class="transition ease-in duration-100"
       leave-from-class="opacity-100 translate-y-0"
       leave-to-class="opacity-0 translate-y-1">
-      <div v-if="open && isLoggedIn"
+      <div v-show="open && isLoggedIn"
         class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden z-50">
 
         <!-- User info -->

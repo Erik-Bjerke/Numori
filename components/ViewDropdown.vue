@@ -15,7 +15,7 @@
       leave-active-class="transition duration-75 ease-in"
       leave-from-class="opacity-100 scale-100"
       leave-to-class="opacity-0 scale-95">
-      <div v-if="open"
+      <div v-show="open"
         class="absolute left-0 mt-1 w-48 sm:w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 z-50">
 
         <DropdownItem icon="mdi:language-markdown" label="Markdown Preview" @click="action('toggle-markdown-preview')" />

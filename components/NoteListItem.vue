@@ -69,7 +69,7 @@
           leave-active-class="transition-all duration-100 ease-in"
           leave-from-class="opacity-100 scale-100"
           leave-to-class="opacity-0 scale-95">
-          <div v-if="menuOpen"
+          <div v-show="menuOpen"
             class="absolute right-0 z-20 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1"
             :class="dropUp ? 'bottom-full mb-1' : 'top-full mt-1'">
             <button @click.stop="handleAction('duplicate')"
