@@ -31,8 +31,13 @@
             @print="$emit('file-print')" />
           <ViewDropdown
             :markdown-mode="markdownMode"
+            :editor-font-size="editorFontSize"
             @update:markdown-mode="(mode) => $emit('update:markdown-mode', mode)"
+            @zoom-in="$emit('zoom-in')"
+            @zoom-out="$emit('zoom-out')"
+            @zoom-reset="$emit('zoom-reset')"
             @templates="$emit('show-templates')"
+            @help="$emit('show-help')"
             @about="$emit('file-about')" />
         </div>
 
@@ -126,6 +131,10 @@ defineProps({
   canRedo: {
     type: Boolean,
     default: false
+  },
+  editorFontSize: {
+    type: Number,
+    default: 16
   }
 })
 
@@ -134,11 +143,15 @@ defineEmits([
   'toggle-focus',
   'show-meta',
   'show-templates',
+  'show-help',
   'apply-format',
   'indent',
   'outdent',
   'update:inline-mode',
   'update:markdown-mode',
+  'zoom-in',
+  'zoom-out',
+  'zoom-reset',
   'undo',
   'redo',
   'file-new',

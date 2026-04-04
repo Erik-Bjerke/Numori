@@ -9,14 +9,19 @@
       :is-logged-in="auth.isLoggedIn.value"
       :can-undo="editorRef?.canUndo ?? false"
       :can-redo="editorRef?.canRedo ?? false"
+      :editor-font-size="localePrefs.preferences.editorFontSize ?? 16"
       @toggle-sidebar="showSidebar = !showSidebar"
       @show-meta="currentNote && (showMetaModal = true)" @apply-format="applyFormat"
       @indent="editorRef?.indentLine()" @outdent="editorRef?.outdentLine()"
       @undo="editorRef?.undo()" @redo="editorRef?.redo()"
       @update:inline-mode="showInlineResults = $event"
       @update:markdown-mode="markdownMode = $event"
+      @zoom-in="handleZoomIn"
+      @zoom-out="handleZoomOut"
+      @zoom-reset="handleZoomReset"
       @toggle-focus="focusMode = true"
       @show-templates="showTemplates = true"
+      @show-help="showHelp = true"
       @file-new="createNote"
       @file-open="handleOpenFile"
       @file-duplicate="handleDuplicate"
@@ -325,6 +330,22 @@ const markdownMode = computed({
   get: () => localePrefs.preferences.markdownMode ?? 'full',
   set: (v) => { localePrefs.preferences.markdownMode = v; localePrefs.save() }
 })
+
+const handleZoomIn = () => {
+  const cur = localePrefs.preferences.editorFontSize ?? 16
+  localePrefs.preferences.editorFontSize = Math.min(cur + 2, 28)
+  localePrefs.save()
+}
+const handleZoomOut = () => {
+  const cur = localePrefs.preferences.editorFontSize ?? 16
+  localePrefs.preferences.editorFontSize = Math.max(cur - 2, 10)
+  localePrefs.save()
+}
+const handleZoomReset = () => {
+  localePrefs.preferences.editorFontSize = 16
+  localePrefs.save()
+}
+
 const editorRef = ref(null)
 const mobileKeyboardOffset = ref(0)
 const showAuthModal = ref(false)

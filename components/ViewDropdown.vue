@@ -18,7 +18,29 @@
       <div v-show="open"
         class="absolute left-0 mt-1 w-48 sm:w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 z-50">
 
-        <div class="px-3 py-1.5 text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide">Markdown</div>
+        <!-- Zoom controls -->
+        <div class="flex items-center gap-1 px-3 py-1.5">
+          <button @click="$emit('zoom-out')" :disabled="zoomPercent <= MIN_ZOOM"
+            class="p-1 rounded transition-colors"
+            :class="zoomPercent <= MIN_ZOOM ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'"
+            title="Zoom out">
+            <Icon name="mdi:magnify-minus-outline" class="w-4.5 h-4.5 block" />
+          </button>
+          <button @click="$emit('zoom-reset')" :title="zoomPercent === 100 ? 'Zoom at 100%' : 'Reset zoom to 100%'"
+            class="flex-1 text-center text-sm rounded px-1 py-0.5 min-w-0 transition-colors"
+            :class="zoomPercent === 100 ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-default' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer'">
+            {{ zoomPercent }}%
+          </button>
+          <button @click="$emit('zoom-in')" :disabled="zoomPercent >= MAX_ZOOM"
+            class="p-1 rounded transition-colors"
+            :class="zoomPercent >= MAX_ZOOM ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'"
+            title="Zoom in">
+            <Icon name="mdi:magnify-plus-outline" class="w-4.5 h-4.5 block" />
+          </button>
+        </div>
+
+        <div class="border-t border-gray-100 dark:border-gray-700 my-1" />
+
         <button v-for="opt in mdOptions" :key="opt.value"
           @click="setMarkdownMode(opt.value)"
           class="w-full flex items-center gap-2.5 px-3 py-1.5 text-sm transition-colors"
@@ -32,6 +54,7 @@
         <div class="border-t border-gray-100 dark:border-gray-700 my-1" />
 
         <DropdownItem icon="mdi:file-document-outline" label="Templates" @click="action('templates')" />
+        <DropdownItem icon="mdi:help-circle-outline" label="Help" @click="action('help')" />
 
         <div class="border-t border-gray-100 dark:border-gray-700 my-1" />
 
@@ -42,19 +65,35 @@
 </template>
 
 <script setup>
+const BASE_FONT_SIZE = 16
+const MIN_ZOOM = 63
+const MAX_ZOOM = 175
+
 const props = defineProps({
   markdownMode: {
     type: String,
     default: 'off',
     validator: (v) => ['off', 'edit', 'full'].includes(v),
   },
+  editorFontSize: {
+    type: Number,
+    default: 16,
+  },
 })
 
 const emit = defineEmits([
   'update:markdown-mode',
+  'zoom-in',
+  'zoom-out',
+  'zoom-reset',
   'templates',
+  'help',
   'about',
 ])
+
+const zoomPercent = computed(() =>
+  Math.round((props.editorFontSize / BASE_FONT_SIZE) * 100)
+)
 
 const mdOptions = [
   { value: 'full', label: 'Render Markdown' },
