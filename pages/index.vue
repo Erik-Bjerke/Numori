@@ -51,7 +51,11 @@
             @share-note="handleShareNote" @show-properties="handleShowProperties"
             @unshare-note="handleUnshareNote"
             @open-analytics="handleOpenAnalytics"
-            @reorder="handleReorder" />
+            @reorder="handleReorder"
+            @duplicate-note="handleDuplicateById"
+            @export-note="handleExportById"
+            @copy-to-clipboard="handleCopyById"
+            @print-note="handlePrintById" />
         </div>
         </aside>
 
@@ -94,7 +98,11 @@
               @share-note="handleShareNote" @show-properties="handleShowProperties"
               @unshare-note="handleUnshareNote"
               @open-analytics="handleOpenAnalytics"
-              @reorder="handleReorder" />
+              @reorder="handleReorder"
+              @duplicate-note="handleDuplicateById"
+              @export-note="handleExportById"
+              @copy-to-clipboard="handleCopyById"
+              @print-note="handlePrintById" />
             </div>
           </aside>
         </Transition>
@@ -718,6 +726,38 @@ const handleCopy = async () => {
 }
 
 const handlePrint = () => askExportOptions('print')
+
+// Sidebar per-note action handlers (receive note ID)
+const findNote = (id) => notes.value.find(n => n.id === id)
+
+const handleDuplicateById = (id) => {
+  const note = findNote(id)
+  if (!note) return
+  const data = duplicateNote(note)
+  if (data) {
+    const newNote = createNote()
+    updateNoteMeta(newNote.id, { title: data.title, description: data.description, tags: data.tags })
+    updateNoteContent(newNote.id, data.content)
+  }
+}
+
+const handleExportById = (id) => {
+  const note = findNote(id)
+  if (!note) return
+  exportNoteAsJson(note)
+}
+
+const handleCopyById = async (id) => {
+  const note = findNote(id)
+  if (!note) return
+  try { await copyToClipboard(note) } catch {}
+}
+
+const handlePrintById = (id) => {
+  const note = findNote(id)
+  if (!note) return
+  printNote(note)
+}
 </script>
 
 

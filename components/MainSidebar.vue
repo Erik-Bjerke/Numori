@@ -174,6 +174,10 @@
           @unshare="id => $emit('unshare-note', id)"
           @properties="id => $emit('show-properties', id)"
           @open-analytics="hash => $emit('open-analytics', hash)"
+          @duplicate="id => $emit('duplicate-note', id)"
+          @export="id => $emit('export-note', id)"
+          @copy-to-clipboard="id => $emit('copy-to-clipboard', id)"
+          @print="id => $emit('print-note', id)"
           @toggle-select="toggleNoteSelection" />
       </div>
     </div>
@@ -208,7 +212,8 @@ const emit = defineEmits([
   'show-help', 'show-locale-settings', 'show-language',
   'show-auth', 'logout', 'edit-profile',
   'bulk-delete', 'selection-change', 'reorder',
-  'share-note', 'unshare-note', 'show-properties', 'open-analytics'
+  'share-note', 'unshare-note', 'show-properties', 'open-analytics',
+  'duplicate-note', 'export-note', 'copy-to-clipboard', 'print-note'
 ])
 
 const searchQuery = ref('')

@@ -70,7 +70,29 @@
           leave-from-class="opacity-100 scale-100"
           leave-to-class="opacity-0 scale-95">
           <div v-if="menuOpen"
-            class="absolute right-0 top-full mt-1 z-20 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1">
+            class="absolute right-0 z-20 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1"
+            :class="dropUp ? 'bottom-full mb-1' : 'top-full mt-1'">
+            <button @click.stop="handleAction('duplicate')"
+              class="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+              <Icon name="mdi:content-duplicate" class="w-4 h-4" />
+              Duplicate
+            </button>
+            <button @click.stop="handleAction('copy-to-clipboard')"
+              class="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+              <Icon name="mdi:clipboard-text-outline" class="w-4 h-4" />
+              Copy to clipboard
+            </button>
+            <button @click.stop="handleAction('export')"
+              class="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+              <Icon name="mdi:file-export-outline" class="w-4 h-4" />
+              Export
+            </button>
+            <button @click.stop="handleAction('print')"
+              class="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+              <Icon name="mdi:printer-outline" class="w-4 h-4" />
+              Print
+            </button>
+            <div class="my-1 border-t border-gray-200 dark:border-gray-700" />
             <button @click.stop="handleAction('share')"
               class="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
               <Icon name="mdi:share-variant-outline" class="w-4 h-4" />
@@ -121,13 +143,14 @@ const props = defineProps({
   analyticsHash: { type: String, default: null }
 })
 
-const emit = defineEmits(['select', 'delete', 'toggle-select', 'share', 'unshare', 'properties', 'open-analytics'])
+const emit = defineEmits(['select', 'delete', 'toggle-select', 'share', 'unshare', 'properties', 'open-analytics', 'duplicate', 'export', 'copy-to-clipboard', 'print'])
 
 const { copy: clipboardCopy } = useClipboard()
 const { apiUrl } = useApi()
 
 const menuOpen = ref(false)
 const menuRef = ref(null)
+const dropUp = ref(false)
 const copied = ref(false)
 const menuId = Math.random().toString(36).slice(2)
 
@@ -143,6 +166,12 @@ const toggleMenu = () => {
   const willOpen = !menuOpen.value
   if (willOpen) {
     document.dispatchEvent(new CustomEvent('close-all-menus', { detail: { sourceId: menuId } }))
+    // Determine if menu should drop up to avoid overflowing the viewport
+    if (menuRef.value) {
+      const rect = menuRef.value.getBoundingClientRect()
+      const estimatedMenuHeight = 360 // approximate max height of the dropdown
+      dropUp.value = rect.bottom + estimatedMenuHeight > window.innerHeight
+    }
   }
   menuOpen.value = willOpen
 }
@@ -160,6 +189,10 @@ const handleAction = (action) => {
   else if (action === 'delete') emit('delete', props.note.id)
   else if (action === 'properties') emit('properties', props.note.id)
   else if (action === 'analytics') emit('open-analytics', props.analyticsHash)
+  else if (action === 'duplicate') emit('duplicate', props.note.id)
+  else if (action === 'export') emit('export', props.note.id)
+  else if (action === 'copy-to-clipboard') emit('copy-to-clipboard', props.note.id)
+  else if (action === 'print') emit('print', props.note.id)
 }
 
 const handleCopyLink = async () => {
