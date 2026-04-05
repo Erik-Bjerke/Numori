@@ -80,8 +80,9 @@ export async function deriveAuthKey(password) {
 }
 
 /**
- * Derive the non-extractable AES-GCM encryption key from a password.
- * This key NEVER leaves the client.
+ * Derive an extractable AES-GCM encryption key from a password.
+ * Extractable so the raw key material can be persisted in sessionStorage
+ * across page refreshes. The key NEVER leaves the client.
  */
 export async function deriveEncKey(password) {
   const baseKey = await importPasswordKey(password)
@@ -89,7 +90,29 @@ export async function deriveEncKey(password) {
     { name: 'PBKDF2', salt: ENC_SALT, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
     baseKey,
     { name: 'AES-GCM', length: 256 },
-    false, // non-extractable
+    true, // extractable — needed for sessionStorage persistence
+    ['encrypt', 'decrypt']
+  )
+}
+
+/**
+ * Export a CryptoKey as a base64 string (raw key bytes).
+ */
+export async function exportKey(key) {
+  const raw = await crypto.subtle.exportKey('raw', key)
+  return toBase64(raw)
+}
+
+/**
+ * Import a base64 string back into an AES-GCM CryptoKey.
+ */
+export async function importKey(base64) {
+  const raw = fromBase64(base64)
+  return crypto.subtle.importKey(
+    'raw',
+    raw,
+    { name: 'AES-GCM', length: 256 },
+    true,
     ['encrypt', 'decrypt']
   )
 }
