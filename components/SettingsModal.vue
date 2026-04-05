@@ -347,6 +347,15 @@
                             <span :class="toggleDot(preferences.autoCopyResult)" />
                           </button>
                         </div>
+                        <div class="flex items-center justify-between">
+                          <div>
+                            <label :class="labelInlineClass">Show Results in Code Blocks</label>
+                            <p :class="hintClass">Evaluate and display results for lines inside fenced code blocks</p>
+                          </div>
+                          <button @click="preferences.showResultsInCodeBlocks = !preferences.showResultsInCodeBlocks; onSettingChange()" :class="toggleClass(preferences.showResultsInCodeBlocks)">
+                            <span :class="toggleDot(preferences.showResultsInCodeBlocks)" />
+                          </button>
+                        </div>
                         <div v-if="preferences.autoCopyResult">
                           <label :class="labelClass">Copy Animation</label>
                           <select v-model="preferences.copyAnimationStyle" @change="onSettingChange" :class="selectClass">
@@ -454,7 +463,7 @@ const sections = [
   { id: 'layout', label: 'Layout', keywords: 'layout line numbers word wrap folding highlight' },
   { id: 'cursor', label: 'Cursor & Scrolling', keywords: 'cursor style scroll past end' },
   { id: 'behaviour', label: 'Behaviour', keywords: 'behaviour auto close brackets tab size indentation' },
-  { id: 'results', label: 'Results & Display', keywords: 'results display precision decimal significant copy animation' },
+  { id: 'results', label: 'Results & Display', keywords: 'results display precision decimal significant copy animation code blocks' },
   { id: 'general', label: 'General', keywords: 'general welcome wizard relaunch setup' },
 ]
 

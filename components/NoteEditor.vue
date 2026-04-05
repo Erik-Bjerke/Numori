@@ -1171,6 +1171,12 @@ watch(() => props.localePreferences, () => {
   }
 }, { deep: true })
 
+// Re-evaluate when code block result visibility changes
+watch(() => props.localePreferences?.showResultsInCodeBlocks, () => {
+  updateLines(localContent.value)
+  updateInlineDecorations()
+})
+
 // Theme changes
 watch(() => colorMode.value, () => {
   if (!editorView) return
@@ -1298,7 +1304,9 @@ const updateLines = (text) => {
     return
   }
   const lines = text.split('\n')
-  rawLines.value = evaluateLines(lines)
+  rawLines.value = evaluateLines(lines, {
+    showResultsInCodeBlocks: props.localePreferences?.showResultsInCodeBlocks ?? false,
+  })
   reformatDisplay()
 }
 

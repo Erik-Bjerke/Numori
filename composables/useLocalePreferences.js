@@ -97,6 +97,7 @@ const DEFAULT_PREFERENCES = {
   significantFigures: 6,
   autoCopyResult: true,
   copyAnimationStyle: 'scale-pop',
+  showResultsInCodeBlocks: false,
   // Markdown
   markdownMode: 'full',
 }

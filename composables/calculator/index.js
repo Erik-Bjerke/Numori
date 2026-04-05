@@ -71,13 +71,30 @@ const computeDimensionalMultiplication = (leftVar, rightVar) => {
 
 export const useCalculator = () => {
 
-  const evaluateLines = (inputLines) => {
+  const evaluateLines = (inputLines, options) => {
     variables.value = {}
     previousResult.value = null
     previousResultCurrency.value = null
     const results = []
+    const skipCodeBlocks = !(options?.showResultsInCodeBlocks)
+    let inCodeBlock = false
     inputLines.forEach((input, index) => {
       const line = { input: input.trim(), result: null, error: null, type: 'calculation' }
+      if (skipCodeBlocks) {
+        const trimmed = line.input
+        if (!inCodeBlock && /^```[\w+#.\-]*$/.test(trimmed)) {
+          inCodeBlock = true
+          line.type = 'comment'
+          results.push(line)
+          return
+        }
+        if (inCodeBlock) {
+          if (trimmed === '```') inCodeBlock = false
+          line.type = 'comment'
+          results.push(line)
+          return
+        }
+      }
       evaluateLine(line, index, results)
       results.push(line)
     })
