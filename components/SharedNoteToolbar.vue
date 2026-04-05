@@ -1,5 +1,5 @@
 <template>
-  <div class="flex items-center gap-1 bg-gray-100 dark:bg-gray-900 rounded-lg px-2 py-1.5">
+  <div class="flex flex-wrap items-center gap-1 bg-gray-100 dark:bg-gray-900 rounded-lg px-2 py-1.5">
     <!-- Left: View controls -->
     <div class="inline-flex items-center bg-gray-200/50 dark:bg-gray-800 rounded-lg" role="group">
       <button @click="$emit('update:renderMarkdown', true)"
@@ -20,7 +20,7 @@
       </button>
     </div>
 
-    <div class="w-px h-5 bg-gray-300/60 dark:bg-gray-700 mx-0.5"></div>
+    <div class="hidden min-[480px]:block w-px h-5 bg-gray-300/60 dark:bg-gray-700 mx-0.5"></div>
 
     <div class="inline-flex items-center bg-gray-200/50 dark:bg-gray-800 rounded-lg" role="group">
       <button @click="$emit('update:resultsPosition', 'left')"
@@ -49,8 +49,8 @@
       </button>
     </div>
 
-    <!-- Spacer -->
-    <div class="flex-1"></div>
+    <!-- Spacer: collapses to full-width break on narrow screens -->
+    <div class="flex-1 basis-full min-[480px]:basis-0"></div>
 
     <!-- Right: Actions -->
     <button @click="$emit('import')"
