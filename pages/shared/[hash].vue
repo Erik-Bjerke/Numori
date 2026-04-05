@@ -90,7 +90,7 @@
       />
 
       <!-- Editor -->
-      <div class="flex-1 min-h-[300px] rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div class="shared-editor-wrapper rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
         <NoteEditor
           :content="note.content"
           :editable="false"
@@ -257,3 +257,13 @@ const importNote = async () => {
   navigateTo('/')
 }
 </script>
+
+
+<style scoped>
+.shared-editor-wrapper :deep(.cm-editor) {
+  height: auto !important;
+}
+.shared-editor-wrapper :deep(.cm-scroller) {
+  overflow: visible !important;
+}
+</style>
