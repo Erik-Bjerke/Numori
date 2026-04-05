@@ -5,7 +5,7 @@
       <div class="max-w-5xl mx-auto flex items-center justify-between relative">
         <a href="/" class="text-sm text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1">
           <Icon name="mdi:arrow-left" class="w-4 h-4" />
-          numori
+          Numori
         </a>
         <span class="text-xs text-gray-500 dark:text-gray-500 absolute left-1/2 -translate-x-1/2">Shared Note</span>
         <ThemeSwitcher />
@@ -24,7 +24,7 @@
         <p class="text-gray-700 dark:text-gray-400">{{ error }}</p>
         <a href="/"
           class="inline-block px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm rounded-lg transition-colors">
-          Go to numori
+          Go to Numori
         </a>
       </div>
     </div>

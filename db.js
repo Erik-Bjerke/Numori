@@ -1,5 +1,5 @@
 /**
- * numori — Dexie (IndexedDB) local database
+ * Numori — Dexie (IndexedDB) local database
  *
  * ═══════════════════════════════════════════════════════════════════════════
  * SCHEMA DESIGN DECISIONS
@@ -56,7 +56,7 @@
 
 import Dexie from 'dexie'
 
-const db = new Dexie('numoriDB')
+const db = new Dexie('NumoriDB')
 
 // ── Version 1 — initial schema ──────────────────────────────────────────
 db.version(1).stores({

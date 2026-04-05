@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'app.numori.app',
-  appName: 'numori',
+  appName: 'Numori',
   webDir: '.output/public'
 };
 

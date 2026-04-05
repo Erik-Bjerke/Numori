@@ -117,7 +117,7 @@ export const useNotes = () => {
 
   // ── CRUD ──────────────────────────────────────────────────────────────
   const createNote = (title = 'Untitled Note', description = '') => {
-    const defaultContent = title === 'Welcome' ? `# Welcome to numori!
+    const defaultContent = title === 'Welcome' ? `# Welcome to Numori!
 
 Write naturally. Results appear on the right.
 

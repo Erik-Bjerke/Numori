@@ -25,7 +25,7 @@
                 <div class="w-16 h-16 rounded-2xl bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center mb-4">
                   <Icon name="mdi:calculator-variant-outline" class="w-9 h-9 text-primary-600 dark:text-primary-400" />
                 </div>
-                <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">Welcome to numori</h2>
+                <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">Welcome to Numori</h2>
                 <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed max-w-sm">
                   A notepad where every line can do math. Write naturally, and results appear instantly.
                 </p>
@@ -209,7 +209,7 @@ const finish = () => {
 </script>
 
 <style scoped>
-/* numori syntax colours — light theme */
+/* Numori syntax colours — light theme */
 .calc-variable   { color: #2D2A2E; }
 .calc-operator   { color: #C1C0C0; }
 .calc-currency   { color: #C4621A; }

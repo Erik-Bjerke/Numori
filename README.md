@@ -238,7 +238,7 @@ Important implementation details:
 
 ## Security & authentication
 
-numori supports optional cloud sync with end-to-end encryption (E2E). The design ensures the server never has access to plaintext note content or the user's raw password.
+Numori supports optional cloud sync with end-to-end encryption (E2E). The design ensures the server never has access to plaintext note content or the user's raw password.
 
 ### Key derivation
 
