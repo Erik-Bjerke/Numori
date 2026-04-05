@@ -6,6 +6,7 @@ export const calculateSum = (currentIndex, allResults) => {
   for (let i = currentIndex - 1; i >= 0; i--) {
     const line = allResults[i]
     if (!line || !line.input.trim()) break
+    if (line.isAssignment) continue
     if (line.result && !isNaN(parseFloat(line.result))) sum += parseFloat(line.result)
   }
   return sum
@@ -16,6 +17,7 @@ export const detectSumCurrency = (currentIndex, allResults) => {
   for (let i = currentIndex - 1; i >= 0; i--) {
     const line = allResults[i]
     if (!line || !line.input.trim()) break
+    if (line.isAssignment) continue
     if (line.result) {
       const currMatch = line.result.match(/^-?[\d.,]+\s+([A-Z]{3})$/)
       if (currMatch) {
@@ -31,6 +33,7 @@ export const calculateSumWithCurrency = (currentIndex, allResults, targetCurrenc
   for (let i = currentIndex - 1; i >= 0; i--) {
     const line = allResults[i]
     if (!line || !line.input.trim()) break
+    if (line.isAssignment) continue
     if (line.result) {
       const resultMatch = line.result.match(/^(-?[\d.]+)\s*([A-Z]{3})?$/)
       if (resultMatch) {
@@ -50,6 +53,7 @@ export const calculateAverage = (currentIndex, allResults) => {
   for (let i = currentIndex - 1; i >= 0; i--) {
     const line = allResults[i]
     if (!line || !line.input.trim()) break
+    if (line.isAssignment) continue
     if (line.result && !isNaN(parseFloat(line.result))) { sum += parseFloat(line.result); count++ }
   }
   return count > 0 ? sum / count : 0

@@ -90,7 +90,7 @@
       />
 
       <!-- Editor -->
-      <div class="shared-editor-wrapper rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div class="shared-editor-wrapper rounded-lg border border-gray-200 dark:border-gray-700 overflow-x-auto">
         <NoteEditor
           :content="note.content"
           :editable="false"
@@ -264,7 +264,6 @@ const importNote = async () => {
   height: auto !important;
 }
 .shared-editor-wrapper :deep(.cm-scroller) {
-  overflow-x: auto !important;
-  overflow-y: visible !important;
+  overflow: visible !important;
 }
 </style>

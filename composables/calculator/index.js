@@ -130,6 +130,7 @@ export const useCalculator = () => {
       const result = evaluateExpression(input, index, allResults)
       line.result = result.display
       if (result.hideResult) line.hideResult = true
+      if (result.isAssignment) line.isAssignment = true
       if (result.liveTime) { line.liveTime = true; line.iana = result.iana || null }
       previousResult.value = result.value
       previousResultCurrency.value = result.currency || null
@@ -183,7 +184,7 @@ export const useCalculator = () => {
           variables.value._ppi = result.value
         }
 
-        return result
+        return { ...result, isAssignment: true }
       }
     }
 
@@ -321,6 +322,24 @@ export const useCalculator = () => {
         const dimResult = computeDimensionalMultiplication(leftVar, rightVar)
         if (dimResult) return dimResult
       }
+    }
+
+    // Inline aggregation: replace sum/total/average/avg tokens within larger expressions
+    // (standalone cases are handled above; this catches e.g. "Salary - sum", "2 * avg")
+    if (/\b(sum|total)\b/i.test(cleanInput) && !variables.value['sum'] && !variables.value['total']) {
+      const sumCurrency = detectSumCurrency(index, allResults)
+      const sumValue = sumCurrency
+        ? calculateSumWithCurrency(index, allResults, sumCurrency)
+        : calculateSum(index, allResults)
+      cleanInput = cleanInput.replace(/\b(sum|total)\b/gi, `(${sumValue})`)
+      if (sumCurrency) {
+        const result = evaluateMath(handleFunctions(cleanInput))
+        return { value: result, display: `${formatResult(result)} ${sumCurrency}`, currency: sumCurrency }
+      }
+    }
+    if (/\b(average|avg)\b/i.test(cleanInput) && !variables.value['average'] && !variables.value['avg']) {
+      const avgValue = calculateAverage(index, allResults)
+      cleanInput = cleanInput.replace(/\b(average|avg)\b/gi, `(${avgValue})`)
     }
 
     // Regular math
