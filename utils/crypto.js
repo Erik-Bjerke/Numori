@@ -183,7 +183,6 @@ export async function decrypt(encryptedStr, key) {
 
 /**
  * Check whether a string looks like an encrypted payload.
- * Used to detect unencrypted (legacy) notes during migration.
  */
 export function isEncrypted(str) {
   if (!str || typeof str !== 'string') return false

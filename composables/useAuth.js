@@ -169,7 +169,7 @@ export const useAuth = () => {
     loading.value = true
     error.value = null
     try {
-      const { encryptNote, decryptNote, isEncrypted } = await import('~/utils/crypto.js')
+      const { encryptNote, decryptNote } = await import('~/utils/crypto.js')
 
       const oldAuthKey = await deriveAuthKey(currentPassword)
       const newAuthKey = await deriveAuthKey(newPassword)
@@ -179,11 +179,7 @@ export const useAuth = () => {
       // Re-encrypt every note: decrypt with old key, encrypt with new key
       const reEncryptedNotes = []
       for (let i = 0; i < notes.length; i++) {
-        let plain = notes[i]
-        // Only decrypt if the note is currently encrypted
-        if (isEncrypted(plain.content)) {
-          plain = await decryptNote(plain, oldEncKey)
-        }
+        const plain = await decryptNote(notes[i], oldEncKey)
         const encrypted = await encryptNote(plain, newEncKey)
         reEncryptedNotes.push(encrypted)
         if (onProgress) onProgress(i + 1, notes.length)

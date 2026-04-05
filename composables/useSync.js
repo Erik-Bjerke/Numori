@@ -10,23 +10,9 @@
  *     to the server, and decrypted after being received.
  *   - Local IndexedDB storage remains unencrypted.
  *   - If encKey is null (session restored without password), sync is skipped.
- *
- * Migration:
- *   On the first sync after E2E is deployed, the composable detects
- *   unencrypted notes from the server and re-uploads them encrypted.
- *   A progress callback is provided for UI feedback.
  */
 import db from '~/db.js'
-import { encryptNote, decryptNote, isEncrypted } from '~/utils/crypto.js'
-
-/** Safely parse tags that may be a JSON string, array, or garbage. */
-function parseTags(tags) {
-  if (Array.isArray(tags)) return tags
-  if (typeof tags === 'string') {
-    try { return JSON.parse(tags) } catch { return [] }
-  }
-  return []
-}
+import { encryptNote, decryptNote } from '~/utils/crypto.js'
 
 export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => {
   const { apiFetch, apiUrl } = useApi()
@@ -34,9 +20,6 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
   const syncing = ref(false)
   const lastSyncedAt = ref(null)
   const syncError = ref(null)
-
-  /** Migration progress: { current, total } or null when not migrating */
-  const migrationProgress = ref(null)
 
   const sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
 
@@ -115,23 +98,9 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
         await db.notes.bulkDelete(data.deletedClientIds)
       }
 
-      // Decrypt pulled notes and detect migration need
-      const needsMigration = []
-
       for (const remote of data.pulled) {
         const localId = remote.clientId || remote.id.toString()
-
-        // Check if this note is encrypted or plaintext (legacy)
-        let decrypted
-        if (isEncrypted(remote.content)) {
-          decrypted = await decryptNote(remote, key)
-        } else {
-          // Legacy unencrypted note — use as-is but mark for migration
-          decrypted = remote
-          // Tags from TEXT column may be a JSON string — parse it
-          decrypted.tags = parseTags(remote.tags)
-          needsMigration.push({ ...remote, clientId: localId })
-        }
+        const decrypted = await decryptNote(remote, key)
 
         const existing = notes.value.find(n => n.id === localId)
         if (existing) {
@@ -174,11 +143,6 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
         clearTimeout(echoTimer)
         echoTimer = setTimeout(() => { expectingSelfEcho = false }, 500)
       }
-
-      // ── One-time migration of legacy unencrypted notes ──
-      if (needsMigration.length > 0) {
-        await migrateUnencryptedNotes(needsMigration, key)
-      }
     } catch (err) {
       syncError.value = err.data?.statusMessage || err.message || 'Sync failed'
     } finally {
@@ -188,42 +152,6 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
         pendingSync = null
         sync(queued)
       }
-    }
-  }
-
-  /**
-   * Migrate legacy unencrypted notes by encrypting them and re-uploading.
-   * Shows progress via migrationProgress ref.
-   */
-  const migrateUnencryptedNotes = async (legacyNotes, key) => {
-    migrationProgress.value = { current: 0, total: legacyNotes.length }
-    try {
-      const encrypted = []
-      for (let i = 0; i < legacyNotes.length; i++) {
-        const note = legacyNotes[i]
-        // Ensure tags is a proper value before encrypting
-        const plain = {
-          ...note,
-          tags: parseTags(note.tags)
-        }
-        encrypted.push(await encryptNote(plain, key))
-        migrationProgress.value = { current: i + 1, total: legacyNotes.length }
-      }
-
-      // Push the encrypted versions back to the server
-      await apiFetch('/api/notes/sync', {
-        method: 'POST',
-        headers: auth.authHeaders.value,
-        body: {
-          notes: encrypted,
-          deletedClientIds: [],
-          lastSyncedAt: lastSyncedAt.value,
-          sessionId,
-          broadcast: true
-        }
-      })
-    } finally {
-      migrationProgress.value = null
     }
   }
 
@@ -324,5 +252,5 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
     }
   })
 
-  return { syncing, lastSyncedAt, syncError, migrationProgress, sync, syncNow, debouncedSync }
+  return { syncing, lastSyncedAt, syncError, sync, syncNow, debouncedSync }
 }

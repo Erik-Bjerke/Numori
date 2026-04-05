@@ -6,7 +6,6 @@
  *   2. Notes are encrypted before sync, decrypted after pull
  *   3. Shared notes use independent share keys
  *   4. Password change re-encrypts all notes
- *   5. Legacy migration detects and encrypts plaintext notes
  */
 import { describe, it, expect } from 'vitest'
 import {
@@ -79,41 +78,6 @@ describe('full E2E encryption lifecycle', () => {
     expect(decrypted.tags).toEqual(['private'])
     expect(decrypted.content).toBe('classified')
     expect(decrypted.id).toBe(42) // non-sensitive field preserved
-  })
-
-  it('migration: detects plaintext notes and encrypts them', async () => {
-    const encKey = await deriveEncKey(password)
-
-    // Simulate legacy plaintext notes from server
-    const legacyNotes = [
-      { clientId: 'old1', title: 'Old Note', description: '', tags: '["legacy"]', content: 'plain text' },
-      { clientId: 'old2', title: 'Another', description: 'desc', tags: '[]', content: 'also plain' }
-    ]
-
-    // Detection: these are NOT encrypted
-    for (const note of legacyNotes) {
-      expect(isEncrypted(note.content)).toBe(false)
-      expect(isEncrypted(note.title)).toBe(false)
-    }
-
-    // Migration: encrypt each note
-    const migrated = []
-    for (const note of legacyNotes) {
-      const tags = typeof note.tags === 'string' ? JSON.parse(note.tags) : note.tags
-      const plain = { ...note, tags }
-      migrated.push(await encryptNote(plain, encKey))
-    }
-
-    // Verify migration result
-    for (const enc of migrated) {
-      expect(isEncrypted(enc.title)).toBe(true)
-      expect(isEncrypted(enc.content)).toBe(true)
-    }
-
-    // Verify round-trip
-    const dec = await decryptNote(migrated[0], encKey)
-    expect(dec.title).toBe('Old Note')
-    expect(dec.tags).toEqual(['legacy'])
   })
 
   it('password change: re-encrypts all notes from old key to new key', async () => {
