@@ -83,7 +83,9 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || ''
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || '',
+      storeAndroid: process.env.NUXT_PUBLIC_STORE_ANDROID || 'https://play.google.com/store/apps/details?id=app.numori.app',
+      storeIos: process.env.NUXT_PUBLIC_STORE_IOS || 'https://apps.apple.com/app/numori/id0000000000'
     }
   },
   vite: {

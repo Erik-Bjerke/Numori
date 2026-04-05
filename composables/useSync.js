@@ -20,6 +20,8 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
   const syncing = ref(false)
   const lastSyncedAt = ref(null)
   const syncError = ref(null)
+  const pendingNoteIds = ref(new Set())
+  const isOnline = ref(import.meta.client ? navigator.onLine : true)
 
   const sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
 
@@ -36,14 +38,30 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
     if (import.meta.client) {
       const row = await db.appState.get('last_synced_at')
       lastSyncedAt.value = row?.value || null
+
+      // Track online/offline status
+      window.addEventListener('online', onOnline)
+      window.addEventListener('offline', onOffline)
     }
   })
+
+  const onOnline = () => {
+    isOnline.value = true
+    // Flush any pending changes when back online
+    if (pendingNoteIds.value.size > 0) syncNow()
+  }
+  const onOffline = () => { isOnline.value = false }
 
   const sync = async (source = 'unknown') => {
     if (!auth.isLoggedIn.value) return
     // encKey is required for E2E encryption. If the user restored a session
     // without entering their password, we can't encrypt/decrypt.
     if (!auth.encKey.value) return
+    // Skip sync when offline — changes stay pending until connection returns
+    if (!isOnline.value) {
+      pendingSync = source
+      return
+    }
     if (syncing.value) {
       pendingSync = source
       return
@@ -133,6 +151,9 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
       await db.appState.put({ key: 'last_synced_at', value: data.syncedAt })
       await saveNotes()
 
+      // All notes are now synced — clear pending indicators
+      pendingNoteIds.value = new Set()
+
       // Persist welcome flag from server so a new device won't re-create it
       if (data.welcomeCreated) {
         await db.appState.put({ key: 'welcome_note_created', value: '1' })
@@ -155,7 +176,8 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
     }
   }
 
-  const syncNow = () => {
+  const syncNow = (noteId) => {
+    if (noteId) pendingNoteIds.value = new Set([...pendingNoteIds.value, noteId])
     clearTimeout(debounceTimer)
     if (!auth.isLoggedIn.value || !auth.encKey.value) {
       pendingSync = 'syncNow'
@@ -164,7 +186,8 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
     sync('syncNow')
   }
 
-  const debouncedSync = () => {
+  const debouncedSync = (noteId) => {
+    if (noteId) pendingNoteIds.value = new Set([...pendingNoteIds.value, noteId])
     if (!auth.isLoggedIn.value || !auth.encKey.value) return
     clearTimeout(debounceTimer)
     debounceTimer = setTimeout(() => sync('debounce'), DEBOUNCE_DELAY)
@@ -249,8 +272,10 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
     disconnectSSE()
     if (import.meta.client) {
       window.removeEventListener('beforeunload', onBeforeUnload)
+      window.removeEventListener('online', onOnline)
+      window.removeEventListener('offline', onOffline)
     }
   })
 
-  return { syncing, lastSyncedAt, syncError, sync, syncNow, debouncedSync }
+  return { syncing, lastSyncedAt, syncError, pendingNoteIds, isOnline, sync, syncNow, debouncedSync }
 }

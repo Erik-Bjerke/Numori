@@ -1,5 +1,89 @@
-// Minimal service worker for PWA installability.
-// Capacitor apps don't use service workers, so this only activates in the browser.
+// Service worker for PWA offline support and update detection.
+// Capacitor native apps skip registration (see plugins/pwa.client.ts).
 
-self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
+const CACHE_NAME = 'numori-v1'
+
+// App shell resources to pre-cache on install
+const APP_SHELL = [
+  '/',
+  '/index.html',
+  '/manifest.webmanifest',
+  '/favicon.ico',
+]
+
+// Install: pre-cache app shell
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
+  )
+})
+
+// Activate: clean old caches and claim clients
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+    ).then(() => self.clients.claim())
+  )
+})
+
+// Fetch: network-first for navigations and API, cache-first for static assets
+self.addEventListener('fetch', (event) => {
+  const { request } = event
+  const url = new URL(request.url)
+
+  // Skip non-GET and API requests (sync, auth, etc.)
+  if (request.method !== 'GET') return
+  if (url.pathname.startsWith('/api/')) return
+
+  // Navigation requests: network-first with offline fallback
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          const clone = response.clone()
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
+          return response
+        })
+        .catch(() => caches.match('/') || caches.match('/index.html'))
+    )
+    return
+  }
+
+  // Static assets (_nuxt/, _fonts/, icons): cache-first
+  if (url.pathname.startsWith('/_nuxt/') || url.pathname.startsWith('/_fonts/') || url.pathname.match(/\.(svg|png|ico|woff2?)$/)) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) return cached
+        return fetch(request).then((response) => {
+          if (response.ok) {
+            const clone = response.clone()
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
+          }
+          return response
+        }).catch(() => new Response('', { status: 503 }))
+      })
+    )
+    return
+  }
+
+  // Everything else: network-first
+  event.respondWith(
+    fetch(request)
+      .then((response) => {
+        if (response.ok) {
+          const clone = response.clone()
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
+        }
+        return response
+      })
+      .catch(() => caches.match(request))
+  )
+})
+
+// Listen for skip-waiting message from the app
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting()
+  }
+})

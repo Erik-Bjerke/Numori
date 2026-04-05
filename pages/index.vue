@@ -51,7 +51,7 @@
             leave-to-class="opacity-0">
             <div v-if="sidebarGlow" class="absolute inset-0 z-10 pointer-events-none bg-primary-500/25 dark:bg-primary-400/20" />
           </Transition>
-          <MainSidebar :notes="notes" :current-note-id="currentNoteId" :all-tags="allTags" :is-logged-in="auth.isLoggedIn.value" :user="auth.user.value" :shared-note-ids="sharedNoteIds" :shared-notes-map="sharedNotesMap" :analytics-notes-map="analyticsNotesMap" @new-note="createNote" @select-note="selectNote"
+          <MainSidebar :notes="notes" :current-note-id="currentNoteId" :all-tags="allTags" :is-logged-in="auth.isLoggedIn.value" :user="auth.user.value" :shared-note-ids="sharedNoteIds" :shared-notes-map="sharedNotesMap" :analytics-notes-map="analyticsNotesMap" :pending-note-ids="pendingNoteIds" @new-note="createNote" @select-note="selectNote"
             @delete-note="confirmDelete" @edit-note="openEditModal"
             @bulk-delete="confirmBulkDelete" @selection-change="onSelectionChange"
             @show-help="showHelp = true"
@@ -98,7 +98,7 @@
                 leave-to-class="opacity-0">
                 <div v-if="sidebarGlow" class="absolute inset-0 z-10 pointer-events-none bg-primary-500/25 dark:bg-primary-400/20" />
               </Transition>
-              <MainSidebar :notes="notes" :current-note-id="currentNoteId" :all-tags="allTags" :is-logged-in="auth.isLoggedIn.value" :user="auth.user.value" :shared-note-ids="sharedNoteIds" :shared-notes-map="sharedNotesMap" :analytics-notes-map="analyticsNotesMap" @new-note="createNote" @select-note="selectNote"
+              <MainSidebar :notes="notes" :current-note-id="currentNoteId" :all-tags="allTags" :is-logged-in="auth.isLoggedIn.value" :user="auth.user.value" :shared-note-ids="sharedNoteIds" :shared-notes-map="sharedNotesMap" :analytics-notes-map="analyticsNotesMap" :pending-note-ids="pendingNoteIds" @new-note="createNote" @select-note="selectNote"
               @delete-note="confirmDelete" @edit-note="openEditModal"
               @bulk-delete="confirmBulkDelete" @selection-change="onSelectionChange"
               @show-help="showHelp = true"
@@ -270,6 +270,14 @@
 
     <SyncIndicator :syncing="syncing" />
 
+    <OfflineIndicator :offline="!sw.isOnline.value" />
+
+    <UpdateNotification
+      :visible="sw.updateAvailable.value"
+      :is-native="sw.isNative"
+      @apply="sw.applyUpdate"
+      @dismiss="sw.dismissUpdate" />
+
     <!-- Focus mode exit button -->
     <button v-if="focusMode" @click="focusMode = false"
       class="fixed z-50 pl-2.5 pb-2.5 rounded-bl-xl text-gray-400 dark:text-gray-500 hover:bg-black/15 dark:hover:bg-white/15 hover:text-gray-700 dark:hover:text-gray-200 transition-colors focus-exit-enter"
@@ -290,18 +298,19 @@ const localePrefs = useLocalePreferences()
 const welcomeWizard = useWelcomeWizard()
 const auth = useAuth()
 const { apiFetch } = useApi()
-const { syncing, lastSyncedAt, syncError, sync, syncNow, debouncedSync } = useSync(auth, notes, saveNotes, deletedIds, clearDeletedIds)
+const { syncing, lastSyncedAt, syncError, pendingNoteIds, isOnline, sync, syncNow, debouncedSync } = useSync(auth, notes, saveNotes, deletedIds, clearDeletedIds)
+const sw = useServiceWorker()
 
 // Wrapper: create note + instant sync
 const createNote = () => {
   const note = addNote()
-  syncNow()
+  syncNow(note.id)
   return note
 }
 
 const handleReorder = (orderedIds) => {
   reorderNotes(orderedIds)
-  syncNow()
+  syncNow() // reorder affects all notes
 }
 
 // Keyboard shortcuts — must be declared before refs so handlers can reference them
@@ -638,14 +647,14 @@ const openEditModal = (id) => {
 const updateContent = (content) => {
   if (currentNote.value) {
     updateNoteContent(currentNote.value.id, content)
-    debouncedSync()
+    debouncedSync(currentNote.value.id)
   }
 }
 
 const updateMeta = ({ title, description, tags }) => {
   if (currentNote.value) {
     updateNoteMeta(currentNote.value.id, { title, description, tags })
-    debouncedSync()
+    debouncedSync(currentNote.value.id)
   }
 }
 
@@ -659,7 +668,7 @@ const handleDeleteConfirm = () => {
   if (pendingDeleteId.value) {
     deleteNote(pendingDeleteId.value)
     pendingDeleteId.value = null
-    syncNow()
+    syncNow() // deletion affects the whole set
   }
 }
 

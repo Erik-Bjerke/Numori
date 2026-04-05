@@ -168,6 +168,7 @@
           :shared="sharedNoteIds.includes(note.id)"
           :share-hash="sharedNotesMap.get(note.id) || null"
           :analytics-hash="analyticsNotesMap.get(note.id) || null"
+          :pending="pendingNoteIds.has(note.id)"
           @select="id => $emit('select-note', id)"
           @delete="id => $emit('delete-note', id)"
           @share="id => $emit('share-note', id)"
@@ -204,7 +205,8 @@ const props = defineProps({
   user: { type: Object, default: null },
   sharedNoteIds: { type: Array, default: () => [] },
   sharedNotesMap: { type: Map, default: () => new Map() },
-  analyticsNotesMap: { type: Map, default: () => new Map() }
+  analyticsNotesMap: { type: Map, default: () => new Map() },
+  pendingNoteIds: { type: Set, default: () => new Set() }
 })
 
 const emit = defineEmits([

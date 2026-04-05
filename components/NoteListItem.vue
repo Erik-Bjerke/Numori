@@ -39,6 +39,7 @@
           <h3 class="font-medium text-gray-900 dark:text-gray-400 truncate">
             {{ note.title || 'Untitled' }}
           </h3>
+          <span v-if="pending" class="flex-shrink-0 w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500" title="Not synced" />
         </div>
         <p v-if="note.description" class="text-sm text-gray-600 dark:text-gray-500 truncate mt-1">
           {{ note.description }}
@@ -140,7 +141,8 @@ const props = defineProps({
   selected: { type: Boolean, default: false },
   shared: { type: Boolean, default: false },
   shareHash: { type: String, default: null },
-  analyticsHash: { type: String, default: null }
+  analyticsHash: { type: String, default: null },
+  pending: { type: Boolean, default: false }
 })
 
 const emit = defineEmits(['select', 'delete', 'toggle-select', 'share', 'unshare', 'properties', 'open-analytics', 'duplicate', 'export', 'copy-to-clipboard', 'print'])
