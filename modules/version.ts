@@ -76,6 +76,8 @@ self.addEventListener('fetch', (event) => {
   // Skip non-GET and API requests (sync, auth, etc.)
   if (request.method !== 'GET') return
   if (url.pathname.startsWith('/api/')) return
+  // Never cache version.json — it must always hit the server for update detection
+  if (url.pathname === '/version.json') return
 
   // Navigation requests: network-first with offline fallback
   if (request.mode === 'navigate') {

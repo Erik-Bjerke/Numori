@@ -41,6 +41,8 @@
 
         <div class="border-t border-gray-100 dark:border-gray-700 my-1" />
 
+        <div class="px-3 pt-1.5 pb-0.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Markdown</div>
+
         <button v-for="opt in mdOptions" :key="opt.value"
           @click="setMarkdownMode(opt.value)"
           class="w-full flex items-center gap-2.5 px-3 py-1.5 text-sm transition-colors"
