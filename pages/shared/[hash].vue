@@ -1,7 +1,7 @@
 <template>
-  <div class="min-h-screen bg-white dark:bg-gray-925 flex flex-col">
-    <!-- Header -->
-    <header class="bg-gray-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-3">
+  <div class="h-screen bg-white dark:bg-gray-925 flex flex-col overflow-hidden">
+    <!-- Fixed top area: header -->
+    <header class="flex-shrink-0 bg-gray-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-3">
       <div class="max-w-3xl mx-auto flex items-center justify-between">
         <a href="/" class="text-sm text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1">
           <Icon name="mdi:arrow-left" class="w-4 h-4" />
@@ -61,36 +61,40 @@
     </div>
 
     <!-- Shared note content -->
-    <main v-else-if="note" class="flex-1 max-w-3xl mx-auto w-full px-4 py-6 space-y-3 flex flex-col">
-      <div class="space-y-1">
-        <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-200">{{ note.title }}</h1>
-        <p v-if="note.description" class="text-sm text-gray-500 dark:text-gray-500">{{ note.description }}</p>
-        <div v-if="note.sharer" class="text-xs text-gray-500 dark:text-gray-500">
-          Shared by {{ note.sharer.name || note.sharer.email || 'someone' }}
-        </div>
-        <div v-if="note.tags?.length" class="flex flex-wrap gap-1.5 pt-1">
-          <span v-for="tag in note.tags" :key="tag"
-            class="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
-            {{ tag }}
-          </span>
+    <template v-else-if="note">
+      <!-- Fixed top info + toolbar -->
+      <div class="flex-shrink-0 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-925">
+        <div class="max-w-3xl mx-auto w-full px-4 py-3 space-y-2">
+          <div class="space-y-1">
+            <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-200">{{ note.title }}</h1>
+            <p v-if="note.description" class="text-sm text-gray-500 dark:text-gray-500">{{ note.description }}</p>
+            <div v-if="note.sharer" class="text-xs text-gray-500 dark:text-gray-500">
+              Shared by {{ note.sharer.name || note.sharer.email || 'someone' }}
+            </div>
+            <div v-if="note.tags?.length" class="flex flex-wrap gap-1.5 pt-1">
+              <span v-for="tag in note.tags" :key="tag"
+                class="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                {{ tag }}
+              </span>
+            </div>
+          </div>
+
+          <SharedNoteToolbar
+            :render-markdown="renderMarkdown"
+            :results-position="resultsPosition"
+            :copied="copied"
+            @update:render-markdown="renderMarkdown = $event"
+            @update:results-position="resultsPosition = $event"
+            @copy="copyNoteToClipboard"
+            @export="handleExport"
+            @print="askExportOptions('print')"
+            @import="importNote"
+          />
         </div>
       </div>
 
-      <!-- Top toolbar -->
-      <SharedNoteToolbar
-        :render-markdown="renderMarkdown"
-        :results-position="resultsPosition"
-        :copied="copied"
-        @update:render-markdown="renderMarkdown = $event"
-        @update:results-position="resultsPosition = $event"
-        @copy="copyNoteToClipboard"
-        @export="handleExport"
-        @print="askExportOptions('print')"
-        @import="importNote"
-      />
-
-      <!-- Editor -->
-      <div class="shared-editor-wrapper rounded-lg border border-gray-200 dark:border-gray-700 overflow-x-auto">
+      <!-- Editor fills remaining height, only CM scrolls -->
+      <main class="flex-1 overflow-hidden flex flex-col">
         <NoteEditor
           :content="note.content"
           :editable="false"
@@ -100,26 +104,12 @@
           :bordered="false"
           placeholder=""
         />
-      </div>
-
-      <!-- Bottom toolbar -->
-      <SharedNoteToolbar
-        :render-markdown="renderMarkdown"
-        :results-position="resultsPosition"
-        :copied="copied"
-        :drop-up="true"
-        @update:render-markdown="renderMarkdown = $event"
-        @update:results-position="resultsPosition = $event"
-        @copy="copyNoteToClipboard"
-        @export="handleExport"
-        @print="askExportOptions('print')"
-        @import="importNote"
-      />
+      </main>
 
       <ExportOptionsModal :is-open="showExportOptionsModal"
         @close="showExportOptionsModal = false"
         @confirm="handleExportConfirm" />
-    </main>
+    </template>
   </div>
 </template>
 
@@ -258,13 +248,3 @@ const importNote = async () => {
 }
 </script>
 
-
-<style scoped>
-.shared-editor-wrapper :deep(.cm-editor) {
-  height: auto !important;
-}
-.shared-editor-wrapper :deep(.cm-scroller) {
-  overflow-x: auto !important;
-  overflow-y: visible !important;
-}
-</style>
