@@ -107,6 +107,7 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds) => 
           const idx = notes.value.findIndex(n => n.id === id)
           if (idx !== -1) notes.value.splice(idx, 1)
         }
+        await db.notes.bulkDelete(data.deletedClientIds)
       }
 
       // Decrypt pulled notes and detect migration need
