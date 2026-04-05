@@ -80,7 +80,7 @@ npm run dev                 # http://localhost:3000
 │   ├── useApi.js                  # API fetch wrapper (app-level)
 │   ├── useApiBase.js              # Base fetch helper (shared with shared page)
 │   ├── useAuth.js                 # Auth state, key derivation, session persistence
-│   ├── useCalcLanguage.js         # Custom CodeMirror language (numori)
+│   ├── useNumoriLanguage.js        # Custom CodeMirror language (numori)
 │   ├── useCalculator.js           # Calculator composable (delegates to calculator/)
 │   ├── useCodeHighlight.js        # Syntax highlighting helpers
 │   ├── useDisplayFormatter.js     # Number / result display formatting
@@ -162,7 +162,7 @@ npm run dev                 # http://localhost:3000
 │   │   ├── share-create.test.js
 │   │   ├── share-get.test.js
 │   │   └── sync.test.js
-│   ├── calcLanguage.test.js       # CodeMirror language tests
+│   ├── numoriLanguage.test.js      # CodeMirror language tests
 │   ├── codeHighlight.test.js      # Syntax highlighting tests
 │   ├── crypto.test.js             # Crypto unit tests
 │   ├── crypto-integration.test.js # Crypto integration tests
@@ -193,7 +193,7 @@ The app is a pure client-side SPA (`ssr: false` in `nuxt.config.ts`). All data i
 ### Key modules
 
 - `useCalculator.js` — The core engine. Parses natural language input and evaluates arithmetic, percentages, unit conversions, currency exchange, date/time, variables, and aggregation (sum/average). This is where most of the logic lives and where most contributions will happen.
-- `useCalcLanguage.js` — Registers a custom CodeMirror language (`numori`) with syntax highlighting for numbers, operators, units, currencies, functions, and comments.
+- `useNumoriLanguage.js` — Registers a custom CodeMirror language (`numori`) with syntax highlighting for numbers, operators, units, currencies, functions, and comments.
 - `useNotes.js` — Manages multiple notes with auto-save to IndexedDB via Dexie.js.
 - `useTemplates.js` — Provides predefined templates (budget, cooking, fitness, etc.).
 

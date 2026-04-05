@@ -90,7 +90,7 @@ import { StateField, StateEffect, Compartment, EditorSelection } from '@codemirr
 import { foldGutter as cmFoldGutter, indentUnit } from '@codemirror/language'
 import { closeBrackets as cmCloseBrackets } from '@codemirror/autocomplete'
 import { undo as cmUndo, redo as cmRedo, undoDepth, redoDepth } from '@codemirror/commands'
-import { numoriLanguage, numoriLightTheme, numoriDarkTheme } from '~/composables/useCalcLanguage'
+import { numoriLanguage, numoriLightTheme, numoriDarkTheme } from '~/composables/useNumoriLanguage'
 import { formatDisplay } from '~/composables/useDisplayFormatter'
 import { highlightCode } from '~/composables/useCodeHighlight'
 

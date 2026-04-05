@@ -71,7 +71,7 @@ export const useFileActions = () => {
 
   const exportNoteAsText = (note, evaluateLines = null) => {
     if (!note) return false
-    const filename = `${sanitizeFilename(note.title)}.txt`
+    const filename = `${sanitizeFilename(note.title)}.num`
     const content = evaluateLines
       ? mergeContentWithResults(note.content, evaluateLines)
       : (note.content || '')
@@ -178,10 +178,10 @@ export const useFileActions = () => {
   }
 
   /**
-   * Open a .txt or .md file as a new note.
+   * Open a .num, .txt, or .md file as a new note.
    */
   const openFile = async () => {
-    const { name, text } = await pickFile('.txt,.md,.json')
+    const { name, text } = await pickFile('.num,.txt,.md,.json')
     let title = name.replace(/\.[^.]+$/, '') || 'Opened Note'
     let content = text
 

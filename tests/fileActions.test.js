@@ -100,12 +100,12 @@ describe('exportNoteAsText', () => {
     expect(exportNoteAsText(null)).toBe(false)
   })
 
-  it('exports note content as .txt', () => {
+  it('exports note content as .num', () => {
     const note = { title: 'Test Note', content: '2 + 2' }
     const result = exportNoteAsText(note)
 
     expect(result).toBe(true)
-    expect(createdElements[0].download).toBe('test_note.txt')
+    expect(createdElements[0].download).toBe('test_note.num')
   })
 
   it('handles note with empty content', () => {
@@ -117,7 +117,7 @@ describe('exportNoteAsText', () => {
     const mockEval = (lines) => lines.map(l => ({ result: l === '2 + 2' ? '4' : null }))
     const note = { title: 'Calc', content: '2 + 2' }
     expect(exportNoteAsText(note, mockEval)).toBe(true)
-    expect(createdElements[0].download).toBe('calc.txt')
+    expect(createdElements[0].download).toBe('calc.num')
   })
 })
 

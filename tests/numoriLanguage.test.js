@@ -4,7 +4,7 @@
  * highlight.js decorations are the only colour source.
  */
 import { describe, it, expect } from 'vitest'
-import { numoriStreamParser } from '../composables/useCalcLanguage.js'
+import { numoriStreamParser } from '../composables/useNumoriLanguage.js'
 
 // Minimal stream mock that behaves like CodeMirror's StringStream
 class MockStream {
