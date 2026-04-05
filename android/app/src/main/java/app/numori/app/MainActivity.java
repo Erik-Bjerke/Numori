@@ -256,15 +256,19 @@ public class MainActivity extends BridgeActivity {
     }
 
     private void dismissKeyboard() {
-        WebView webView = getBridge().getWebView();
-        if (webView != null) {
-            webView.clearFocus();
+        // Blur any focused element inside the WebView via JS
+        if (getBridge() != null) {
+            WebView webView = getBridge().getWebView();
+            if (webView != null) {
+                webView.evaluateJavascript("document.activeElement && document.activeElement.blur()", null);
+            }
         }
+        // Also hide via InputMethodManager using the decor view's token
         android.view.inputmethod.InputMethodManager imm =
             (android.view.inputmethod.InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-        View focus = getCurrentFocus();
-        if (imm != null && focus != null) {
-            imm.hideSoftInputFromWindow(focus.getWindowToken(), 0);
+        if (imm != null) {
+            View decor = getWindow().getDecorView();
+            imm.hideSoftInputFromWindow(decor.getWindowToken(), 0);
         }
     }
 
