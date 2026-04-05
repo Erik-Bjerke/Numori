@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-wrap items-center gap-1 sm:flex-nowrap">
-    <!-- Left: View controls — spread to edges on mobile -->
-    <div class="flex items-center justify-between min-[480px]:justify-start gap-1 w-full min-[480px]:w-auto">
+    <!-- View toggles -->
+    <div class="flex items-center gap-1 w-full sm:w-auto justify-between sm:justify-start">
       <div class="inline-flex items-center bg-gray-200/50 dark:bg-gray-800 rounded-lg" role="group">
         <button @click="$emit('update:renderMarkdown', true)"
           class="p-1.5 rounded-lg transition-all leading-none"
@@ -21,63 +21,54 @@
         </button>
       </div>
 
-      <div class="hidden min-[480px]:block w-px h-5 bg-gray-300/60 dark:bg-gray-700 mx-0.5"></div>
-
       <div class="inline-flex items-center bg-gray-200/50 dark:bg-gray-800 rounded-lg" role="group">
-      <button @click="$emit('update:resultsPosition', 'left')"
-        class="p-1.5 rounded-lg transition-all leading-none"
-        :class="resultsPosition === 'left'
-          ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
-          : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
-        title="Results on left">
-        <Icon name="mdi:dock-left" class="w-4.5 h-4.5 block" />
-      </button>
-      <button @click="$emit('update:resultsPosition', 'off')"
-        class="p-1.5 rounded-lg transition-all leading-none"
-        :class="resultsPosition === 'off'
-          ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
-          : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
-        title="Results off">
-        <Icon name="mdi:eye-off-outline" class="w-4.5 h-4.5 block" />
-      </button>
-      <button @click="$emit('update:resultsPosition', 'right')"
-        class="p-1.5 rounded-lg transition-all leading-none"
-        :class="resultsPosition === 'right'
-          ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
-          : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
-        title="Results on right">
-        <Icon name="mdi:dock-right" class="w-4.5 h-4.5 block" />
-      </button>
+        <button @click="$emit('update:resultsPosition', 'left')"
+          class="p-1.5 rounded-lg transition-all leading-none"
+          :class="resultsPosition === 'left'
+            ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
+            : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
+          title="Results on left">
+          <Icon name="mdi:dock-left" class="w-4.5 h-4.5 block" />
+        </button>
+        <button @click="$emit('update:resultsPosition', 'off')"
+          class="p-1.5 rounded-lg transition-all leading-none"
+          :class="resultsPosition === 'off'
+            ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
+            : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
+          title="Results off">
+          <Icon name="mdi:eye-off-outline" class="w-4.5 h-4.5 block" />
+        </button>
+        <button @click="$emit('update:resultsPosition', 'right')"
+          class="p-1.5 rounded-lg transition-all leading-none"
+          :class="resultsPosition === 'right'
+            ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
+            : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
+          title="Results on right">
+          <Icon name="mdi:dock-right" class="w-4.5 h-4.5 block" />
+        </button>
+      </div>
     </div>
-    </div>
 
-    <!-- Spacer: collapses to full-width break on narrow screens -->
-    <div class="flex-1 basis-full min-[480px]:basis-0"></div>
+    <!-- Spacer / line break on mobile -->
+    <div class="flex-1 basis-full sm:basis-0"></div>
 
-    <!-- Right: Actions — distributed evenly on mobile, end-aligned on wider -->
-    <div class="flex items-center justify-around min-[480px]:justify-end gap-1 w-full min-[480px]:w-auto">
-      <button @click="$emit('import')"
-        class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
-        title="Import to my notes">
-        <Icon name="mdi:download" class="w-4 h-4 block" />
-        <span class="hidden sm:inline">Import</span>
-      </button>
-
-      <div class="w-px h-5 bg-gray-300/60 dark:bg-gray-700 mx-0.5 hidden min-[480px]:block"></div>
-
+    <!-- Actions: Copy · Export · Print · Import -->
+    <div class="flex items-center justify-between sm:justify-end gap-0.5 w-full sm:w-auto">
       <button @click="handleCopy"
-        class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200/60 dark:hover:bg-gray-800 transition-colors"
+        class="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs sm:text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200/60 dark:hover:bg-gray-800 transition-colors"
         :title="copied ? 'Copied!' : 'Copy to clipboard'">
-        <Icon :name="copied ? 'mdi:check' : 'mdi:content-copy'" class="w-4 h-4 block" :class="copied ? 'text-green-500' : ''" />
-        <span class="hidden sm:inline">{{ copied ? 'Copied' : 'Copy' }}</span>
+        <Icon :name="copied ? 'mdi:check' : 'mdi:content-copy'" class="w-3.5 h-3.5 sm:w-4 sm:h-4 block" :class="copied ? 'text-green-500' : ''" />
+        <span>{{ copied ? 'Copied' : 'Copy' }}</span>
       </button>
+
+      <div class="w-px h-4 bg-gray-300/60 dark:bg-gray-700"></div>
 
       <div class="relative" ref="exportMenuRef">
         <button @click="showExportMenu = !showExportMenu"
-          class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200/60 dark:hover:bg-gray-800 transition-colors"
+          class="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs sm:text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200/60 dark:hover:bg-gray-800 transition-colors"
           title="Export note">
-          <Icon name="mdi:export" class="w-4 h-4 block" />
-          <span class="hidden sm:inline">Export</span>
+          <Icon name="mdi:export" class="w-3.5 h-3.5 sm:w-4 sm:h-4 block" />
+          <span>Export</span>
           <Icon name="mdi:chevron-down" class="w-3 h-3 block transition-transform" :class="{ 'rotate-180': showExportMenu }" />
         </button>
         <Transition
@@ -115,10 +106,19 @@
       </div>
 
       <button @click="$emit('print')"
-        class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200/60 dark:hover:bg-gray-800 transition-colors"
+        class="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs sm:text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200/60 dark:hover:bg-gray-800 transition-colors"
         title="Print">
-        <Icon name="mdi:printer" class="w-4 h-4 block" />
-        <span class="hidden sm:inline">Print</span>
+        <Icon name="mdi:printer" class="w-3.5 h-3.5 sm:w-4 sm:h-4 block" />
+        <span>Print</span>
+      </button>
+
+      <div class="w-px h-4 bg-gray-300/60 dark:bg-gray-700"></div>
+
+      <button @click="$emit('import')"
+        class="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs sm:text-sm text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
+        title="Import to my notes">
+        <Icon name="mdi:note-plus-outline" class="w-3.5 h-3.5 sm:w-4 sm:h-4 block" />
+        <span>Import</span>
       </button>
     </div>
   </div>

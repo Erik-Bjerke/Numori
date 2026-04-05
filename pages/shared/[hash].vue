@@ -263,8 +263,8 @@ const importNote = async () => {
     -45deg,
     transparent,
     transparent 24px,
-    #ff618812 24px,
-    #ff618812 25px
+    #cc2d5620 24px,
+    #cc2d5620 25px
   );
 }
 
