@@ -1,11 +1,14 @@
 /**
  * Composable for update detection and online/offline status.
  *
- * Web: listens for SW update events AND polls /version.json (bypassing SW cache).
- * Native (Capacitor): polls /version.json and compares against the binary version.
+ * Both web and native compare the build-time __APP_VERSION__ (baked into the
+ * JS bundle) against /version.json on the server. If they differ, a new
+ * version has been deployed.
  *
- * Polling runs on startup (after a short delay), on visibility change (tab/app
- * comes back to foreground), and every 10 minutes as a safety net.
+ * - Web: clicking "Reload" activates the waiting service worker.
+ * - Native: clicking "Update" opens the app store link.
+ *
+ * Polling runs on startup, every 10 minutes, and on visibility change.
  */
 export const useServiceWorker = () => {
   const updateAvailable = ref(false)
@@ -45,9 +48,7 @@ export const useServiceWorker = () => {
   }
 
   /**
-   * Fetch /version.json directly from the server, bypassing the service worker
-   * cache entirely. We append a cache-busting query param AND set cache: 'no-store'
-   * so neither the SW nor the browser HTTP cache can return a stale copy.
+   * Fetch /version.json from the server, bypassing all caches.
    */
   async function fetchLatestVersion() {
     const origin = config.public.apiBase || window.location.origin
@@ -57,36 +58,25 @@ export const useServiceWorker = () => {
     return res.json()
   }
 
-  /** Web: compare the running bundle version against the server's latest */
-  async function checkWebUpdate() {
+  /**
+   * Compare the version baked into this JS bundle against the server.
+   * Works identically for web and native — both ship the same JS bundle
+   * version at build time.
+   */
+  async function checkForUpdate() {
     if (updateAvailable.value) return
     try {
       const data = await fetchLatestVersion()
       if (data?.version && data.version !== buildVersion) {
         updateAvailable.value = true
-        // Also nudge the SW to check for an update so it's ready when user clicks Reload
-        const reg = await navigator.serviceWorker?.getRegistration()
-        reg?.update()
+        // Web: also nudge the SW so it's ready when user clicks Reload
+        if (!isNative && navigator.serviceWorker) {
+          const reg = await navigator.serviceWorker.getRegistration()
+          reg?.update()
+        }
       }
     } catch { /* offline or server down — ignore */ }
   }
-
-  /** Native: compare the installed binary version against the server's latest */
-  async function checkNativeUpdate() {
-    if (updateAvailable.value) return
-    try {
-      const { App } = await import('@capacitor/app')
-      const info = await App.getInfo()
-      const currentVersion = info.version
-
-      const data = await fetchLatestVersion()
-      if (data?.version && data.version !== currentVersion) {
-        updateAvailable.value = true
-      }
-    } catch { /* offline or unavailable — ignore */ }
-  }
-
-  const check = isNative ? checkNativeUpdate : checkWebUpdate
 
   if (import.meta.client) {
     // SW update event (web only) — immediate notification
@@ -96,14 +86,14 @@ export const useServiceWorker = () => {
     })
 
     // Poll on startup after a short delay
-    setTimeout(check, 3000)
+    setTimeout(checkForUpdate, 3000)
 
     // Poll every 10 minutes
-    setInterval(check, 10 * 60 * 1000)
+    setInterval(checkForUpdate, 10 * 60 * 1000)
 
-    // Poll when the app comes back to the foreground (tab switch, phone unlock)
+    // Poll when the app comes back to the foreground
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') check()
+      if (document.visibilityState === 'visible') checkForUpdate()
     })
   }
 
