@@ -1,10 +1,10 @@
 /**
- * Tests for the calcnotes stream parser's fenced code block handling.
+ * Tests for the numori stream parser's fenced code block handling.
  * The parser must skip tokenizing content inside ``` blocks so that
  * highlight.js decorations are the only colour source.
  */
 import { describe, it, expect } from 'vitest'
-import { calcnotesStreamParser } from '../composables/useCalcLanguage.js'
+import { numoriStreamParser } from '../composables/useCalcLanguage.js'
 
 // Minimal stream mock that behaves like CodeMirror's StringStream
 class MockStream {
@@ -50,7 +50,7 @@ class MockStream {
  * Returns an array of { line, tokens: [{ text, type }] } objects.
  */
 function tokenizeDoc(lines) {
-  const state = calcnotesStreamParser.startState()
+  const state = numoriStreamParser.startState()
   const result = []
 
   for (const lineStr of lines) {
@@ -60,7 +60,7 @@ function tokenizeDoc(lines) {
     while (!stream.eol()) {
       stream.start = stream.pos
       stream._sol = stream.pos === 0
-      const type = calcnotesStreamParser.token(stream, state)
+      const type = numoriStreamParser.token(stream, state)
       const text = stream.current()
       if (text) tokens.push({ text, type })
       if (stream.pos === stream.start) stream.next()

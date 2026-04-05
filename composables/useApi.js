@@ -1,7 +1,7 @@
 /**
  * Wrapper around $fetch that prepends the API base URL.
  * On web (same-origin), apiBase is '' so paths stay relative.
- * On native Capacitor, apiBase is the server URL (e.g. https://calcnotes.example.com).
+ * On native Capacitor, apiBase is the server URL (e.g. https://app.numori.app).
  */
 export const useApi = () => {
   const apiBase = useApiBase()

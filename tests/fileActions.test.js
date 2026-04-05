@@ -150,7 +150,7 @@ describe('exportAllNotes', () => {
     expect(exportAllNotes(null)).toBe(false)
   })
 
-  it('exports all notes as calcnotes_backup.json', () => {
+  it('exports all notes as numori_backup.json', () => {
     const notes = [
       { title: 'A', description: '', content: '1+1', createdAt: '', updatedAt: '' },
       { title: 'B', description: '', content: '2+2', createdAt: '', updatedAt: '' },
@@ -158,7 +158,7 @@ describe('exportAllNotes', () => {
     const result = exportAllNotes(notes)
 
     expect(result).toBe(true)
-    expect(createdElements[0].download).toBe('calcnotes_backup.json')
+    expect(createdElements[0].download).toBe('numori_backup.json')
   })
 })
 

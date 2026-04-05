@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'calcnotes.theprocedural.com',
-  appName: 'Calc Notes',
+  appId: 'app.numori.app',
+  appName: 'numori',
   webDir: '.output/public'
 };
 

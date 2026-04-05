@@ -1,4 +1,4 @@
-# Calc Notes
+# numori
 
 A free and open-source natural language calculator with notes. Built with Nuxt 4, Vue 3, and CodeMirror.
 
@@ -80,7 +80,7 @@ npm run dev                 # http://localhost:3000
 │   ├── useApi.js                  # API fetch wrapper (app-level)
 │   ├── useApiBase.js              # Base fetch helper (shared with shared page)
 │   ├── useAuth.js                 # Auth state, key derivation, session persistence
-│   ├── useCalcLanguage.js         # Custom CodeMirror language (calcnotes)
+│   ├── useCalcLanguage.js         # Custom CodeMirror language (numori)
 │   ├── useCalculator.js           # Calculator composable (delegates to calculator/)
 │   ├── useCodeHighlight.js        # Syntax highlighting helpers
 │   ├── useDisplayFormatter.js     # Number / result display formatting
@@ -193,7 +193,7 @@ The app is a pure client-side SPA (`ssr: false` in `nuxt.config.ts`). All data i
 ### Key modules
 
 - `useCalculator.js` — The core engine. Parses natural language input and evaluates arithmetic, percentages, unit conversions, currency exchange, date/time, variables, and aggregation (sum/average). This is where most of the logic lives and where most contributions will happen.
-- `useCalcLanguage.js` — Registers a custom CodeMirror language (`calcnotes`) with syntax highlighting for numbers, operators, units, currencies, functions, and comments.
+- `useCalcLanguage.js` — Registers a custom CodeMirror language (`numori`) with syntax highlighting for numbers, operators, units, currencies, functions, and comments.
 - `useNotes.js` — Manages multiple notes with auto-save to IndexedDB via Dexie.js.
 - `useTemplates.js` — Provides predefined templates (budget, cooking, fitness, etc.).
 
@@ -221,7 +221,7 @@ Important implementation details:
 
 ## Security & authentication
 
-Calc Notes supports optional cloud sync with end-to-end encryption (E2E). The design ensures the server never has access to plaintext note content or the user's raw password.
+numori supports optional cloud sync with end-to-end encryption (E2E). The design ensures the server never has access to plaintext note content or the user's raw password.
 
 ### Key derivation
 
@@ -456,8 +456,8 @@ Custom color palette is defined in `tailwind.config.js` with semantic names: `pr
 ## Docker
 
 ```bash
-docker build -t calcnotes .
-docker run -p 3000:3000 calcnotes
+docker build -t numori .
+docker run -p 3000:3000 numori
 ```
 
 The Dockerfile uses a multi-stage build: build stage with full Node.js, production stage with just the `.output` directory running as a non-root user.

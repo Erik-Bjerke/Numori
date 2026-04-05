@@ -104,7 +104,7 @@ export const useFileActions = () => {
       createdAt: n.createdAt,
       updatedAt: n.updatedAt,
     }))
-    downloadFile('calcnotes_backup.json', JSON.stringify(data, null, 2), 'application/json')
+    downloadFile('numori_backup.json', JSON.stringify(data, null, 2), 'application/json')
     return true
   }
 

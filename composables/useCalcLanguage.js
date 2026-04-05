@@ -1,6 +1,6 @@
-// CodeMirror 6 language definition for CalcNotes
+// CodeMirror 6 language definition for numori
 //
-// CalcNotes is a natural-language calculator notepad — not a programming
+// numori is a natural-language calculator notepad — not a programming
 // language. Users write plain-English expressions like "price = $120",
 // "20% of total", "5 km in miles", "today + 3 days". The highlighting
 // should feel like annotating a notebook, not colouring source code.
@@ -26,7 +26,7 @@ import { HighlightStyle, syntaxHighlighting } from '@codemirror/language'
 import { tags as t } from '@lezer/highlight'
 import { EditorView } from '@codemirror/view'
 
-export const calcnotesStreamParser = {
+export const numoriStreamParser = {
   startState() { return { inCodeBlock: false } },
   token(stream, state) {
     // ── Fenced code block tracking ───────────────────────────────
@@ -140,11 +140,11 @@ export const calcnotesStreamParser = {
   },
 }
 
-export const calcnotesLanguage = StreamLanguage.define(calcnotesStreamParser)
+export const numoriLanguage = StreamLanguage.define(numoriStreamParser)
 
 // ─── Palette ────────────────────────────────────────────────────────
 //
-// The philosophy: CalcNotes is a notepad, not an IDE. Numbers and
+// The philosophy: numori is a notepad, not an IDE. Numbers and
 // currency are the stars — they're what the user cares about. Variables
 // blend with the foreground. Operators and conversion words recede.
 // Structure (headers, labels, comments) provides visual rhythm.
@@ -297,5 +297,5 @@ const darkEditorTheme = EditorView.theme({
   '.cm-placeholder': { color: '#5B595C', fontStyle: 'italic' },
 }, { dark: true })
 
-export const calcnotesLightTheme = [lightEditorTheme, syntaxHighlighting(lightHighlight)]
-export const calcnotesDarkTheme = [darkEditorTheme, syntaxHighlighting(darkHighlight)]
+export const numoriLightTheme = [lightEditorTheme, syntaxHighlighting(lightHighlight)]
+export const numoriDarkTheme = [darkEditorTheme, syntaxHighlighting(darkHighlight)]

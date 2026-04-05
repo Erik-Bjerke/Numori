@@ -1,5 +1,5 @@
 /**
- * CalcNotes — Dexie (IndexedDB) local database
+ * numori — Dexie (IndexedDB) local database
  *
  * ═══════════════════════════════════════════════════════════════════════════
  * SCHEMA DESIGN DECISIONS
@@ -56,7 +56,7 @@
 
 import Dexie from 'dexie'
 
-const db = new Dexie('CalcNotesDB')
+const db = new Dexie('numoriDB')
 
 // ── Version 1 — initial schema ──────────────────────────────────────────
 db.version(1).stores({

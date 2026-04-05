@@ -1,4 +1,4 @@
-package calcnotes.theprocedural.com;
+package app.numori.app;
 
 import com.getcapacitor.BridgeActivity;
 

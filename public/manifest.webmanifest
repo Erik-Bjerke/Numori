@@ -1,6 +1,6 @@
 {
-  "name": "Calc Notes",
-  "short_name": "Calc Notes",
+  "name": "numori",
+  "short_name": "numori",
   "description": "A smart notepad that instantly solves math as you type — powered by natural language.",
   "start_url": "/",
   "display": "standalone",

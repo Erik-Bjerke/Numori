@@ -90,7 +90,7 @@ import { StateField, StateEffect, Compartment, EditorSelection } from '@codemirr
 import { foldGutter as cmFoldGutter, indentUnit } from '@codemirror/language'
 import { closeBrackets as cmCloseBrackets } from '@codemirror/autocomplete'
 import { undo as cmUndo, redo as cmRedo, undoDepth, redoDepth } from '@codemirror/commands'
-import { calcnotesLanguage, calcnotesLightTheme, calcnotesDarkTheme } from '~/composables/useCalcLanguage'
+import { numoriLanguage, numoriLightTheme, numoriDarkTheme } from '~/composables/useCalcLanguage'
 import { formatDisplay } from '~/composables/useDisplayFormatter'
 import { highlightCode } from '~/composables/useCodeHighlight'
 
@@ -205,7 +205,7 @@ class InlineResultWidget extends WidgetType {
     const wrapper = document.createElement('span')
     // Padding span
     const pad = document.createElement('span')
-    pad.className = 'calcnotes-inline-pad'
+    pad.className = 'numori-inline-pad'
     pad.textContent = this.padText
     wrapper.appendChild(pad)
     // Result span
@@ -301,7 +301,7 @@ const buildInlineDecorations = (view) => {
     const docLine = doc.line(i + 1)
     const lineLength = docLine.length
     const resultStr = line.result ? `= ${line.result}` : `⚠ ${line.error}`
-    const className = line.result ? 'calcnotes-inline-result' : 'calcnotes-inline-error'
+    const className = line.result ? 'numori-inline-result' : 'numori-inline-error'
 
     let padText
     if (alignRight && targetCol > 0) {
@@ -366,29 +366,29 @@ const applyInlineMarkdown = (text, lineFrom, widgets) => {
   }
 
   const classMap = {
-    bold: 'calcnotes-md-bold',
-    italic: 'calcnotes-md-italic',
-    strike: 'calcnotes-md-strike',
-    code: 'calcnotes-md-inline-code',
+    bold: 'numori-md-bold',
+    italic: 'numori-md-italic',
+    strike: 'numori-md-strike',
+    code: 'numori-md-inline-code',
   }
 
   for (const s of used) {
     if (s.type === 'link') {
       // Hide [
-      widgets.push(Decoration.mark({ class: 'calcnotes-md-hidden-syntax' }).range(lineFrom + s.from, lineFrom + s.from + 1))
+      widgets.push(Decoration.mark({ class: 'numori-md-hidden-syntax' }).range(lineFrom + s.from, lineFrom + s.from + 1))
       // Style link text
       const textEnd = s.from + 1 + s.linkText.length
-      widgets.push(Decoration.mark({ class: 'calcnotes-md-link', attributes: { title: s.linkUrl, 'data-href': s.linkUrl } }).range(lineFrom + s.from + 1, lineFrom + textEnd))
+      widgets.push(Decoration.mark({ class: 'numori-md-link', attributes: { title: s.linkUrl, 'data-href': s.linkUrl } }).range(lineFrom + s.from + 1, lineFrom + textEnd))
       // Hide ](url)
-      widgets.push(Decoration.mark({ class: 'calcnotes-md-hidden-syntax' }).range(lineFrom + textEnd, lineFrom + s.to))
+      widgets.push(Decoration.mark({ class: 'numori-md-hidden-syntax' }).range(lineFrom + textEnd, lineFrom + s.to))
     } else {
       const cls = classMap[s.type]
       // Hide opening syntax
-      widgets.push(Decoration.mark({ class: 'calcnotes-md-hidden-syntax' }).range(lineFrom + s.from, lineFrom + s.from + s.openLen))
+      widgets.push(Decoration.mark({ class: 'numori-md-hidden-syntax' }).range(lineFrom + s.from, lineFrom + s.from + s.openLen))
       // Style content
       widgets.push(Decoration.mark({ class: cls }).range(lineFrom + s.from + s.openLen, lineFrom + s.to - s.closeLen))
       // Hide closing syntax
-      widgets.push(Decoration.mark({ class: 'calcnotes-md-hidden-syntax' }).range(lineFrom + s.to - s.closeLen, lineFrom + s.to))
+      widgets.push(Decoration.mark({ class: 'numori-md-hidden-syntax' }).range(lineFrom + s.to - s.closeLen, lineFrom + s.to))
     }
   }
 }
@@ -401,7 +401,7 @@ class MdCodeBlockFenceWidget extends WidgetType {
   }
   toDOM() {
     const span = document.createElement('span')
-    span.className = 'calcnotes-md-code-fence-label'
+    span.className = 'numori-md-code-fence-label'
     span.textContent = this.lang || ''
     return span
   }
@@ -417,7 +417,7 @@ class MdCodeBlockCopyWidget extends WidgetType {
   }
   toDOM() {
     const btn = document.createElement('button')
-    btn.className = 'calcnotes-md-code-copy-btn'
+    btn.className = 'numori-md-code-copy-btn'
     btn.setAttribute('aria-label', 'Copy code')
     btn.title = 'Copy code'
     btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`
@@ -426,10 +426,10 @@ class MdCodeBlockCopyWidget extends WidgetType {
       e.stopPropagation()
       navigator.clipboard.writeText(this.code).catch(() => {})
       btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
-      btn.classList.add('calcnotes-md-code-copy-btn--copied')
+      btn.classList.add('numori-md-code-copy-btn--copied')
       setTimeout(() => {
         btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`
-        btn.classList.remove('calcnotes-md-code-copy-btn--copied')
+        btn.classList.remove('numori-md-code-copy-btn--copied')
       }, 1500)
     })
     return btn
@@ -490,7 +490,7 @@ const buildMdDecorations = (view) => {
       const spans = highlightCode(code, block.lang)
       codeBlockHighlights.set(block, spans)
     } catch (e) {
-      console.warn('[calcnotes] highlightCode failed:', e)
+      console.warn('[numori] highlightCode failed:', e)
     }
   }
 
@@ -519,7 +519,7 @@ const buildMdDecorations = (view) => {
 
       if (ln === codeBlock.startLn) {
         // Opening fence: hide the ``` and show language label + copy button
-        widgets.push(Decoration.mark({ class: 'calcnotes-md-hidden-syntax' }).range(docLine.from, docLine.to))
+        widgets.push(Decoration.mark({ class: 'numori-md-hidden-syntax' }).range(docLine.from, docLine.to))
         if (codeBlock.lang) {
           widgets.push(Decoration.widget({
             widget: new MdCodeBlockFenceWidget(codeBlock.lang),
@@ -538,16 +538,16 @@ const buildMdDecorations = (view) => {
           side: 1,
         }).range(docLine.from))
         const blockW = (codeBlockMaxLen.get(codeBlock) || 0) + 8
-        widgets.push(Decoration.line({ class: 'calcnotes-md-code-block-line calcnotes-md-code-block-first', attributes: { style: `width: ${blockW}ch` } }).range(docLine.from))
+        widgets.push(Decoration.line({ class: 'numori-md-code-block-line numori-md-code-block-first', attributes: { style: `width: ${blockW}ch` } }).range(docLine.from))
       } else if (ln === codeBlock.endLn && trimmed === '```') {
         // Closing fence: hide it, add bottom border styling
-        widgets.push(Decoration.mark({ class: 'calcnotes-md-hidden-syntax' }).range(docLine.from, docLine.to))
+        widgets.push(Decoration.mark({ class: 'numori-md-hidden-syntax' }).range(docLine.from, docLine.to))
         const blockW = (codeBlockMaxLen.get(codeBlock) || 0) + 8
-        widgets.push(Decoration.line({ class: 'calcnotes-md-code-block-line calcnotes-md-code-block-last', attributes: { style: `width: ${blockW}ch` } }).range(docLine.from))
+        widgets.push(Decoration.line({ class: 'numori-md-code-block-line numori-md-code-block-last', attributes: { style: `width: ${blockW}ch` } }).range(docLine.from))
       } else {
         // Content line inside code block — apply syntax highlighting
         const blockW = (codeBlockMaxLen.get(codeBlock) || 0) + 8
-        widgets.push(Decoration.line({ class: 'calcnotes-md-code-block-line', attributes: { style: `width: ${blockW}ch` } }).range(docLine.from))
+        widgets.push(Decoration.line({ class: 'numori-md-code-block-line', attributes: { style: `width: ${blockW}ch` } }).range(docLine.from))
 
         const spans = codeBlockHighlights.get(codeBlock)
         if (spans) {
@@ -568,7 +568,7 @@ const buildMdDecorations = (view) => {
             const to = Math.min(lineLen, spanEnd - charOffset)
             if (from >= to) continue
             widgets.push(Decoration.mark({
-              class: 'calcnotes-hl ' + span.className
+              class: 'numori-hl ' + span.className
             }).range(docLine.from + from, docLine.from + to))
           }
         }
@@ -583,8 +583,8 @@ const buildMdDecorations = (view) => {
     if (headerMatch) {
       const hashes = headerMatch[1]
       const prefixLen = text.indexOf(hashes) + hashes.length + 1
-      widgets.push(Decoration.mark({ class: 'calcnotes-md-hidden-syntax' }).range(docLine.from, docLine.from + prefixLen))
-      widgets.push(Decoration.mark({ class: `calcnotes-md-h${hashes.length}` }).range(docLine.from + prefixLen, docLine.to))
+      widgets.push(Decoration.mark({ class: 'numori-md-hidden-syntax' }).range(docLine.from, docLine.from + prefixLen))
+      widgets.push(Decoration.mark({ class: `numori-md-h${hashes.length}` }).range(docLine.from + prefixLen, docLine.to))
       applyInlineMarkdown(text.substring(prefixLen), docLine.from + prefixLen, widgets)
       continue
     }
@@ -595,8 +595,8 @@ const buildMdDecorations = (view) => {
       const afterSlash = text.substring(slashIdx + 2)
       const spaceAfter = afterSlash.startsWith(' ') ? 1 : 0
       const prefixEnd = slashIdx + 2 + spaceAfter
-      widgets.push(Decoration.mark({ class: 'calcnotes-md-hidden-syntax' }).range(docLine.from, docLine.from + prefixEnd))
-      widgets.push(Decoration.mark({ class: 'calcnotes-md-comment' }).range(docLine.from + prefixEnd, docLine.to))
+      widgets.push(Decoration.mark({ class: 'numori-md-hidden-syntax' }).range(docLine.from, docLine.from + prefixEnd))
+      widgets.push(Decoration.mark({ class: 'numori-md-comment' }).range(docLine.from + prefixEnd, docLine.to))
       continue
     }
 
@@ -606,7 +606,7 @@ const buildMdDecorations = (view) => {
       const indent = checkMatch[1].length
       const checked = checkMatch[2] === 'x'
       const prefixEnd = indent + (checked ? 6 : 6) // "- [x] " or "- [ ] " = 6 chars
-      widgets.push(Decoration.mark({ class: 'calcnotes-md-hidden-syntax' }).range(docLine.from, docLine.from + prefixEnd))
+      widgets.push(Decoration.mark({ class: 'numori-md-hidden-syntax' }).range(docLine.from, docLine.from + prefixEnd))
       const nestLevel = Math.floor(indent / 2)
       const padStr = '\u2003'.repeat(nestLevel) // em-space per nesting level
       // Top-level: square checkboxes, nested: circle checkboxes
@@ -616,13 +616,13 @@ const buildMdDecorations = (view) => {
       } else {
         icon = checked ? '\u25C9\u2009' : '\u25CB\u2009' // ◉ / ○
       }
-      const iconClass = nestLevel === 0 ? 'calcnotes-md-check-icon' : 'calcnotes-md-check-icon-nested'
+      const iconClass = nestLevel === 0 ? 'numori-md-check-icon' : 'numori-md-check-icon-nested'
       widgets.push(Decoration.widget({
         widget: new MdPrefixWidget(padStr + icon, iconClass, ln),
         side: -1,
       }).range(docLine.from + prefixEnd))
       widgets.push(Decoration.mark({
-        class: checked ? 'calcnotes-md-checked' : 'calcnotes-md-unchecked'
+        class: checked ? 'numori-md-checked' : 'numori-md-unchecked'
       }).range(docLine.from + prefixEnd, docLine.to))
       applyInlineMarkdown(text.substring(prefixEnd), docLine.from + prefixEnd, widgets)
       continue
@@ -633,16 +633,16 @@ const buildMdDecorations = (view) => {
     if (listMatch) {
       const indent = listMatch[1].length
       const prefixEnd = indent + 2 // "- " = 2 chars
-      widgets.push(Decoration.mark({ class: 'calcnotes-md-hidden-syntax' }).range(docLine.from, docLine.from + prefixEnd))
+      widgets.push(Decoration.mark({ class: 'numori-md-hidden-syntax' }).range(docLine.from, docLine.from + prefixEnd))
       const nestLevel = Math.floor(indent / 2)
       const bullets = ['\u2022', '\u25E6', '\u25AA', '\u25AB'] // ●, ◦, ▪, ▫
       const bullet = bullets[Math.min(nestLevel, bullets.length - 1)]
       const padStr = '\u2003'.repeat(nestLevel) // em-space per nesting level
       widgets.push(Decoration.widget({
-        widget: new MdPrefixWidget(padStr + bullet + '\u2009', 'calcnotes-md-bullet'),
+        widget: new MdPrefixWidget(padStr + bullet + '\u2009', 'numori-md-bullet'),
         side: -1,
       }).range(docLine.from + prefixEnd))
-      widgets.push(Decoration.mark({ class: 'calcnotes-md-list-item' }).range(docLine.from + prefixEnd, docLine.to))
+      widgets.push(Decoration.mark({ class: 'numori-md-list-item' }).range(docLine.from + prefixEnd, docLine.to))
       applyInlineMarkdown(text.substring(prefixEnd), docLine.from + prefixEnd, widgets)
       continue
     }
@@ -654,12 +654,12 @@ const buildMdDecorations = (view) => {
       const afterGt = text.substring(gtIdx + 1)
       const spaceAfterGt = afterGt.startsWith(' ') ? 1 : 0
       const prefixEnd = gtIdx + 1 + spaceAfterGt
-      widgets.push(Decoration.mark({ class: 'calcnotes-md-hidden-syntax' }).range(docLine.from, docLine.from + prefixEnd))
+      widgets.push(Decoration.mark({ class: 'numori-md-hidden-syntax' }).range(docLine.from, docLine.from + prefixEnd))
       widgets.push(Decoration.widget({
-        widget: new MdPrefixWidget('\u2503\u2009', 'calcnotes-md-quote-bar'),
+        widget: new MdPrefixWidget('\u2503\u2009', 'numori-md-quote-bar'),
         side: -1,
       }).range(docLine.from + prefixEnd))
-      widgets.push(Decoration.mark({ class: 'calcnotes-md-quote' }).range(docLine.from + prefixEnd, docLine.to))
+      widgets.push(Decoration.mark({ class: 'numori-md-quote' }).range(docLine.from + prefixEnd, docLine.to))
       continue
     }
 
@@ -670,7 +670,7 @@ const buildMdDecorations = (view) => {
   try {
     return Decoration.set(widgets, true)
   } catch (e) {
-    console.warn('[calcnotes] Decoration.set failed, falling back to sorted:', e.message)
+    console.warn('[numori] Decoration.set failed, falling back to sorted:', e.message)
     widgets.sort((a, b) => a.from - b.from || a.value.startSide - b.value.startSide)
     try {
       return Decoration.set(widgets)
@@ -745,7 +745,7 @@ const cmBasicSetup = computed(() => ({
 
 // --- Theme mode for NuxtCodeMirror ---
 // Pass "none" so the built-in oneDark / defaultLight themes are skipped;
-// our own calcnotes themes (in extensions via themeCompartment) handle everything.
+// our own numori themes (in extensions via themeCompartment) handle everything.
 const cmThemeMode = 'none'
 
 // --- Helpers for dynamic compartment values ---
@@ -796,8 +796,8 @@ const buildScrollPastEnd = () =>
 
 // --- Extensions array ---
 const cmExtensions = computed(() => [
-  calcnotesLanguage,
-  themeCompartment.of(colorMode.value === 'dark' ? calcnotesDarkTheme : calcnotesLightTheme),
+  numoriLanguage,
+  themeCompartment.of(colorMode.value === 'dark' ? numoriDarkTheme : numoriLightTheme),
   fontThemeCompartment.of(buildFontTheme()),
   lineNumbersCompartment.of(buildLineNumbers()),
   foldGutterCompartment.of(buildFoldGutter()),
@@ -882,7 +882,7 @@ const cmExtensions = computed(() => [
 const handleResultClick = (event, view) => {
   if (!props.showInline || !autoCopyResult.value) return false
   const el = event.target
-  if (!el || !el.classList.contains('calcnotes-inline-result')) return false
+  if (!el || !el.classList.contains('numori-inline-result')) return false
 
   const pos = view.posAtCoords({ x: event.clientX, y: event.clientY })
   if (pos == null) return false
@@ -902,7 +902,7 @@ const handleResultTouch = (event, view) => {
   if (!touch) return false
 
   const el = document.elementFromPoint(touch.clientX, touch.clientY)
-  if (!el || !el.classList.contains('calcnotes-inline-result')) return false
+  if (!el || !el.classList.contains('numori-inline-result')) return false
 
   const pos = view.posAtCoords({ x: touch.clientX, y: touch.clientY })
   if (pos == null) return false
@@ -958,7 +958,7 @@ const isMac = import.meta.client && /Mac|iPhone|iPad|iPod/.test(navigator.platfo
 let longPressTimer = null
 let longPressTriggered = false
 
-const findLinkEl = (el) => el?.closest?.('.calcnotes-md-link') || (el?.classList?.contains('calcnotes-md-link') ? el : null)
+const findLinkEl = (el) => el?.closest?.('.numori-md-link') || (el?.classList?.contains('numori-md-link') ? el : null)
 
 const triggerLinkPopup = (linkEl, view, x, y) => {
   const url = linkEl.getAttribute('data-href')
@@ -983,7 +983,7 @@ const handleMdClick = (event, view) => {
   }
 
   // Checkbox click
-  if (el?.classList?.contains('calcnotes-md-check-icon') || el?.classList?.contains('calcnotes-md-check-icon-nested')) {
+  if (el?.classList?.contains('numori-md-check-icon') || el?.classList?.contains('numori-md-check-icon-nested')) {
     if (!props.editable) return false
     const lineNum = parseInt(el.dataset?.line, 10)
     if (!lineNum || lineNum < 1) return false
@@ -1081,7 +1081,7 @@ const handleMdTouchEnd = (event, view) => {
   const el = document.elementFromPoint(touch.clientX, touch.clientY)
 
   // Checkbox touch
-  if (el?.classList?.contains('calcnotes-md-check-icon') || el?.classList?.contains('calcnotes-md-check-icon-nested')) {
+  if (el?.classList?.contains('numori-md-check-icon') || el?.classList?.contains('numori-md-check-icon-nested')) {
     if (!props.editable) return false
     const lineNum = parseInt(el.dataset?.line, 10)
     if (!lineNum || lineNum < 1) return false
@@ -1182,7 +1182,7 @@ watch(() => colorMode.value, () => {
   if (!editorView) return
   editorView.dispatch({
     effects: themeCompartment.reconfigure(
-      colorMode.value === 'dark' ? calcnotesDarkTheme : calcnotesLightTheme
+      colorMode.value === 'dark' ? numoriDarkTheme : numoriLightTheme
     )
   })
 })
@@ -1327,71 +1327,71 @@ const injectInlineStyles = () => {
   if (inlineStylesInjected) return
   inlineStylesInjected = true
   // Remove any stale style element from HMR
-  const existing = document.getElementById('calcnotes-inline-styles')
+  const existing = document.getElementById('numori-inline-styles')
   if (existing) existing.remove()
   const style = document.createElement('style')
-  style.id = 'calcnotes-inline-styles'
+  style.id = 'numori-inline-styles'
   style.textContent = `
     .cm-scroller { overscroll-behavior: none; -webkit-overflow-scrolling: auto; }
-    .calcnotes-inline-result { color: #CC2D56; font-style: italic; opacity: 0.75; cursor: pointer; }
-    .cm-theme-dark .calcnotes-inline-result,
-    .dark .calcnotes-inline-result { color: #FF6188; opacity: 0.7; }
-    .calcnotes-inline-error { color: #dc2626; font-style: italic; opacity: 0.65; cursor: default; }
-    .cm-theme-dark .calcnotes-inline-error,
-    .dark .calcnotes-inline-error { color: #FC9867; }
-    .calcnotes-inline-pad { cursor: default; }
-    .calcnotes-md-hidden-syntax { font-size: 0 !important; letter-spacing: 0 !important; width: 0 !important; display: inline-block; overflow: hidden; }
-    .calcnotes-md-h1 { font-size: 1.7em !important; font-weight: 700 !important; }
-    .calcnotes-md-h2 { font-size: 1.4em !important; font-weight: 600 !important; }
-    .calcnotes-md-h3 { font-size: 1.2em !important; font-weight: 600 !important; }
-    .calcnotes-md-h4 { font-size: 1.1em !important; font-weight: 600 !important; }
-    .calcnotes-md-h5 { font-size: 1.05em !important; font-weight: 600 !important; }
-    .calcnotes-md-h6 { font-size: 1em !important; font-weight: 600 !important; }
-    .calcnotes-md-comment { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; font-style: normal !important; color: #939293 !important; }
-    .cm-theme-dark .calcnotes-md-comment,
-    .dark .calcnotes-md-comment { color: #727072 !important; }
-    .calcnotes-md-list-item { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; }
-    .calcnotes-md-bullet { opacity: 0.6; }
-    .calcnotes-md-checked { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; text-decoration: line-through !important; opacity: 0.6 !important; }
-    .calcnotes-md-unchecked { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; }
-    .calcnotes-md-check-icon { font-style: normal !important; font-size: 1.1em !important; vertical-align: baseline !important; cursor: pointer !important; }
-    .calcnotes-md-check-icon-nested { font-style: normal !important; font-size: 1.05em !important; vertical-align: baseline !important; cursor: pointer !important; }
-    .calcnotes-md-quote { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; font-style: italic !important; opacity: 0.85 !important; }
-    .calcnotes-md-quote-bar { color: #FF6188 !important; font-style: normal !important; }
-    .cm-theme-dark .calcnotes-md-quote-bar,
-    .dark .calcnotes-md-quote-bar { color: #FF6188 !important; }
-    .calcnotes-md-bold { font-weight: 700 !important; }
-    .calcnotes-md-italic { font-style: italic !important; }
-    .calcnotes-md-strike { text-decoration: line-through !important; opacity: 0.6 !important; }
-    .calcnotes-md-inline-code {
+    .numori-inline-result { color: #CC2D56; font-style: italic; opacity: 0.75; cursor: pointer; }
+    .cm-theme-dark .numori-inline-result,
+    .dark .numori-inline-result { color: #FF6188; opacity: 0.7; }
+    .numori-inline-error { color: #dc2626; font-style: italic; opacity: 0.65; cursor: default; }
+    .cm-theme-dark .numori-inline-error,
+    .dark .numori-inline-error { color: #FC9867; }
+    .numori-inline-pad { cursor: default; }
+    .numori-md-hidden-syntax { font-size: 0 !important; letter-spacing: 0 !important; width: 0 !important; display: inline-block; overflow: hidden; }
+    .numori-md-h1 { font-size: 1.7em !important; font-weight: 700 !important; }
+    .numori-md-h2 { font-size: 1.4em !important; font-weight: 600 !important; }
+    .numori-md-h3 { font-size: 1.2em !important; font-weight: 600 !important; }
+    .numori-md-h4 { font-size: 1.1em !important; font-weight: 600 !important; }
+    .numori-md-h5 { font-size: 1.05em !important; font-weight: 600 !important; }
+    .numori-md-h6 { font-size: 1em !important; font-weight: 600 !important; }
+    .numori-md-comment { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; font-style: normal !important; color: #939293 !important; }
+    .cm-theme-dark .numori-md-comment,
+    .dark .numori-md-comment { color: #727072 !important; }
+    .numori-md-list-item { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; }
+    .numori-md-bullet { opacity: 0.6; }
+    .numori-md-checked { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; text-decoration: line-through !important; opacity: 0.6 !important; }
+    .numori-md-unchecked { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; }
+    .numori-md-check-icon { font-style: normal !important; font-size: 1.1em !important; vertical-align: baseline !important; cursor: pointer !important; }
+    .numori-md-check-icon-nested { font-style: normal !important; font-size: 1.05em !important; vertical-align: baseline !important; cursor: pointer !important; }
+    .numori-md-quote { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; font-style: italic !important; opacity: 0.85 !important; }
+    .numori-md-quote-bar { color: #FF6188 !important; font-style: normal !important; }
+    .cm-theme-dark .numori-md-quote-bar,
+    .dark .numori-md-quote-bar { color: #FF6188 !important; }
+    .numori-md-bold { font-weight: 700 !important; }
+    .numori-md-italic { font-style: italic !important; }
+    .numori-md-strike { text-decoration: line-through !important; opacity: 0.6 !important; }
+    .numori-md-inline-code {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
       background: rgba(135,131,120,0.15) !important; border-radius: 3px !important;
       padding: 1px 4px !important; font-size: 0.9em !important;
     }
-    .cm-theme-dark .calcnotes-md-inline-code,
-    .dark .calcnotes-md-inline-code { background: rgba(255,255,255,0.1) !important; }
-    .calcnotes-md-link {
+    .cm-theme-dark .numori-md-inline-code,
+    .dark .numori-md-inline-code { background: rgba(255,255,255,0.1) !important; }
+    .numori-md-link {
       color: #2563eb !important; text-decoration: underline !important;
       text-underline-offset: 2px !important; cursor: pointer !important;
     }
-    .cm-theme-dark .calcnotes-md-link,
-    .dark .calcnotes-md-link { color: #60a5fa !important; }
-    .calcnotes-md-code-block-line {
+    .cm-theme-dark .numori-md-link,
+    .dark .numori-md-link { color: #60a5fa !important; }
+    .numori-md-code-block-line {
       background: rgba(135,131,120,0.1) !important;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
       padding-left: 12px !important;
       padding-right: 12px !important;
       margin-left: 8px !important;
     }
-    .cm-theme-dark .calcnotes-md-code-block-line,
-    .dark .calcnotes-md-code-block-line { background: rgba(255,255,255,0.06) !important; }
-    .calcnotes-md-code-block-first { border-radius: 6px 6px 0 0 !important; padding-top: 4px !important; }
-    .calcnotes-md-code-block-last { border-radius: 0 0 6px 6px !important; }
-    .calcnotes-md-code-fence-label {
+    .cm-theme-dark .numori-md-code-block-line,
+    .dark .numori-md-code-block-line { background: rgba(255,255,255,0.06) !important; }
+    .numori-md-code-block-first { border-radius: 6px 6px 0 0 !important; padding-top: 4px !important; }
+    .numori-md-code-block-last { border-radius: 0 0 6px 6px !important; }
+    .numori-md-code-fence-label {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
       font-size: 0.75em !important; opacity: 0.5 !important; font-style: italic !important;
     }
-    .calcnotes-md-code-copy-btn {
+    .numori-md-code-copy-btn {
       float: right; margin-right: 0px; margin-top: 8px;
       display: inline-flex; align-items: center; justify-content: center;
       width: 28px; height: 28px; border: none; border-radius: 4px; cursor: pointer;
@@ -1399,159 +1399,159 @@ const injectInlineStyles = () => {
       opacity: 0.6; transition: opacity 0.15s ease, background 0.15s ease;
       -webkit-tap-highlight-color: transparent; touch-action: manipulation;
     }
-    .calcnotes-md-code-copy-btn:hover,
-    .calcnotes-md-code-copy-btn:focus { opacity: 1; background: rgba(135,131,120,0.3); }
-    .cm-theme-dark .calcnotes-md-code-copy-btn,
-    .dark .calcnotes-md-code-copy-btn { background: rgba(255,255,255,0.1); color: #9ca3af; }
-    .cm-theme-dark .calcnotes-md-code-copy-btn:hover,
-    .dark .calcnotes-md-code-copy-btn:hover { background: rgba(255,255,255,0.2); }
-    .calcnotes-md-code-copy-btn--copied { opacity: 1 !important; color: #22c55e !important; }
-    /* highlight.js syntax colors — light (aligned with calcnotes palette) */
-    .calcnotes-hl.hljs-keyword,
-    .calcnotes-hl.hljs-selector-tag,
-    .calcnotes-hl.hljs-built_in { color: #CC2D56 !important; }
-    .calcnotes-hl.hljs-string,
-    .calcnotes-hl.hljs-addition { color: #4D8C2A !important; }
-    .calcnotes-hl.hljs-comment,
-    .calcnotes-hl.hljs-quote { color: #939293 !important; font-style: italic !important; }
-    .calcnotes-hl.hljs-number,
-    .calcnotes-hl.hljs-literal { color: #A68A1B !important; }
-    .calcnotes-hl.hljs-title,
-    .calcnotes-hl.hljs-title.class_,
-    .calcnotes-hl.hljs-title.function_ { color: #7B5FC4 !important; }
-    .calcnotes-hl.hljs-type,
-    .calcnotes-hl.hljs-template-variable { color: #1A8A9A !important; }
-    .calcnotes-hl.hljs-variable,
-    .calcnotes-hl.hljs-params { color: #2D2A2E !important; }
-    .calcnotes-hl.hljs-regexp { color: #C4621A !important; }
-    .calcnotes-hl.hljs-symbol,
-    .calcnotes-hl.hljs-bullet { color: #7B5FC4 !important; }
-    .calcnotes-hl.hljs-meta,
-    .calcnotes-hl.hljs-meta .hljs-keyword { color: #C4621A !important; }
-    .calcnotes-hl.hljs-deletion { color: #CC2D56 !important; background: rgba(204,45,86,0.08) !important; }
-    .calcnotes-hl.hljs-section { color: #2D2A2E !important; font-weight: 700 !important; }
-    .calcnotes-hl.hljs-name,
-    .calcnotes-hl.hljs-tag { color: #CC2D56 !important; }
-    .calcnotes-hl.hljs-attr,
-    .calcnotes-hl.hljs-attribute { color: #C4621A !important; }
-    .calcnotes-hl.hljs-selector-class,
-    .calcnotes-hl.hljs-selector-id { color: #7B5FC4 !important; }
-    .calcnotes-hl.hljs-property { color: #1A8A9A !important; }
-    .calcnotes-hl.hljs-operator { color: #939293 !important; }
-    .calcnotes-hl.hljs-punctuation { color: #727072 !important; }
-    .calcnotes-hl.hljs-subst { color: #2D2A2E !important; }
-    /* highlight.js syntax colors — dark (aligned with calcnotes palette) */
-    .cm-theme-dark .calcnotes-hl.hljs-keyword,
-    .dark .calcnotes-hl.hljs-keyword,
-    .cm-theme-dark .calcnotes-hl.hljs-selector-tag,
-    .dark .calcnotes-hl.hljs-selector-tag,
-    .cm-theme-dark .calcnotes-hl.hljs-built_in,
-    .dark .calcnotes-hl.hljs-built_in { color: #FF6188 !important; }
-    .cm-theme-dark .calcnotes-hl.hljs-string,
-    .dark .calcnotes-hl.hljs-string,
-    .cm-theme-dark .calcnotes-hl.hljs-addition,
-    .dark .calcnotes-hl.hljs-addition { color: #A9DC76 !important; }
-    .cm-theme-dark .calcnotes-hl.hljs-comment,
-    .dark .calcnotes-hl.hljs-comment,
-    .cm-theme-dark .calcnotes-hl.hljs-quote,
-    .dark .calcnotes-hl.hljs-quote { color: #727072 !important; font-style: italic !important; }
-    .cm-theme-dark .calcnotes-hl.hljs-number,
-    .dark .calcnotes-hl.hljs-number,
-    .cm-theme-dark .calcnotes-hl.hljs-literal,
-    .dark .calcnotes-hl.hljs-literal { color: #FFD866 !important; }
-    .cm-theme-dark .calcnotes-hl.hljs-title,
-    .dark .calcnotes-hl.hljs-title,
-    .cm-theme-dark .calcnotes-hl.hljs-title.class_,
-    .dark .calcnotes-hl.hljs-title.class_,
-    .cm-theme-dark .calcnotes-hl.hljs-title.function_,
-    .dark .calcnotes-hl.hljs-title.function_ { color: #AB9DF2 !important; }
-    .cm-theme-dark .calcnotes-hl.hljs-type,
-    .dark .calcnotes-hl.hljs-type,
-    .cm-theme-dark .calcnotes-hl.hljs-template-variable,
-    .dark .calcnotes-hl.hljs-template-variable { color: #78DCE8 !important; }
-    .cm-theme-dark .calcnotes-hl.hljs-variable,
-    .dark .calcnotes-hl.hljs-variable,
-    .cm-theme-dark .calcnotes-hl.hljs-params,
-    .dark .calcnotes-hl.hljs-params { color: #FCFCFA !important; }
-    .cm-theme-dark .calcnotes-hl.hljs-regexp,
-    .dark .calcnotes-hl.hljs-regexp { color: #FC9867 !important; }
-    .cm-theme-dark .calcnotes-hl.hljs-symbol,
-    .dark .calcnotes-hl.hljs-symbol,
-    .cm-theme-dark .calcnotes-hl.hljs-bullet,
-    .dark .calcnotes-hl.hljs-bullet { color: #AB9DF2 !important; }
-    .cm-theme-dark .calcnotes-hl.hljs-meta,
-    .dark .calcnotes-hl.hljs-meta { color: #FC9867 !important; }
-    .cm-theme-dark .calcnotes-hl.hljs-deletion,
-    .dark .calcnotes-hl.hljs-deletion { color: #FF6188 !important; background: rgba(255,97,136,0.1) !important; }
-    .cm-theme-dark .calcnotes-hl.hljs-section,
-    .dark .calcnotes-hl.hljs-section { color: #FCFCFA !important; font-weight: 700 !important; }
-    .cm-theme-dark .calcnotes-hl.hljs-name,
-    .dark .calcnotes-hl.hljs-name,
-    .cm-theme-dark .calcnotes-hl.hljs-tag,
-    .dark .calcnotes-hl.hljs-tag { color: #FF6188 !important; }
-    .cm-theme-dark .calcnotes-hl.hljs-attr,
-    .dark .calcnotes-hl.hljs-attr,
-    .cm-theme-dark .calcnotes-hl.hljs-attribute,
-    .dark .calcnotes-hl.hljs-attribute { color: #FC9867 !important; }
-    .cm-theme-dark .calcnotes-hl.hljs-selector-class,
-    .dark .calcnotes-hl.hljs-selector-class,
-    .cm-theme-dark .calcnotes-hl.hljs-selector-id,
-    .dark .calcnotes-hl.hljs-selector-id { color: #AB9DF2 !important; }
-    .cm-theme-dark .calcnotes-hl.hljs-property,
-    .dark .calcnotes-hl.hljs-property { color: #78DCE8 !important; }
-    .cm-theme-dark .calcnotes-hl.hljs-operator,
-    .dark .calcnotes-hl.hljs-operator { color: #727072 !important; }
-    .cm-theme-dark .calcnotes-hl.hljs-punctuation,
-    .dark .calcnotes-hl.hljs-punctuation { color: #939293 !important; }
-    .cm-theme-dark .calcnotes-hl.hljs-subst,
-    .dark .calcnotes-hl.hljs-subst { color: #FCFCFA !important; }
-    .calcnotes-inline-copied-toast {
+    .numori-md-code-copy-btn:hover,
+    .numori-md-code-copy-btn:focus { opacity: 1; background: rgba(135,131,120,0.3); }
+    .cm-theme-dark .numori-md-code-copy-btn,
+    .dark .numori-md-code-copy-btn { background: rgba(255,255,255,0.1); color: #9ca3af; }
+    .cm-theme-dark .numori-md-code-copy-btn:hover,
+    .dark .numori-md-code-copy-btn:hover { background: rgba(255,255,255,0.2); }
+    .numori-md-code-copy-btn--copied { opacity: 1 !important; color: #22c55e !important; }
+    /* highlight.js syntax colors — light (aligned with numori palette) */
+    .numori-hl.hljs-keyword,
+    .numori-hl.hljs-selector-tag,
+    .numori-hl.hljs-built_in { color: #CC2D56 !important; }
+    .numori-hl.hljs-string,
+    .numori-hl.hljs-addition { color: #4D8C2A !important; }
+    .numori-hl.hljs-comment,
+    .numori-hl.hljs-quote { color: #939293 !important; font-style: italic !important; }
+    .numori-hl.hljs-number,
+    .numori-hl.hljs-literal { color: #A68A1B !important; }
+    .numori-hl.hljs-title,
+    .numori-hl.hljs-title.class_,
+    .numori-hl.hljs-title.function_ { color: #7B5FC4 !important; }
+    .numori-hl.hljs-type,
+    .numori-hl.hljs-template-variable { color: #1A8A9A !important; }
+    .numori-hl.hljs-variable,
+    .numori-hl.hljs-params { color: #2D2A2E !important; }
+    .numori-hl.hljs-regexp { color: #C4621A !important; }
+    .numori-hl.hljs-symbol,
+    .numori-hl.hljs-bullet { color: #7B5FC4 !important; }
+    .numori-hl.hljs-meta,
+    .numori-hl.hljs-meta .hljs-keyword { color: #C4621A !important; }
+    .numori-hl.hljs-deletion { color: #CC2D56 !important; background: rgba(204,45,86,0.08) !important; }
+    .numori-hl.hljs-section { color: #2D2A2E !important; font-weight: 700 !important; }
+    .numori-hl.hljs-name,
+    .numori-hl.hljs-tag { color: #CC2D56 !important; }
+    .numori-hl.hljs-attr,
+    .numori-hl.hljs-attribute { color: #C4621A !important; }
+    .numori-hl.hljs-selector-class,
+    .numori-hl.hljs-selector-id { color: #7B5FC4 !important; }
+    .numori-hl.hljs-property { color: #1A8A9A !important; }
+    .numori-hl.hljs-operator { color: #939293 !important; }
+    .numori-hl.hljs-punctuation { color: #727072 !important; }
+    .numori-hl.hljs-subst { color: #2D2A2E !important; }
+    /* highlight.js syntax colors — dark (aligned with numori palette) */
+    .cm-theme-dark .numori-hl.hljs-keyword,
+    .dark .numori-hl.hljs-keyword,
+    .cm-theme-dark .numori-hl.hljs-selector-tag,
+    .dark .numori-hl.hljs-selector-tag,
+    .cm-theme-dark .numori-hl.hljs-built_in,
+    .dark .numori-hl.hljs-built_in { color: #FF6188 !important; }
+    .cm-theme-dark .numori-hl.hljs-string,
+    .dark .numori-hl.hljs-string,
+    .cm-theme-dark .numori-hl.hljs-addition,
+    .dark .numori-hl.hljs-addition { color: #A9DC76 !important; }
+    .cm-theme-dark .numori-hl.hljs-comment,
+    .dark .numori-hl.hljs-comment,
+    .cm-theme-dark .numori-hl.hljs-quote,
+    .dark .numori-hl.hljs-quote { color: #727072 !important; font-style: italic !important; }
+    .cm-theme-dark .numori-hl.hljs-number,
+    .dark .numori-hl.hljs-number,
+    .cm-theme-dark .numori-hl.hljs-literal,
+    .dark .numori-hl.hljs-literal { color: #FFD866 !important; }
+    .cm-theme-dark .numori-hl.hljs-title,
+    .dark .numori-hl.hljs-title,
+    .cm-theme-dark .numori-hl.hljs-title.class_,
+    .dark .numori-hl.hljs-title.class_,
+    .cm-theme-dark .numori-hl.hljs-title.function_,
+    .dark .numori-hl.hljs-title.function_ { color: #AB9DF2 !important; }
+    .cm-theme-dark .numori-hl.hljs-type,
+    .dark .numori-hl.hljs-type,
+    .cm-theme-dark .numori-hl.hljs-template-variable,
+    .dark .numori-hl.hljs-template-variable { color: #78DCE8 !important; }
+    .cm-theme-dark .numori-hl.hljs-variable,
+    .dark .numori-hl.hljs-variable,
+    .cm-theme-dark .numori-hl.hljs-params,
+    .dark .numori-hl.hljs-params { color: #FCFCFA !important; }
+    .cm-theme-dark .numori-hl.hljs-regexp,
+    .dark .numori-hl.hljs-regexp { color: #FC9867 !important; }
+    .cm-theme-dark .numori-hl.hljs-symbol,
+    .dark .numori-hl.hljs-symbol,
+    .cm-theme-dark .numori-hl.hljs-bullet,
+    .dark .numori-hl.hljs-bullet { color: #AB9DF2 !important; }
+    .cm-theme-dark .numori-hl.hljs-meta,
+    .dark .numori-hl.hljs-meta { color: #FC9867 !important; }
+    .cm-theme-dark .numori-hl.hljs-deletion,
+    .dark .numori-hl.hljs-deletion { color: #FF6188 !important; background: rgba(255,97,136,0.1) !important; }
+    .cm-theme-dark .numori-hl.hljs-section,
+    .dark .numori-hl.hljs-section { color: #FCFCFA !important; font-weight: 700 !important; }
+    .cm-theme-dark .numori-hl.hljs-name,
+    .dark .numori-hl.hljs-name,
+    .cm-theme-dark .numori-hl.hljs-tag,
+    .dark .numori-hl.hljs-tag { color: #FF6188 !important; }
+    .cm-theme-dark .numori-hl.hljs-attr,
+    .dark .numori-hl.hljs-attr,
+    .cm-theme-dark .numori-hl.hljs-attribute,
+    .dark .numori-hl.hljs-attribute { color: #FC9867 !important; }
+    .cm-theme-dark .numori-hl.hljs-selector-class,
+    .dark .numori-hl.hljs-selector-class,
+    .cm-theme-dark .numori-hl.hljs-selector-id,
+    .dark .numori-hl.hljs-selector-id { color: #AB9DF2 !important; }
+    .cm-theme-dark .numori-hl.hljs-property,
+    .dark .numori-hl.hljs-property { color: #78DCE8 !important; }
+    .cm-theme-dark .numori-hl.hljs-operator,
+    .dark .numori-hl.hljs-operator { color: #727072 !important; }
+    .cm-theme-dark .numori-hl.hljs-punctuation,
+    .dark .numori-hl.hljs-punctuation { color: #939293 !important; }
+    .cm-theme-dark .numori-hl.hljs-subst,
+    .dark .numori-hl.hljs-subst { color: #FCFCFA !important; }
+    .numori-inline-copied-toast {
       position: absolute; pointer-events: none; z-index: 100;
       padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 500;
       color: #4D8C2A; background: #F0FDF4; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
       white-space: nowrap;
     }
-    .dark .calcnotes-inline-copied-toast { color: #A9DC76; background: #221F22; }
-    .calcnotes-toast-float-up { animation: calcnotes-float-up 0.8s ease-out forwards; }
-    @keyframes calcnotes-float-up {
+    .dark .numori-inline-copied-toast { color: #A9DC76; background: #221F22; }
+    .numori-toast-float-up { animation: numori-float-up 0.8s ease-out forwards; }
+    @keyframes numori-float-up {
       0% { opacity: 1; transform: translateY(0); }
       70% { opacity: 1; transform: translateY(-4px); }
       100% { opacity: 0; transform: translateY(-8px); }
     }
-    .calcnotes-toast-fade { animation: calcnotes-fade 0.8s ease-in-out forwards; }
-    @keyframes calcnotes-fade {
+    .numori-toast-fade { animation: numori-fade 0.8s ease-in-out forwards; }
+    @keyframes numori-fade {
       0% { opacity: 0; } 15% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; }
     }
-    .calcnotes-toast-scale-pop { animation: calcnotes-scale-pop 0.8s ease-out forwards; }
-    @keyframes calcnotes-scale-pop {
+    .numori-toast-scale-pop { animation: numori-scale-pop 0.8s ease-out forwards; }
+    @keyframes numori-scale-pop {
       0% { opacity: 0; transform: scale(0.5); }
       20% { opacity: 1; transform: scale(1.15); }
       35% { transform: scale(1); } 70% { opacity: 1; }
       100% { opacity: 0; transform: scale(0.9); }
     }
-    .calcnotes-toast-slide-right { animation: calcnotes-slide-right 0.8s ease-out forwards; }
-    @keyframes calcnotes-slide-right {
+    .numori-toast-slide-right { animation: numori-slide-right 0.8s ease-out forwards; }
+    @keyframes numori-slide-right {
       0% { opacity: 0; transform: translateX(-12px); }
       20% { opacity: 1; transform: translateX(0); }
       70% { opacity: 1; }
       100% { opacity: 0; transform: translateX(8px); }
     }
-    .calcnotes-toast-bounce { animation: calcnotes-bounce 0.8s ease-out forwards; }
-    @keyframes calcnotes-bounce {
+    .numori-toast-bounce { animation: numori-bounce 0.8s ease-out forwards; }
+    @keyframes numori-bounce {
       0% { opacity: 0; transform: translateY(6px); }
       25% { opacity: 1; transform: translateY(-6px); }
       45% { transform: translateY(2px); } 60% { transform: translateY(-2px); }
       75% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; }
     }
-    .calcnotes-toast-glow { animation: calcnotes-glow 0.8s ease-out forwards; }
-    @keyframes calcnotes-glow {
+    .numori-toast-glow { animation: numori-glow 0.8s ease-out forwards; }
+    @keyframes numori-glow {
       0% { opacity: 0; box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
       20% { opacity: 1; box-shadow: 0 0 8px 2px rgba(16,185,129,0.5); }
       60% { opacity: 1; box-shadow: 0 0 2px 0 rgba(16,185,129,0.2); }
       100% { opacity: 0; box-shadow: 0 0 0 0 rgba(16,185,129,0); }
     }
-    .calcnotes-toast-none { animation: calcnotes-none 0.6s forwards; }
-    @keyframes calcnotes-none {
+    .numori-toast-none { animation: numori-none 0.6s forwards; }
+    @keyframes numori-none {
       0% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; }
     }
   `
@@ -1564,7 +1564,7 @@ const showCopiedToast = (view, posx, posy, lineIndex) => {
   if (!editorDom) return
   const animStyle = props.localePreferences?.copyAnimationStyle || 'float-up'
   const toast = document.createElement('div')
-  toast.className = `calcnotes-inline-copied-toast calcnotes-toast-${animStyle}`
+  toast.className = `numori-inline-copied-toast numori-toast-${animStyle}`
   toast.textContent = 'Copied'
   const rect = editorDom.getBoundingClientRect()
   toast.style.left = `${posx - rect.left}px`
