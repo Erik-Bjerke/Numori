@@ -116,6 +116,7 @@ npm run dev                 # http://localhost:3000
 │   ├── crypto.js                  # E2E encryption: key derivation, AES-GCM encrypt/decrypt
 │   └── keyboard-toolbar.ts        # Native keyboard toolbar utilities
 ├── plugins/
+│   ├── deeplink.client.ts         # Deep link handler (Universal Links / App Links)
 │   ├── pwa.client.ts              # PWA service worker registration
 │   └── statusbar.client.ts        # Mobile status bar styling
 ├── server/
@@ -189,6 +190,9 @@ npm run dev                 # http://localhost:3000
 │   ├── localePreferences.test.js  # Locale preferences tests
 │   └── logout-safety.test.js      # Logout + sync guard tests
 ├── public/
+│   ├── .well-known/
+│   │   ├── apple-app-site-association  # iOS Universal Links verification
+│   │   └── assetlinks.json             # Android App Links verification
 │   ├── favicon.ico
 │   ├── icon-192x192.svg
 │   ├── icon-512x512.svg
@@ -480,6 +484,59 @@ docker run -p 3000:3000 numori
 ```
 
 The Dockerfile uses a multi-stage build: build stage with full Node.js, production stage with just the `.output` directory running as a non-root user.
+
+## Deep linking (Android App Links / iOS Universal Links)
+
+The native apps are configured to open `https://app.numori.app` links directly (e.g. shared note URLs like `/shared/:hash?key=...`).
+
+### How it works
+
+When a user taps a link to `app.numori.app`, the OS checks verification files hosted on the domain to confirm the app is allowed to handle those URLs. If verified, the link opens in the app instead of the browser. The `plugins/deeplink.client.ts` Capacitor plugin then routes the URL path to Vue Router.
+
+### Server-side verification files
+
+Both files live in `public/.well-known/` and are deployed as static assets:
+
+- `apple-app-site-association` — iOS Universal Links. Contains the Team ID + Bundle ID (`35W253Q69K.app.numori.app`).
+- `assetlinks.json` — Android App Links. Contains the package name and signing certificate SHA-256 fingerprints.
+
+### Android: SHA-256 fingerprints
+
+Android auto-verification requires at least one valid signing certificate fingerprint in `assetlinks.json`. You can (and should) include multiple — e.g. both debug and production keys:
+
+```json
+"sha256_cert_fingerprints": [
+    "AA:BB:CC:... (debug key)",
+    "DD:EE:FF:... (production/Play signing key)"
+]
+```
+
+To get your fingerprints:
+
+```bash
+# Debug key:
+keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android
+
+# Upload/release key:
+keytool -list -v -keystore your-upload-key.jks
+```
+
+If you use **Play App Signing** (most apps do), you also need the fingerprint from Google Play Console → Setup → App signing → "App signing key certificate" → SHA-256.
+
+Without valid fingerprints, users must manually enable the link association in Android Settings → Apps → Numori → Open by default.
+
+### Verifying the setup
+
+After deploying, check that the files are served correctly:
+
+```bash
+curl https://app.numori.app/.well-known/apple-app-site-association
+curl https://app.numori.app/.well-known/assetlinks.json
+```
+
+Google's verification tool: `https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://app.numori.app&relation=delegate_permission/common.handle_all_urls`
+
+Apple's AASA validator: `https://app-site-association.cdn-apple.com/a/v1/app.numori.app` (note: Apple caches aggressively, changes can take 24–48h to propagate).
 
 ## Contributing guidelines
 
