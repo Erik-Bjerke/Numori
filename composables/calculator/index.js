@@ -141,7 +141,7 @@ export const useCalculator = () => {
       if (extracted) {
         line.type = 'label'
         line.result = extracted.display
-        line.hideResult = false
+        line.hideResult = true
         previousResult.value = extracted.value
         previousResultCurrency.value = extracted.currency || null
       }
