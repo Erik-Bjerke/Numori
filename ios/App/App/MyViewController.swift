@@ -147,7 +147,7 @@ class MyViewController: CAPBridgeViewController {
             pill.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -bottomMargin),
         ])
 
-        // Scroll view for buttons
+        // Scroll view for format buttons (scrollable middle section)
         let scrollView = UIScrollView()
         scrollView.showsHorizontalScrollIndicator = false
         scrollView.showsVerticalScrollIndicator = false
@@ -155,25 +155,50 @@ class MyViewController: CAPBridgeViewController {
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         pill.addSubview(scrollView)
 
-        // Dismiss button pinned to the right
+        // Undo/Redo group pinned to the left
+        let undoRedoStack = UIStackView()
+        undoRedoStack.axis = .horizontal
+        undoRedoStack.alignment = .center
+        undoRedoStack.spacing = 2
+        undoRedoStack.translatesAutoresizingMaskIntoConstraints = false
+        for (i, btn) in undoRedo.enumerated() {
+            undoRedoStack.addArrangedSubview(makeButton(btn, tag: i))
+        }
+        undoRedoStack.addArrangedSubview(makeDivider())
+        pill.addSubview(undoRedoStack)
+
+        // Dismiss button with divider pinned to the right
+        let dismissStack = UIStackView()
+        dismissStack.axis = .horizontal
+        dismissStack.alignment = .center
+        dismissStack.spacing = 2
+        dismissStack.translatesAutoresizingMaskIntoConstraints = false
+        dismissStack.addArrangedSubview(makeDivider())
         let dismissBtn = UIButton(type: .system)
         dismissBtn.setImage(UIImage(systemName: "keyboard.chevron.compact.down"), for: .normal)
         dismissBtn.tintColor = appButtonTint
         dismissBtn.addTarget(self, action: #selector(dismissKeyboard), for: .touchUpInside)
         dismissBtn.accessibilityLabel = "Dismiss keyboard"
         dismissBtn.translatesAutoresizingMaskIntoConstraints = false
-        pill.addSubview(dismissBtn)
+        dismissStack.addArrangedSubview(dismissBtn)
+        pill.addSubview(dismissStack)
 
         NSLayoutConstraint.activate([
-            dismissBtn.trailingAnchor.constraint(equalTo: pill.trailingAnchor, constant: -8),
-            dismissBtn.centerYAnchor.constraint(equalTo: pill.centerYAnchor),
+            // Undo/redo pinned left
+            undoRedoStack.leadingAnchor.constraint(equalTo: pill.leadingAnchor, constant: 4),
+            undoRedoStack.centerYAnchor.constraint(equalTo: pill.centerYAnchor),
+
+            // Dismiss pinned right
+            dismissStack.trailingAnchor.constraint(equalTo: pill.trailingAnchor, constant: -4),
+            dismissStack.centerYAnchor.constraint(equalTo: pill.centerYAnchor),
             dismissBtn.widthAnchor.constraint(equalToConstant: 36),
             dismissBtn.heightAnchor.constraint(equalToConstant: barHeight),
 
-            scrollView.leadingAnchor.constraint(equalTo: pill.leadingAnchor),
+            // Scroll view between pinned sections
+            scrollView.leadingAnchor.constraint(equalTo: undoRedoStack.trailingAnchor),
             scrollView.topAnchor.constraint(equalTo: pill.topAnchor),
             scrollView.bottomAnchor.constraint(equalTo: pill.bottomAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: dismissBtn.leadingAnchor, constant: -4),
+            scrollView.trailingAnchor.constraint(equalTo: dismissStack.leadingAnchor),
         ])
 
         // Stack view inside scroll view
@@ -185,20 +210,12 @@ class MyViewController: CAPBridgeViewController {
         scrollView.addSubview(stack)
 
         NSLayoutConstraint.activate([
-            stack.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor, constant: 8),
-            stack.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor, constant: -8),
+            stack.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor, constant: 4),
+            stack.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor, constant: -4),
             stack.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
             stack.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
             stack.heightAnchor.constraint(equalTo: scrollView.frameLayoutGuide.heightAnchor),
         ])
-
-        // Add undo/redo buttons
-        for (i, btn) in undoRedo.enumerated() {
-            stack.addArrangedSubview(makeButton(btn, tag: i))
-        }
-
-        // Divider
-        stack.addArrangedSubview(makeDivider())
 
         // Format buttons (up to link)
         let fmtMainCount = formatting.count - 2 // exclude indent/outdent

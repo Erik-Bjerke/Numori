@@ -125,40 +125,74 @@ public class MainActivity extends BridgeActivity {
                 outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), cornerRadius);
             }
         });
-        // Dismiss keyboard button (pinned right)
+        // Undo/Redo buttons pinned to the left
+        LinearLayout undoRedoGroup = new LinearLayout(this);
+        undoRedoGroup.setOrientation(LinearLayout.HORIZONTAL);
+        undoRedoGroup.setGravity(Gravity.CENTER_VERTICAL);
+        undoRedoGroup.setPadding(dpToPx(4), 0, 0, 0);
+        for (String[] def : UNDO_REDO) {
+            undoRedoGroup.addView(makeButton(def[0], def[1], btnSize, iconSize));
+        }
+        // Divider after undo/redo
+        View leftDiv = new View(this);
+        leftDiv.setBackgroundColor(dividerColor());
+        LinearLayout.LayoutParams leftDivLp = new LinearLayout.LayoutParams(dpToPx(1), dpToPx(24));
+        leftDivLp.setMargins(dpToPx(4), 0, dpToPx(4), 0);
+        leftDivLp.gravity = Gravity.CENTER_VERTICAL;
+        leftDiv.setLayoutParams(leftDivLp);
+        undoRedoGroup.addView(leftDiv);
+        FrameLayout.LayoutParams undoRedoLp = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, barH, Gravity.START | Gravity.CENTER_VERTICAL);
+        pill.addView(undoRedoGroup, undoRedoLp);
+
+        // Dismiss keyboard button with divider (pinned right)
+        LinearLayout dismissGroup = new LinearLayout(this);
+        dismissGroup.setOrientation(LinearLayout.HORIZONTAL);
+        dismissGroup.setGravity(Gravity.CENTER_VERTICAL);
+        dismissGroup.setPadding(0, 0, dpToPx(4), 0);
+        View rightDiv = new View(this);
+        rightDiv.setBackgroundColor(dividerColor());
+        LinearLayout.LayoutParams rightDivLp = new LinearLayout.LayoutParams(dpToPx(1), dpToPx(24));
+        rightDivLp.setMargins(dpToPx(4), 0, dpToPx(4), 0);
+        rightDivLp.gravity = Gravity.CENTER_VERTICAL;
+        rightDiv.setLayoutParams(rightDivLp);
+        dismissGroup.addView(rightDiv);
         ImageButton dismissBtn = new ImageButton(this);
         dismissBtn.setBackground(null);
         dismissBtn.setImageDrawable(mdiDrawable("keyboard_hide", iconSize, buttonTint()));
         dismissBtn.setContentDescription("Dismiss keyboard");
         dismissBtn.setOnClickListener(v -> dismissKeyboard());
+        dismissGroup.addView(dismissBtn, new LinearLayout.LayoutParams(dpToPx(36), btnSize));
         FrameLayout.LayoutParams dismissLp = new FrameLayout.LayoutParams(
-                dpToPx(36), barH, Gravity.END | Gravity.CENTER_VERTICAL);
-        dismissLp.setMarginEnd(dpToPx(8));
-        pill.addView(dismissBtn, dismissLp);
+                ViewGroup.LayoutParams.WRAP_CONTENT, barH, Gravity.END | Gravity.CENTER_VERTICAL);
+        pill.addView(dismissGroup, dismissLp);
 
-        // Scroll view for buttons
+        // Measure undo/redo width to set scroll margins
+        undoRedoGroup.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        int leftFixedWidth = undoRedoGroup.getMeasuredWidth();
+
+        // Measure dismiss group width to set scroll margins
+        dismissGroup.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        int rightFixedWidth = dismissGroup.getMeasuredWidth();
+
+        // Scroll view for format buttons (between pinned sections)
         HorizontalScrollView scrollView = new HorizontalScrollView(this);
         scrollView.setHorizontalScrollBarEnabled(false);
         scrollView.setOverScrollMode(View.OVER_SCROLL_ALWAYS);
         FrameLayout.LayoutParams scrollLp = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, barH);
-        scrollLp.setMarginEnd(dpToPx(40)); // room for dismiss button
+        scrollLp.setMarginStart(leftFixedWidth);
+        scrollLp.setMarginEnd(rightFixedWidth);
         pill.addView(scrollView, scrollLp);
 
         // Linear layout inside scroll view
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
-        int pad = dpToPx(8);
+        int pad = dpToPx(4);
         row.setPadding(pad, 0, pad, 0);
         scrollView.addView(row, new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT));
-
-        // Add undo/redo
-        for (String[] def : UNDO_REDO) {
-            row.addView(makeButton(def[0], def[1], btnSize, iconSize));
-        }
-        row.addView(makeDivider(barH));
 
         // Format buttons
         for (String[] def : FORMAT_BUTTONS) {
