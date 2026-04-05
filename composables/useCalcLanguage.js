@@ -61,6 +61,9 @@ export const calcnotesStreamParser = {
 
     if (stream.eatSpace()) return null
 
+    // ── Inline comments (// mid-line) ────────────────────────────
+    if (stream.match(/\/\/.*$/)) return 'comment'
+
     // ── Date / time keywords ─────────────────────────────────────
     if (stream.match(/\b(now|time|today|yesterday|tomorrow)\b/)) return 'typeName'
     if (stream.match(/\b(next|last)\s+(week|month|year)\b/)) return 'typeName'

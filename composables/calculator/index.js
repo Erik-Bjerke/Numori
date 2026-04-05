@@ -120,8 +120,9 @@ export const useCalculator = () => {
   }
 
   const evaluateExpression = (input, index, allResults) => {
-    // Strip inline comments (double-quoted text)
-    let cleanInput = input.replace(/"[^"]*"/g, '').trim()
+    // Strip inline comments: // to end of line, then double-quoted text
+    let cleanInput = input.replace(/\/\/.*$/, '').trim()
+    cleanInput = cleanInput.replace(/"[^"]*"/g, '').trim()
     if (!cleanInput) cleanInput = input
     cleanInput = cleanInput.replace(/\bfor\s+the\b/gi, '').trim()
     const cleanLower = cleanInput.toLowerCase().trim()
