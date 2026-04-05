@@ -1,28 +1,29 @@
 <template>
   <div class="flex flex-wrap items-center gap-1 bg-gray-100 dark:bg-gray-900 rounded-lg px-2 py-1.5">
-    <!-- Left: View controls -->
-    <div class="inline-flex items-center bg-gray-200/50 dark:bg-gray-800 rounded-lg" role="group">
-      <button @click="$emit('update:renderMarkdown', true)"
-        class="p-1.5 rounded-lg transition-all leading-none"
-        :class="renderMarkdown
-          ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
-          : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
-        title="Render Markdown">
-        <Icon name="mdi:language-markdown" class="w-4.5 h-4.5 block" />
-      </button>
-      <button @click="$emit('update:renderMarkdown', false)"
-        class="p-1.5 rounded-lg transition-all leading-none"
-        :class="!renderMarkdown
-          ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
-          : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
-        title="Raw text">
-        <Icon name="mdi:format-text" class="w-4.5 h-4.5 block" />
-      </button>
-    </div>
+    <!-- Left: View controls — distributed evenly on mobile -->
+    <div class="flex items-center justify-around min-[480px]:justify-start gap-1 w-full min-[480px]:w-auto">
+      <div class="inline-flex items-center bg-gray-200/50 dark:bg-gray-800 rounded-lg" role="group">
+        <button @click="$emit('update:renderMarkdown', true)"
+          class="p-1.5 rounded-lg transition-all leading-none"
+          :class="renderMarkdown
+            ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
+            : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
+          title="Render Markdown">
+          <Icon name="mdi:language-markdown" class="w-4.5 h-4.5 block" />
+        </button>
+        <button @click="$emit('update:renderMarkdown', false)"
+          class="p-1.5 rounded-lg transition-all leading-none"
+          :class="!renderMarkdown
+            ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
+            : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
+          title="Raw text">
+          <Icon name="mdi:format-text" class="w-4.5 h-4.5 block" />
+        </button>
+      </div>
 
-    <div class="hidden min-[480px]:block w-px h-5 bg-gray-300/60 dark:bg-gray-700 mx-0.5"></div>
+      <div class="hidden min-[480px]:block w-px h-5 bg-gray-300/60 dark:bg-gray-700 mx-0.5"></div>
 
-    <div class="inline-flex items-center bg-gray-200/50 dark:bg-gray-800 rounded-lg" role="group">
+      <div class="inline-flex items-center bg-gray-200/50 dark:bg-gray-800 rounded-lg" role="group">
       <button @click="$emit('update:resultsPosition', 'left')"
         class="p-1.5 rounded-lg transition-all leading-none"
         :class="resultsPosition === 'left'
@@ -47,6 +48,7 @@
         title="Results on right">
         <Icon name="mdi:dock-right" class="w-4.5 h-4.5 block" />
       </button>
+    </div>
     </div>
 
     <!-- Spacer: collapses to full-width break on narrow screens -->
