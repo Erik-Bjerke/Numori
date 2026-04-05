@@ -72,7 +72,7 @@ const EXPECTED_DEFAULTS = {
   autoCopyResult: true,
   copyAnimationStyle: 'scale-pop',
   showResultsInCodeBlocks: false,
-  markdownMode: 'full',
+  markdownMode: 'edit',
 }
 
 describe('Default Preferences', () => {

@@ -341,7 +341,7 @@ const showInlineResults = computed({
   set: (v) => { localePrefs.preferences.inlineMode = v; localePrefs.save() }
 })
 const markdownMode = computed({
-  get: () => localePrefs.preferences.markdownMode ?? 'full',
+  get: () => localePrefs.preferences.markdownMode ?? 'edit',
   set: (v) => { localePrefs.preferences.markdownMode = v; localePrefs.save() }
 })
 

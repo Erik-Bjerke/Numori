@@ -99,7 +99,7 @@ const DEFAULT_PREFERENCES = {
   copyAnimationStyle: 'scale-pop',
   showResultsInCodeBlocks: false,
   // Markdown
-  markdownMode: 'full',
+  markdownMode: 'edit',
 }
 
 export const useLocalePreferences = () => {

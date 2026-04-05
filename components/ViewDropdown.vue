@@ -72,7 +72,7 @@ const MAX_ZOOM = 175
 const props = defineProps({
   markdownMode: {
     type: String,
-    default: 'off',
+    default: 'edit',
     validator: (v) => ['off', 'edit', 'full'].includes(v),
   },
   editorFontSize: {
@@ -96,9 +96,9 @@ const zoomPercent = computed(() =>
 )
 
 const mdOptions = [
-  { value: 'full', label: 'Render Markdown' },
-  { value: 'edit', label: 'Edit & Render Markdown' },
-  { value: 'off', label: "Don't Render Markdown" },
+  { value: 'edit', label: 'View & Edit' },
+  { value: 'full', label: 'View Only' },
+  { value: 'off', label: 'Edit Only' },
 ]
 
 const open = ref(false)

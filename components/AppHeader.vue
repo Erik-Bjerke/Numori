@@ -110,7 +110,7 @@ defineProps({
   },
   markdownMode: {
     type: String,
-    default: 'off'
+    default: 'edit'
   },
   modLabel: {
     type: String,
