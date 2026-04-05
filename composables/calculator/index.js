@@ -325,20 +325,26 @@ export const useCalculator = () => {
 
     // Inline aggregation: replace sum/total/average/avg tokens within larger expressions
     // (standalone cases are handled above; this catches e.g. "Salary - sum", "2 * avg")
-    if (/\b(sum|total)\b/i.test(cleanInput) && !variables.value['sum'] && !variables.value['total']) {
+    const hasSumToken = /\bsum\b/i.test(cleanInput) && !variables.value['sum']
+    const hasTotalToken = /\btotal\b/i.test(cleanInput) && !variables.value['total']
+    if (hasSumToken || hasTotalToken) {
       const sumCurrency = detectSumCurrency(index, allResults)
       const sumValue = sumCurrency
         ? calculateSumWithCurrency(index, allResults, sumCurrency)
         : calculateSum(index, allResults)
-      cleanInput = cleanInput.replace(/\b(sum|total)\b/gi, `(${sumValue})`)
+      if (hasSumToken) cleanInput = cleanInput.replace(/\bsum\b/gi, `(${sumValue})`)
+      if (hasTotalToken) cleanInput = cleanInput.replace(/\btotal\b/gi, `(${sumValue})`)
       if (sumCurrency) {
         const result = evaluateMath(handleFunctions(cleanInput))
         return { value: result, display: `${formatResult(result)} ${sumCurrency}`, currency: sumCurrency }
       }
     }
-    if (/\b(average|avg)\b/i.test(cleanInput) && !variables.value['average'] && !variables.value['avg']) {
+    const hasAvgToken = /\baverage\b/i.test(cleanInput) && !variables.value['average']
+    const hasAvgShortToken = /\bavg\b/i.test(cleanInput) && !variables.value['avg']
+    if (hasAvgToken || hasAvgShortToken) {
       const avgValue = calculateAverage(index, allResults)
-      cleanInput = cleanInput.replace(/\b(average|avg)\b/gi, `(${avgValue})`)
+      if (hasAvgToken) cleanInput = cleanInput.replace(/\baverage\b/gi, `(${avgValue})`)
+      if (hasAvgShortToken) cleanInput = cleanInput.replace(/\bavg\b/gi, `(${avgValue})`)
     }
 
     // Regular math

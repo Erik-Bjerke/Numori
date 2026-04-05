@@ -6,7 +6,7 @@
  * Empty lines act as group separators.
  */
 import { describe, it, expect } from 'vitest'
-import { calcLines, calcLinesLastNum } from './helpers'
+import { calcLines, calcLinesLastNum, useCalculator } from './helpers'
 
 describe('Sum inside expressions (not standalone)', () => {
   it('variable minus sum with empty line separator', () => {
@@ -174,5 +174,47 @@ describe('Sum inside expressions (not standalone)', () => {
     ])
     // sum = 1457+475+200+120+60+20 = 2332
     expect(parseFloat(results[6])).toBe(2332)
+  })
+
+  it('Salario - sum works after total = sum is defined', () => {
+    const { evaluateLines } = useCalculator()
+    const results = evaluateLines([
+      '# Ismael',
+      'Salario = 1457',
+      '',
+      '### Valores',
+      'Alquiler = 475',
+      'Utilidades = 140',
+      'Comida = 200',
+      'Gasolina = 120',
+      'Seguro_coche = 60',
+      'Ho = 20',
+      'total = sum',
+      '',
+      '### Abril',
+      'Alquiler',
+      'Utilidades',
+      'Gasolina',
+      'Seguro_coche',
+      'Ho',
+      'Comida',
+      'Abril = Salario - sum',
+      '',
+      '### Mayo',
+      'Alquiler',
+      'Utilidades',
+      'Gasolina',
+      'Seguro_coche',
+      'Ho',
+      'Comida',
+      'Mayo = Salario - sum',
+    ])
+    // total = sum of Alquiler..Ho = 475+140+200+120+60+20 = 1015
+    expect(parseFloat(results[10].result)).toBe(1015)
+    // Abril group: Alquiler(475)+Utilidades(140)+Gasolina(120)+Seguro_coche(60)+Ho(20)+Comida(200) = 1015
+    // Abril = 1457 - 1015 = 442
+    expect(parseFloat(results[19].result)).toBe(442)
+    // Mayo same group structure = 442
+    expect(parseFloat(results[28].result)).toBe(442)
   })
 })
