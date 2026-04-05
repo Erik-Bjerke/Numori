@@ -5,6 +5,7 @@ import { handleUnitExpression, findUnitCategory, convertFuelEconomy } from './un
 import { handleCurrencyExpression, fetchExchangeRates } from './currency'
 import { handleTimezoneExpression, handleDateExpression } from './datetime'
 import { calculateSum, calculateAverage, detectSumCurrency, calculateSumWithCurrency } from './aggregation'
+import { extractTrailingNumber } from './extract'
 
 // Auto-fetch rates once (non-blocking)
 if (typeof window !== 'undefined') {
@@ -133,7 +134,18 @@ export const useCalculator = () => {
       if (result.liveTime) { line.liveTime = true; line.iana = result.iana || null }
       previousResult.value = result.value
       previousResultCurrency.value = result.currency || null
-    } catch (error) { /* silent */ }
+    } catch (error) {
+      // Fallback: extract trailing number (with optional currency) from plain text
+      // e.g. "Arwen 900 eur" → 900 EUR, "transporte Kaisa 2000" → 2000
+      const extracted = extractTrailingNumber(input)
+      if (extracted) {
+        line.type = 'label'
+        line.result = extracted.display
+        line.hideResult = false
+        previousResult.value = extracted.value
+        previousResultCurrency.value = extracted.currency || null
+      }
+    }
   }
 
   const evaluateExpression = (input, index, allResults) => {

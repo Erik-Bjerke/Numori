@@ -5,6 +5,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    setupFiles: ['./composables/calculator/__tests__/setup.js'],
   },
   resolve: {
     alias: {
