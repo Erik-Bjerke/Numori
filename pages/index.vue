@@ -163,8 +163,8 @@
       </main>
     </div>
 
-    <!-- Mobile: formatting toolbar (hidden on iOS where native keyboard toolbar is used) -->
-    <div v-if="currentNote && !isAppleNative" class="lg:hidden fixed left-0 right-0 z-10 transition-[bottom] duration-150 ease-out px-1.5 pb-1.5"
+    <!-- Mobile: formatting toolbar (hidden on native apps where native keyboard toolbar is used) -->
+    <div v-if="currentNote && !isNativeApp" class="lg:hidden fixed left-0 right-0 z-10 transition-[bottom] duration-150 ease-out px-1.5 pb-1.5"
       :style="{ bottom: mobileKeyboardOffset + 'px' }">
       <div class="overflow-hidden bg-gray-50 dark:bg-gray-900 rounded-xl"
         :style="{ paddingLeft: 'env(safe-area-inset-left, 0px)', paddingRight: 'env(safe-area-inset-right, 0px)' }">
@@ -353,9 +353,9 @@ const mobileKeyboardOffset = ref(0)
 const showAuthModal = ref(false)
 const showShareModal = ref(false)
 
-// On iOS/iPadOS, hide the HTML toolbar — native keyboard accessory is used instead
-const { platform } = usePlatform()
-const isAppleNative = platform === 'ios'
+// On native apps (iOS / Android), hide the HTML toolbar — native keyboard toolbar is used instead
+const { platform, isNative: isNativePlatform } = usePlatform()
+const isNativeApp = platform === 'ios' || platform === 'android'
 
 // Browser: sync focus mode with fullscreen
 if (import.meta.client && platform === 'web') {
@@ -376,8 +376,8 @@ if (import.meta.client && platform === 'web') {
   })
 }
 
-// Set up native keyboard toolbar on iOS
-if (import.meta.client && isAppleNative) {
+// Set up native keyboard toolbar on iOS / Android
+if (import.meta.client && isNativeApp) {
   useNativeKeyboardToolbar({
     onFormat: (before, after) => editorRef.value?.wrapSelection(before, after),
     onUndo: () => editorRef.value?.undo(),

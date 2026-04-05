@@ -2,9 +2,9 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { Capacitor } from '@capacitor/core'
 
 /**
- * On iOS native app, listens for toolbar button taps from the native
- * keyboard accessory view (set up in MyViewController.swift).
- * Returns `isNativeToolbar` so the template can hide the HTML toolbar.
+ * On native apps (iOS / Android), listens for toolbar button taps from the
+ * native keyboard accessory view. Returns `isNativeToolbar` so the template
+ * can hide the HTML toolbar.
  */
 export const useNativeKeyboardToolbar = (opts: {
   onFormat: (before: string, after: string) => void
@@ -15,9 +15,12 @@ export const useNativeKeyboardToolbar = (opts: {
 }) => {
   const isNativeToolbar = ref(false)
 
-  // Only activate on iOS native app (not web browser)
-  if (import.meta.client && Capacitor.getPlatform() === 'ios') {
-    isNativeToolbar.value = true
+  // Activate on native apps (iOS and Android), not web browser
+  if (import.meta.client) {
+    const platform = Capacitor.getPlatform()
+    if (platform === 'ios' || platform === 'android') {
+      isNativeToolbar.value = true
+    }
   }
 
   const formatMap: Record<string, [string, string]> = {
