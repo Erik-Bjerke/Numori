@@ -30,6 +30,8 @@ export const useServiceWorker = () => {
   // The version baked into this JS bundle at compile time
   const buildVersion = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '0.0.0'
 
+  console.log('[update-check] init', { platform, isNative, buildVersion, apiBase: config.public.apiBase })
+
   /** Apply the update — reload for web, open store for native */
   const applyUpdate = () => {
     if (isNative && storeUrl.value) {
@@ -48,21 +50,30 @@ export const useServiceWorker = () => {
   }
 
   /**
-   * Fetch /version.json from the server, bypassing all caches.
-   * On native Capacitor, we MUST use apiBase (the remote server) because
-   * window.location.origin points to the local bundled assets.
+   * Fetch the latest deployed version from the server.
+   *
+   * Web:    GET /version.json  (static file, same origin — no CORS needed)
+   * Native: GET /api/version   (API route on apiBase — CORS handled by middleware)
    */
   async function fetchLatestVersion() {
-    const origin = isNative
-      ? config.public.apiBase
-      : (config.public.apiBase || window.location.origin)
-
-    if (!origin) return null // native without apiBase configured — can't check
-
-    const url = `${origin}/version.json?_=${Date.now()}`
+    let url
+    if (isNative) {
+      if (!config.public.apiBase) {
+        console.warn('[update-check] fetchLatestVersion: no apiBase configured, skipping')
+        return null
+      }
+      url = `${config.public.apiBase}/api/version?_=${Date.now()}`
+    } else {
+      const origin = config.public.apiBase || window.location.origin
+      url = `${origin}/version.json?_=${Date.now()}`
+    }
+    console.log('[update-check] fetching', url)
     const res = await fetch(url, { cache: 'no-store' })
+    console.log('[update-check] response', res.status, res.statusText)
     if (!res.ok) return null
-    return res.json()
+    const data = await res.json()
+    console.log('[update-check] server version:', data?.version)
+    return data
   }
 
   /**
@@ -71,11 +82,19 @@ export const useServiceWorker = () => {
    * version at build time.
    */
   async function checkForUpdate() {
-    if (updateAvailable.value) return
+    if (updateAvailable.value) {
+      console.log('[update-check] already flagged, skipping')
+      return
+    }
     try {
       const data = await fetchLatestVersion()
-      if (!data?.version) return
+      if (!data?.version) {
+        console.warn('[update-check] no version in response')
+        return
+      }
+      console.log('[update-check] comparing build=%s server=%s match=%s', buildVersion, data.version, data.version === buildVersion)
       if (data.version !== buildVersion) {
+        console.log('[update-check] update available!')
         updateAvailable.value = true
         // Web: also nudge the SW so it's ready when user clicks Reload
         if (!isNative && navigator.serviceWorker) {
@@ -89,6 +108,8 @@ export const useServiceWorker = () => {
   }
 
   if (import.meta.client) {
+    console.log('[update-check] registering listeners and timers')
+
     // SW update event (web only) — immediate notification
     window.addEventListener('sw-update-available', (e) => {
       swRegistration = e.detail?.registration || null
