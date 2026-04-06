@@ -257,5 +257,41 @@ export async function migrate() {
     END $do$
   `)
 
+  // Email verification and password recovery
+  await query(`
+    DO $do$ BEGIN
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT FALSE;
+    EXCEPTION WHEN duplicate_column THEN NULL;
+    END $do$
+  `)
+
+  await query(`
+    DO $do$ BEGIN
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_code TEXT;
+    EXCEPTION WHEN duplicate_column THEN NULL;
+    END $do$
+  `)
+
+  await query(`
+    DO $do$ BEGIN
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_expires_at TIMESTAMPTZ;
+    EXCEPTION WHEN duplicate_column THEN NULL;
+    END $do$
+  `)
+
+  await query(`
+    DO $do$ BEGIN
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_purpose TEXT;
+    EXCEPTION WHEN duplicate_column THEN NULL;
+    END $do$
+  `)
+
+  await query(`
+    DO $do$ BEGIN
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS password_recovery_enabled BOOLEAN NOT NULL DEFAULT FALSE;
+    EXCEPTION WHEN duplicate_column THEN NULL;
+    END $do$
+  `)
+
   console.log('[migrate] Database tables ready')
 }

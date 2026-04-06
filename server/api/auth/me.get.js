@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
   const auth = await requireAuth(event)
 
   const result = await query(
-    'SELECT id, email, name, avatar_url, created_at, privacy_no_tracking FROM users WHERE id = $1',
+    'SELECT id, email, name, avatar_url, created_at, privacy_no_tracking, email_verified, password_recovery_enabled FROM users WHERE id = $1',
     [auth.userId]
   )
 
@@ -26,6 +26,8 @@ export default defineEventHandler(async (event) => {
     avatarUrl: user.avatar_url,
     createdAt: user.created_at,
     privacyNoTracking: user.privacy_no_tracking,
+    emailVerified: user.email_verified,
+    passwordRecoveryEnabled: user.password_recovery_enabled,
     stats: {
       notesCount: parseInt(notesResult.rows[0].count),
       sharedCount: parseInt(sharesResult.rows[0].count)

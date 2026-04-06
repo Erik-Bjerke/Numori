@@ -233,11 +233,127 @@ export const useAuth = () => {
     } catch { /* ignore */ }
   }
 
+  /** Send (or re-send) email verification OTP */
+  const sendVerification = async () => {
+    loading.value = true
+    error.value = null
+    try {
+      await apiFetch('/api/auth/send-verification', {
+        method: 'POST',
+        headers: authHeaders.value
+      })
+    } catch (err) {
+      error.value = err.data?.statusMessage || err.message || 'Failed to send verification email'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /** Verify email with OTP code */
+  const verifyEmail = async (code) => {
+    loading.value = true
+    error.value = null
+    try {
+      await apiFetch('/api/auth/verify-email', {
+        method: 'POST',
+        headers: authHeaders.value,
+        body: { code }
+      })
+      if (user.value) user.value = { ...user.value, emailVerified: true }
+    } catch (err) {
+      error.value = err.data?.statusMessage || err.message || 'Verification failed'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /** Request password recovery OTP (unauthenticated) */
+  const forgotPassword = async (email) => {
+    loading.value = true
+    error.value = null
+    try {
+      await apiFetch('/api/auth/forgot-password', {
+        method: 'POST',
+        body: { email }
+      })
+    } catch (err) {
+      error.value = err.data?.statusMessage || err.message || 'Failed to send recovery email'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /** Verify recovery OTP and get recovery token */
+  const verifyRecovery = async (email, code) => {
+    loading.value = true
+    error.value = null
+    try {
+      const data = await apiFetch('/api/auth/verify-recovery', {
+        method: 'POST',
+        body: { email, code }
+      })
+      return data.recoveryToken
+    } catch (err) {
+      error.value = err.data?.statusMessage || err.message || 'Invalid code'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /** Reset password using recovery token */
+  const resetPassword = async (recoveryToken, newPassword) => {
+    loading.value = true
+    error.value = null
+    try {
+      const newAuthKey = await deriveAuthKey(newPassword)
+      const data = await apiFetch('/api/auth/reset-password', {
+        method: 'POST',
+        body: { recoveryToken, newAuthKey }
+      })
+      await _saveToken(data.token)
+      user.value = data.user
+      encKey.value = await deriveEncKey(newPassword)
+      await _saveEncKey(encKey.value)
+      return data
+    } catch (err) {
+      error.value = err.data?.statusMessage || err.message || 'Password reset failed'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /** Toggle password recovery setting */
+  const setPasswordRecovery = async (enabled) => {
+    loading.value = true
+    error.value = null
+    try {
+      await apiFetch('/api/auth/security', {
+        method: 'PUT',
+        headers: authHeaders.value,
+        body: { passwordRecoveryEnabled: enabled }
+      })
+      if (user.value) user.value = { ...user.value, passwordRecoveryEnabled: enabled }
+    } catch (err) {
+      error.value = err.data?.statusMessage || err.message || 'Failed to update setting'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   onMounted(() => restore())
 
   return {
     user, token, loading, error, isLoggedIn, authHeaders, encKey,
     register, login, logout, restore,
-    updateProfile, changePassword, requestDeletion, refreshUser
+    updateProfile, changePassword, requestDeletion, refreshUser,
+    sendVerification, verifyEmail,
+    forgotPassword, verifyRecovery, resetPassword,
+    setPasswordRecovery
   }
 }

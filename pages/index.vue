@@ -3,6 +3,11 @@
     <!-- Offline banner — in-flow so it pushes content down -->
     <OfflineIndicator :offline="!sw.isOnline.value" />
 
+    <!-- Email verification banner — shown for logged-in users with unverified email -->
+    <EmailVerificationBanner
+      :visible="auth.isLoggedIn.value && auth.user.value?.emailVerified === false"
+      @click="showEmailVerificationModal = true" />
+
     <!-- Mobile-friendly Toolbar -->
     <div class="transition-all duration-300 ease-in-out flex-shrink-0 relative z-30"
       :class="focusMode ? 'max-h-0 overflow-hidden opacity-0' : 'max-h-40 opacity-100'">
@@ -249,7 +254,17 @@
       :error="auth.error.value"
       @close="showAuthModal = false"
       @login="handleLogin"
-      @register="handleRegister" />
+      @register="handleRegister"
+      @forgot-password="handleForgotPassword"
+      @verify-recovery="handleVerifyRecovery"
+      @reset-password="handleResetPassword" />
+
+    <EmailVerificationModal :is-open="showEmailVerificationModal"
+      :loading="auth.loading.value"
+      :error="auth.error.value"
+      @close="showEmailVerificationModal = false"
+      @verify="handleVerifyEmail"
+      @resend="handleResendVerification" />
 
     <ShareModal :is-open="showShareModal"
       :note="currentNote"
@@ -383,6 +398,7 @@ const editorRef = ref(null)
 const mobileKeyboardOffset = ref(0)
 const showAuthModal = ref(false)
 const showShareModal = ref(false)
+const showEmailVerificationModal = ref(false)
 
 // On native apps (iOS / Android), hide the HTML toolbar — native keyboard toolbar is used instead
 const { platform, isNative: isNativePlatform } = usePlatform()
@@ -515,6 +531,47 @@ const handleRegister = async ({ email, password, name }) => {
     await auth.register(email, password, name)
     showAuthModal.value = false
   } catch { /* error shown in modal */ }
+}
+
+// Password recovery handlers
+const handleForgotPassword = async ({ email, onSuccess }) => {
+  try {
+    await auth.forgotPassword(email)
+    onSuccess()
+  } catch { /* error shown in modal */ }
+}
+
+const handleVerifyRecovery = async ({ email, code, onSuccess }) => {
+  try {
+    const token = await auth.verifyRecovery(email, code)
+    onSuccess(token)
+  } catch { /* error shown in modal */ }
+}
+
+const handleResetPassword = async ({ recoveryToken, newPassword }) => {
+  try {
+    await auth.resetPassword(recoveryToken, newPassword)
+    showAuthModal.value = false
+    // Clear local data since all server notes were deleted
+    notes.value = []
+    currentNoteId.value = null
+    await db.notes.clear()
+    await db.appState.delete('deleted_note_ids')
+  } catch { /* error shown in modal */ }
+}
+
+// Email verification handlers
+const handleVerifyEmail = async (code) => {
+  try {
+    await auth.verifyEmail(code)
+    showEmailVerificationModal.value = false
+  } catch { /* error shown in modal */ }
+}
+
+const handleResendVerification = async () => {
+  try {
+    await auth.sendVerification()
+  } catch { /* ignore */ }
 }
 
 /** Clear all local notes from IndexedDB — called on logout, password change, account deletion.

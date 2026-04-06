@@ -85,6 +85,11 @@
                     <Icon name="mdi:lock-outline" class="w-5 h-5 text-gray-400 flex-shrink-0" />
                     <span class="truncate">Change Password</span>
                   </button>
+                  <button @click="activeSection = 'security'"
+                    class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                    <Icon name="mdi:shield-lock-outline" class="w-5 h-5 text-gray-400 flex-shrink-0" />
+                    <span class="truncate">Security</span>
+                  </button>
                   <button @click="activeSection = 'danger'"
                     class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
                     <Icon name="mdi:alert-outline" class="w-5 h-5 flex-shrink-0" />
@@ -242,6 +247,46 @@
                 </button>
               </div>
 
+              <!-- ═══ Security ═══ -->
+              <div v-else-if="activeSection === 'security'" class="space-y-4">
+                <p class="text-xs text-gray-500 dark:text-gray-500">
+                  Manage security settings for your account.
+                </p>
+
+                <!-- Password recovery toggle -->
+                <div class="px-3 py-3 rounded-lg bg-gray-50 dark:bg-gray-900 space-y-2">
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 min-w-0">
+                      <Icon name="mdi:email-lock-outline" class="w-4 h-4 text-gray-500 flex-shrink-0" />
+                      <span class="text-sm text-gray-700 dark:text-gray-300 truncate">Password recovery by email</span>
+                    </div>
+                    <button @click="togglePasswordRecovery" :disabled="savingSecurity"
+                      class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                      :class="passwordRecoveryEnabled ? 'bg-primary-600' : 'bg-gray-300 dark:bg-gray-600'"
+                      role="switch" :aria-checked="passwordRecoveryEnabled">
+                      <span class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                        :class="passwordRecoveryEnabled ? 'translate-x-4' : 'translate-x-0'" />
+                    </button>
+                  </div>
+                  <p class="text-xs text-gray-500 dark:text-gray-500">
+                    {{ passwordRecoveryEnabled ? 'You can recover your account via email if you forget your password.' : 'Password recovery is disabled. If you forget your password, your account and notes cannot be recovered.' }}
+                  </p>
+                </div>
+
+                <!-- Warning about recovery -->
+                <div class="px-3 py-2.5 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                  <div class="flex gap-2">
+                    <Icon name="mdi:alert-outline" class="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                    <div class="text-xs text-amber-700 dark:text-amber-300 space-y-1">
+                      <p class="font-medium">Security notice</p>
+                      <p>Enabling password recovery allows anyone with access to your email to reset your password. This is a potential attack vector — if your email is compromised, your Numori account could be too.</p>
+                      <p>Additionally, a password reset will <span class="font-medium">permanently delete all your encrypted notes</span> since they cannot be decrypted without the original password.</p>
+                      <p>For maximum security, keep this disabled.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <!-- ═══ Danger Zone ═══ -->
               <div v-else-if="activeSection === 'danger'" class="space-y-4">
                 <p class="text-xs text-gray-500 dark:text-gray-500">
@@ -391,9 +436,14 @@ const { apiFetch, apiUrl } = useApi()
 const privacyNoTracking = ref(true)
 const savingPrivacy = ref(false)
 
+// Security
+const passwordRecoveryEnabled = ref(false)
+const savingSecurity = ref(false)
+
 watch(() => props.isOpen, (open) => {
   if (open) {
     privacyNoTracking.value = props.user?.privacyNoTracking !== false
+    passwordRecoveryEnabled.value = props.user?.passwordRecoveryEnabled === true
     activeSection.value = 'main'
     feedback.value = null
     editName.value = props.user?.name || ''
@@ -408,7 +458,7 @@ watch(() => props.isOpen, (open) => {
 })
 
 const sectionTitle = computed(() => {
-  const titles = { edit: 'Edit Profile', password: 'Change Password', danger: 'Data & Account', shared: 'Shared Notes', avatar: 'Change Avatar' }
+  const titles = { edit: 'Edit Profile', password: 'Change Password', danger: 'Data & Account', shared: 'Shared Notes', avatar: 'Change Avatar', security: 'Security' }
   return titles[activeSection.value] || 'Profile'
 })
 
@@ -638,6 +688,27 @@ const togglePrivacy = async () => {
     showFeedback(err?.data?.statusMessage || 'Failed to update privacy setting', 'error')
   } finally {
     savingPrivacy.value = false
+  }
+}
+
+const togglePasswordRecovery = async () => {
+  const newVal = !passwordRecoveryEnabled.value
+  if (newVal && !confirm('Enabling password recovery makes your account recoverable via email, but also means anyone with access to your email could reset your password and delete your notes. Continue?')) {
+    return
+  }
+  savingSecurity.value = true
+  try {
+    await apiFetch('/api/auth/security', {
+      method: 'PUT',
+      headers: props.authHeaders,
+      body: { passwordRecoveryEnabled: newVal }
+    })
+    passwordRecoveryEnabled.value = newVal
+    showFeedback(newVal ? 'Password recovery enabled' : 'Password recovery disabled')
+  } catch (err) {
+    showFeedback(err?.data?.statusMessage || 'Failed to update security setting', 'error')
+  } finally {
+    savingSecurity.value = false
   }
 }
 

@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs'
 import { query } from '../../utils/db.js'
 import { signJwt } from '../../utils/auth.js'
+import { generateOtp, sendVerificationEmail } from '../../utils/email.js'
 
 /**
  * POST /api/auth/register
@@ -40,8 +41,21 @@ export default defineEventHandler(async (event) => {
   const secret = process.env.JWT_SECRET
   const token = await signJwt({ userId: user.id, email: user.email }, secret)
 
+  // Send verification email (non-blocking — don't fail registration if email fails)
+  try {
+    const code = generateOtp()
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
+    await query(
+      'UPDATE users SET otp_code = $1, otp_expires_at = $2, otp_purpose = $3 WHERE id = $4',
+      [code, expiresAt.toISOString(), 'email_verification', user.id]
+    )
+    await sendVerificationEmail(emailNorm, code)
+  } catch (err) {
+    console.error('[register] Failed to send verification email:', err.message)
+  }
+
   return {
-    user: { id: user.id, email: user.email, name: user.name, createdAt: user.created_at },
+    user: { id: user.id, email: user.email, name: user.name, createdAt: user.created_at, emailVerified: false },
     token
   }
 })
