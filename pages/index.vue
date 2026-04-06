@@ -43,7 +43,7 @@
     <!-- Main Content Area -->
     <div class="flex-1 flex overflow-hidden">
       <!-- Sidebar - Notes List (desktop) -->
-      <aside class="flex-shrink-0 hidden lg:block transition-all duration-300 ease-in-out relative z-10"
+      <aside class="flex-shrink-0 hidden lg:block transition-all duration-300 ease-in-out relative z-20"
         :class="!focusMode && showSidebar ? 'w-80 opacity-100' : 'w-0 opacity-0 overflow-hidden'">
         <div class="w-80 h-full relative shadow-[4px_0_12px_-4px_rgba(0,0,0,0.15)] dark:shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)]">
           <Transition
@@ -122,8 +122,10 @@
       </Teleport>
 
       <!-- Editor Area -->
-      <main class="flex-1 overflow-hidden flex flex-col isolate transition-[padding] duration-300"
+      <main class="flex-1 overflow-hidden flex flex-col isolate transition-[padding] duration-300 relative"
         :style="focusMode ? { paddingTop: 'env(safe-area-inset-top, 0px)', paddingLeft: 'env(safe-area-inset-left, 0px)', paddingRight: 'env(safe-area-inset-right, 0px)' } : {}">
+        <!-- Header shadow overlay -->
+        <div class="absolute top-0 left-0 right-0 h-3 z-10 pointer-events-none bg-gradient-to-b from-black/[0.06] to-transparent dark:from-black/[0.25]"></div>
         <NoteEditor v-if="currentNote" ref="editorRef" :content="currentNote.content" :show-inline="showInlineResults !== 'off'"
           :inline-align="showInlineResults === 'off' ? 'left' : showInlineResults"
           :locale-preferences="localePrefs.preferences"
