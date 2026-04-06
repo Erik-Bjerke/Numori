@@ -74,7 +74,8 @@ export const useServiceWorker = () => {
     if (updateAvailable.value) return
     try {
       const data = await fetchLatestVersion()
-      if (data?.version && data.version !== buildVersion) {
+      if (!data?.version) return
+      if (data.version !== buildVersion) {
         updateAvailable.value = true
         // Web: also nudge the SW so it's ready when user clicks Reload
         if (!isNative && navigator.serviceWorker) {
@@ -82,7 +83,9 @@ export const useServiceWorker = () => {
           reg?.update()
         }
       }
-    } catch { /* offline or server down — ignore */ }
+    } catch (err) {
+      console.warn('[update-check] failed:', err)
+    }
   }
 
   if (import.meta.client) {

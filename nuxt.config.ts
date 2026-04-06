@@ -79,6 +79,12 @@ export default defineNuxtConfig({
     routeRules: {
       '/.well-known/apple-app-site-association': {
         headers: { 'Content-Type': 'application/json' }
+      },
+      '/version.json': {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Cache-Control': 'no-store'
+        }
       }
     }
   },
