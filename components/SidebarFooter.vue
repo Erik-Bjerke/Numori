@@ -1,46 +1,18 @@
 <template>
-  <div class="grid grid-cols-3 items-center px-3 py-2 border-t border-gray-200 dark:border-gray-800">
-    <!-- Left -->
+  <div class="flex items-center justify-between px-3 py-2 border-t border-gray-200 dark:border-gray-800">
     <div class="flex items-center gap-1">
-      <button @click="$emit('show-language')"
-        class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors leading-none"
-        title="Language">
-        <Icon name="mdi:translate" class="w-5 h-5 block" />
-      </button>
       <ThemeSwitcher />
     </div>
-
-    <!-- Center -->
-    <div class="flex justify-center">
-      <AccountMenu
-        :is-logged-in="isLoggedIn"
-        :user="user"
-        @sign-in="$emit('show-auth')"
-        @logout="$emit('logout')"
-        @edit-profile="$emit('edit-profile')" />
-    </div>
-
-    <!-- Right -->
-    <div class="flex items-center justify-end gap-1">
+    <div class="flex items-center gap-1">
       <button @click="$emit('show-help')"
         class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors leading-none"
         title="Help">
         <Icon name="mdi:help-circle-outline" class="w-5 h-5 block" />
-      </button>
-      <button @click="$emit('show-locale-settings')"
-        class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors leading-none"
-        title="Settings">
-        <Icon name="mdi:cog-outline" class="w-5 h-5 block" />
       </button>
     </div>
   </div>
 </template>
 
 <script setup>
-defineProps({
-  isLoggedIn: { type: Boolean, default: false },
-  user: { type: Object, default: null }
-})
-
-defineEmits(['show-help', 'show-locale-settings', 'show-language', 'show-auth', 'logout', 'edit-profile'])
+defineEmits(['show-help'])
 </script>

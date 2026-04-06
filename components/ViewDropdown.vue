@@ -18,6 +18,7 @@
       <div v-show="open"
         class="absolute left-0 mt-1 w-48 sm:w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 z-50">
 
+        <!-- Markdown mode -->
         <!-- Zoom controls -->
         <div class="flex items-center gap-1 px-3 py-1.5">
           <button @click="$emit('zoom-out')" :disabled="zoomPercent <= MIN_ZOOM"
@@ -55,12 +56,26 @@
 
         <div class="border-t border-gray-100 dark:border-gray-700 my-1" />
 
-        <DropdownItem icon="mdi:file-document-outline" label="Templates" @click="action('templates')" />
-        <DropdownItem icon="mdi:help-circle-outline" label="Help" @click="action('help')" />
+        <!-- Theme toggle -->
+        <button @click="toggleTheme"
+          class="w-full flex items-center gap-2.5 px-3 py-1.5 text-sm transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50">
+          <Icon name="mdi:theme-light-dark" class="w-4 h-4 block flex-shrink-0" />
+          <span class="flex-1 text-left">Theme</span>
+          <span class="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full"
+            :class="isDark ? 'bg-gray-700 text-gray-300' : 'bg-amber-100 text-amber-700'">
+            <Icon :name="isDark ? 'mdi:weather-night' : 'mdi:white-balance-sunny'" class="w-3 h-3" />
+            {{ isDark ? 'Dark' : 'Light' }}
+          </span>
+        </button>
 
         <div class="border-t border-gray-100 dark:border-gray-700 my-1" />
 
+        <DropdownItem icon="mdi:file-document-outline" label="Templates" @click="action('templates')" />
+        <DropdownItem icon="mdi:help-circle-outline" label="Help" @click="action('help')" />
         <DropdownItem icon="mdi:information-outline" label="About" @click="action('about')" />
+
+        <div class="border-t border-gray-100 dark:border-gray-700 my-1" />
+
         <button @click="handleCheckUpdate" :disabled="updateChecking"
           class="w-full flex items-center gap-2.5 px-3 py-1.5 text-sm transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 disabled:opacity-50">
           <Icon :name="updateChecking ? 'mdi:loading' : updateResultIcon" class="w-4 h-4 block flex-shrink-0" :class="{ 'animate-spin': updateChecking, [updateResultColor]: !updateChecking && updateResult }" />
@@ -114,6 +129,12 @@ const mdOptions = [
 
 const open = ref(false)
 const dropdownRef = ref(null)
+
+const colorMode = useColorMode()
+const isDark = computed(() => colorMode.value === 'dark')
+const toggleTheme = () => {
+  colorMode.preference = isDark.value ? 'light' : 'dark'
+}
 
 const setMarkdownMode = (mode) => {
   open.value = false

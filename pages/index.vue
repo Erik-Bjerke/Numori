@@ -43,9 +43,9 @@
     <!-- Main Content Area -->
     <div class="flex-1 flex overflow-hidden">
       <!-- Sidebar - Notes List (desktop) -->
-      <aside class="flex-shrink-0 hidden lg:block overflow-hidden transition-all duration-300 ease-in-out"
-        :class="!focusMode && showSidebar ? 'w-80 opacity-100' : 'w-0 opacity-0'">
-        <div class="w-80 h-full relative">
+      <aside class="flex-shrink-0 hidden lg:block transition-all duration-300 ease-in-out relative z-10"
+        :class="!focusMode && showSidebar ? 'w-80 opacity-100' : 'w-0 opacity-0 overflow-hidden'">
+        <div class="w-80 h-full relative shadow-[4px_0_12px_-4px_rgba(0,0,0,0.15)] dark:shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)]">
           <Transition
             enter-active-class="transition-opacity duration-500"
             enter-from-class="opacity-0"

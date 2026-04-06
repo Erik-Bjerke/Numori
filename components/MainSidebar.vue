@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full flex flex-col bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
+  <div class="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
     <!-- Selection Toolbar / Header — crossfade in a fixed container -->
     <div class="relative border-b border-gray-200 dark:border-gray-800 flex-shrink-0 overflow-hidden">
       <!-- Select toolbar -->
@@ -183,16 +183,88 @@
       </div>
     </div>
 
-    <!-- Bottom toolbar -->
-    <SidebarFooter
-      :is-logged-in="isLoggedIn"
-      :user="user"
-      @show-help="$emit('show-help')"
-      @show-locale-settings="$emit('show-locale-settings')"
-      @show-language="$emit('show-language')"
-      @show-auth="$emit('show-auth')"
-      @logout="$emit('logout')"
-      @edit-profile="$emit('edit-profile')" />
+    <!-- User Account Section -->
+    <div class="relative flex-shrink-0 bg-gray-100/80 dark:bg-gray-800/60 border-t border-gray-200 dark:border-gray-700" ref="accountMenuRef">
+      <!-- Dropdown (opens upward) -->
+      <Transition
+        enter-active-class="transition ease-out duration-150"
+        enter-from-class="opacity-0 translate-y-1"
+        enter-to-class="opacity-100 translate-y-0"
+        leave-active-class="transition ease-in duration-100"
+        leave-from-class="opacity-100 translate-y-0"
+        leave-to-class="opacity-0 translate-y-1">
+        <div v-show="accountMenuOpen"
+          class="absolute bottom-full left-0 right-0 bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg z-50">
+          <div class="py-1">
+            <template v-if="isLoggedIn">
+              <button @click="accountAction('edit-profile')"
+                class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                <Icon name="mdi:account-edit-outline" class="w-4 h-4" />
+                Edit Profile
+              </button>
+            </template>
+            <template v-else>
+              <button @click="accountAction('show-auth')"
+                class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                <Icon name="mdi:login" class="w-4 h-4" />
+                Sign In / Sign Up
+              </button>
+            </template>
+            <button @click="accountAction('show-locale-settings')"
+              class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+              <Icon name="mdi:cog-outline" class="w-4 h-4" />
+              Settings
+            </button>
+            <button @click="accountAction('show-language')"
+              class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+              <Icon name="mdi:translate" class="w-4 h-4" />
+              Change Language
+            </button>
+            <template v-if="isLoggedIn">
+              <div class="border-t border-gray-300 dark:border-gray-600 my-1" />
+              <button @click="accountAction('logout')"
+                class="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors">
+                <Icon name="mdi:logout" class="w-4 h-4" />
+                Sign Out
+              </button>
+            </template>
+          </div>
+        </div>
+      </Transition>
+
+      <!-- Logged-in state -->
+      <button v-if="isLoggedIn" @click="accountMenuOpen = !accountMenuOpen"
+        class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-200/70 dark:hover:bg-gray-700/50 transition-colors text-left">
+        <img v-if="user?.avatarUrl" :src="user.avatarUrl"
+          class="w-9 h-9 rounded-full object-cover flex-shrink-0" alt="Avatar" />
+        <div v-else
+          class="w-9 h-9 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center flex-shrink-0">
+          <Icon name="mdi:account" class="w-5 h-5 text-primary-600 dark:text-primary-400" />
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-gray-900 dark:text-gray-200 truncate">{{ user?.name || 'No name' }}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ user?.email }}</p>
+        </div>
+        <Icon name="mdi:chevron-down"
+          class="w-5 h-5 flex-shrink-0 text-gray-400 dark:text-gray-500 transition-transform duration-200"
+          :class="{ 'rotate-180': accountMenuOpen }" />
+      </button>
+
+      <!-- Logged-out state -->
+      <button v-else @click="accountMenuOpen = !accountMenuOpen"
+        class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-200/70 dark:hover:bg-gray-700/50 transition-colors text-left">
+        <div class="w-9 h-9 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+          <Icon name="mdi:account-circle-outline" class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-gray-900 dark:text-gray-200">Guest</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Not signed in</p>
+        </div>
+        <Icon name="mdi:chevron-down"
+          class="w-5 h-5 flex-shrink-0 text-gray-400 dark:text-gray-500 transition-transform duration-200"
+          :class="{ 'rotate-180': accountMenuOpen }" />
+      </button>
+    </div>
   </div>
 </template>
 
@@ -222,6 +294,28 @@ const searchQuery = ref('')
 const selectedTags = ref([])
 const listRef = ref(null)
 const showFilters = ref(false)
+
+// ── Account dropdown ─────────────────────────────────────
+const accountMenuOpen = ref(false)
+const accountMenuRef = ref(null)
+
+const accountAction = (action) => {
+  accountMenuOpen.value = false
+  emit(action)
+}
+
+const onClickOutsideAccount = (e) => {
+  if (accountMenuRef.value && !accountMenuRef.value.contains(e.target)) {
+    accountMenuOpen.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', onClickOutsideAccount)
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('click', onClickOutsideAccount)
+})
 
 const filters = reactive({
   searchContent: true,
