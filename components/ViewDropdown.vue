@@ -61,6 +61,7 @@
         <div class="border-t border-gray-100 dark:border-gray-700 my-1" />
 
         <DropdownItem icon="mdi:information-outline" label="About" @click="action('about')" />
+        <DropdownItem icon="mdi:update" label="Check for updates" @click="action('check-update')" />
       </div>
     </Transition>
   </div>
@@ -91,6 +92,7 @@ const emit = defineEmits([
   'templates',
   'help',
   'about',
+  'check-update',
 ])
 
 const zoomPercent = computed(() =>

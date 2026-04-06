@@ -2,19 +2,24 @@
  * Composable for update detection and online/offline status.
  *
  * Both web and native compare the build-time __APP_VERSION__ (baked into the
- * JS bundle) against /version.json on the server. If they differ, a new
+ * JS bundle) against the server's version endpoint. If they differ, a new
  * version has been deployed.
  *
  * - Web: clicking "Reload" activates the waiting service worker.
  * - Native: clicking "Update" opens the app store link.
  *
- * Polling runs on startup, every 10 minutes, and on visibility change.
+ * Dismissing only hides that specific version — a newer release will re-trigger.
+ * Poll interval is configurable via preferences (default 30 min).
  */
+import db from '~/db.js'
+
 export const useServiceWorker = () => {
   const updateAvailable = ref(false)
+  const latestVersion = ref(null)
   const isOnline = useOnlineStatus()
 
   let swRegistration = null
+  let pollTimer = null
 
   const { platform } = usePlatform()
   const config = useRuntimeConfig()
@@ -26,11 +31,20 @@ export const useServiceWorker = () => {
   })
 
   const isNative = platform === 'android' || platform === 'ios'
-
-  // The version baked into this JS bundle at compile time
   const buildVersion = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '0.0.0'
 
-  console.log('[update-check] init', { platform, isNative, buildVersion, apiBase: config.public.apiBase })
+  const DISMISSED_KEY = 'dismissed_update_version'
+
+  const getDismissedVersion = async () => {
+    try {
+      const row = await db.appState.get(DISMISSED_KEY)
+      return row?.value || null
+    } catch { return null }
+  }
+
+  const setDismissedVersion = async (v) => {
+    try { await db.appState.put({ key: DISMISSED_KEY, value: v }) } catch { /* noop */ }
+  }
 
   /** Apply the update — reload for web, open store for native */
   const applyUpdate = () => {
@@ -39,7 +53,6 @@ export const useServiceWorker = () => {
         || (platform === 'android' ? 'https://play.google.com/store/apps/details?id=app.numori.app' : '')
         || (platform === 'ios' ? 'https://apps.apple.com/app/numori/id0000000000' : '')
       if (url) {
-        // Use location.href — window.open is unreliable in Capacitor WebViews
         window.location.href = url
         return
       }
@@ -51,90 +64,82 @@ export const useServiceWorker = () => {
     }
   }
 
-  const dismissUpdate = () => {
+  /** Dismiss only this specific version */
+  const dismissUpdate = async () => {
+    if (latestVersion.value) await setDismissedVersion(latestVersion.value)
     updateAvailable.value = false
   }
 
   /**
    * Fetch the latest deployed version from the server.
-   *
-   * Web:    GET /version.json  (static file, same origin — no CORS needed)
-   * Native: GET /api/version   (API route on apiBase — CORS handled by middleware)
    */
   async function fetchLatestVersion() {
     let url
     if (isNative) {
-      if (!config.public.apiBase) {
-        console.warn('[update-check] fetchLatestVersion: no apiBase configured, skipping')
-        return null
-      }
-      // Native: use /api/version which has CORS headers from the middleware
+      if (!config.public.apiBase) return null
       url = `${config.public.apiBase}/api/version?_=${Date.now()}`
     } else {
-      // Web: same-origin static file, no CORS needed
       const origin = config.public.apiBase || window.location.origin
       url = `${origin}/version.json?_=${Date.now()}`
     }
-    console.log('[update-check] fetching', url)
     const res = await fetch(url, { cache: 'no-store' })
-    console.log('[update-check] response', res.status, res.statusText)
     if (!res.ok) return null
-    const data = await res.json()
-    console.log('[update-check] server version:', data?.version)
-    return data
+    return res.json()
   }
 
   /**
-   * Compare the version baked into this JS bundle against the server.
-   * Works identically for web and native — both ship the same JS bundle
-   * version at build time.
+   * Compare the build version against the server.
+   * Respects the dismissed version — won't re-show a dismissed update
+   * unless a newer version appears.
+   * @param {boolean} manual - If true, ignore dismissed version (user explicitly asked)
    */
-  async function checkForUpdate() {
-    if (updateAvailable.value) {
-      console.log('[update-check] already flagged, skipping')
-      return
-    }
+  async function checkForUpdate(manual = false) {
     try {
       const data = await fetchLatestVersion()
-      if (!data?.version) {
-        console.warn('[update-check] no version in response')
+      if (!data?.version || data.version === buildVersion) {
+        if (manual) updateAvailable.value = false
         return
       }
-      console.log('[update-check] comparing build=%s server=%s match=%s', buildVersion, data.version, data.version === buildVersion)
-      if (data.version !== buildVersion) {
-        console.log('[update-check] update available!')
-        updateAvailable.value = true
-        // Web: also nudge the SW so it's ready when user clicks Reload
-        if (!isNative && navigator.serviceWorker) {
-          const reg = await navigator.serviceWorker.getRegistration()
-          reg?.update()
-        }
+      latestVersion.value = data.version
+      if (!manual) {
+        const dismissed = await getDismissedVersion()
+        if (data.version === dismissed) return
       }
-    } catch (err) {
-      console.warn('[update-check] failed:', err)
+      updateAvailable.value = true
+      if (!isNative && navigator.serviceWorker) {
+        const reg = await navigator.serviceWorker.getRegistration()
+        reg?.update()
+      }
+    } catch { /* offline or server down */ }
+  }
+
+  /** Restart the poll timer with a new interval (minutes) */
+  const setPollInterval = (minutes) => {
+    if (pollTimer) clearInterval(pollTimer)
+    if (minutes > 0) {
+      pollTimer = setInterval(() => checkForUpdate(), minutes * 60 * 1000)
     }
   }
 
   if (import.meta.client) {
-    console.log('[update-check] registering listeners and timers')
-
-    // SW update event (web only) — immediate notification
     window.addEventListener('sw-update-available', (e) => {
       swRegistration = e.detail?.registration || null
       updateAvailable.value = true
     })
 
-    // Poll on startup after a short delay
-    setTimeout(checkForUpdate, 3000)
+    // Initial check after short delay
+    setTimeout(() => checkForUpdate(), 3000)
 
-    // Poll every 10 minutes
-    setInterval(checkForUpdate, 10 * 60 * 1000)
+    // Default poll — will be overridden by preferences once loaded
+    setPollInterval(30)
 
-    // Poll when the app comes back to the foreground
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') checkForUpdate()
     })
   }
 
-  return { updateAvailable, isOnline, isNative, storeUrl, applyUpdate, dismissUpdate }
+  return {
+    updateAvailable, latestVersion, isOnline, isNative, storeUrl,
+    applyUpdate, dismissUpdate, checkForUpdate, setPollInterval,
+  }
 }

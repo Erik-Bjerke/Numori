@@ -391,6 +391,18 @@
                           Relaunch
                         </button>
                       </div>
+                      <div>
+                        <label :class="labelClass">Update check interval</label>
+                        <select v-model.number="preferences.updateCheckInterval" @change="onSettingChange" :class="selectClass">
+                          <option :value="5">Every 5 minutes</option>
+                          <option :value="15">Every 15 minutes</option>
+                          <option :value="30">Every 30 minutes</option>
+                          <option :value="60">Every hour</option>
+                          <option :value="360">Every 6 hours</option>
+                          <option :value="0">Manual only</option>
+                        </select>
+                        <p :class="hintClass">How often to check for new versions in the background</p>
+                      </div>
                     </div>
                   </section>
 
@@ -464,7 +476,7 @@ const sections = [
   { id: 'cursor', label: 'Cursor & Scrolling', keywords: 'cursor style scroll past end' },
   { id: 'behaviour', label: 'Behaviour', keywords: 'behaviour auto close brackets tab size indentation' },
   { id: 'results', label: 'Results & Display', keywords: 'results display precision decimal significant copy animation code blocks' },
-  { id: 'general', label: 'General', keywords: 'general welcome wizard relaunch setup' },
+  { id: 'general', label: 'General', keywords: 'general welcome wizard relaunch setup update check interval version' },
 ]
 
 const presets = LOCALE_PRESETS

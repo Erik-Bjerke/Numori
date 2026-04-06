@@ -100,6 +100,8 @@ const DEFAULT_PREFERENCES = {
   showResultsInCodeBlocks: false,
   // Markdown
   markdownMode: 'edit',
+  // Updates
+  updateCheckInterval: 30, // minutes
 }
 
 export const useLocalePreferences = () => {

@@ -38,7 +38,8 @@
             @zoom-reset="$emit('zoom-reset')"
             @templates="$emit('show-templates')"
             @help="$emit('show-help')"
-            @about="$emit('file-about')" />
+            @about="$emit('file-about')"
+            @check-update="$emit('check-update')" />
         </div>
 
         <!-- Center: Markdown formatting (desktop only) -->
@@ -166,5 +167,6 @@ defineEmits([
   'file-copy',
   'file-print',
   'file-about',
+  'check-update',
 ])
 </script>

@@ -26,11 +26,18 @@
                 <p class="text-lg font-semibold text-gray-900 dark:text-gray-200">Numori</p>
                 <p class="text-xs text-gray-500 dark:text-gray-500">v{{ appVersion }}</p>
                 <p class="text-xs text-gray-500 dark:text-gray-500">Made with ❤️ and code from Manchester, England</p>
-                <a href="https://github.com/Erik-Bjerke/Numori" target="_blank" rel="noopener noreferrer"
-                  class="inline-flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400 hover:underline">
-                  <Icon name="mdi:github" class="w-3.5 h-3.5 block" />
-                  GitHub
-                </a>
+                <div class="flex items-center justify-center gap-3">
+                  <a href="https://github.com/Erik-Bjerke/Numori" target="_blank" rel="noopener noreferrer"
+                    class="inline-flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400 hover:underline">
+                    <Icon name="mdi:github" class="w-3.5 h-3.5 block" />
+                    GitHub
+                  </a>
+                  <button @click="$emit('check-update')"
+                    class="inline-flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400 hover:underline">
+                    <Icon name="mdi:update" class="w-3.5 h-3.5 block" />
+                    Check for updates
+                  </button>
+                </div>
               </div>
 
               <!-- Author -->
@@ -105,7 +112,7 @@ defineProps({
   },
 })
 
-defineEmits(['close'])
+defineEmits(['close', 'check-update'])
 
 const appVersion = __APP_VERSION__
 </script>

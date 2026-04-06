@@ -36,7 +36,8 @@
       @file-import="handleImport"
       @file-copy="handleCopy"
       @file-print="handlePrint"
-      @file-about="showAbout = true" />
+      @file-about="showAbout = true"
+      @check-update="sw.checkForUpdate(true)" />
     </div>
 
     <!-- Main Content Area -->
@@ -200,7 +201,7 @@
       @open-analytics="handleOpenAnalytics" />
 
     <HelpModal :is-open="showHelp" :mod-label="modLabel" @close="showHelp = false" />
-    <AboutModal :is-open="showAbout" @close="showAbout = false" />
+    <AboutModal :is-open="showAbout" @close="showAbout = false" @check-update="sw.checkForUpdate(true)" />
     <TemplatesModal :is-open="showTemplates" @close="showTemplates = false" @insert="insertTemplate" />
     <LanguageSwitcher :is-open="showLanguageModal" @close="showLanguageModal = false" />
     <SettingsModal :is-open="showLocaleSettings"
@@ -301,6 +302,14 @@ const auth = useAuth()
 const { apiFetch } = useApi()
 const { syncing, lastSyncedAt, syncError, pendingNoteIds, isOnline, sync, syncNow, debouncedSync } = useSync(auth, notes, saveNotes, deletedIds, clearDeletedIds)
 const sw = useServiceWorker()
+
+// Sync the update-check poll interval with user preferences
+watch(() => localePrefs.preferences.updateCheckInterval, (val) => {
+  sw.setPollInterval(val ?? 30)
+})
+localePrefs.ready.then(() => {
+  sw.setPollInterval(localePrefs.preferences.updateCheckInterval ?? 30)
+})
 
 // Wrapper: create note + instant sync
 const createNote = () => {
