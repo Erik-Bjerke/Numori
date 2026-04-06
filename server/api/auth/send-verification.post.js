@@ -24,7 +24,11 @@ export default defineEventHandler(async (event) => {
     [code, expiresAt.toISOString(), 'email_verification', auth.userId]
   )
 
-  await sendVerificationEmail(result.rows[0].email, code)
+  const emailResult = await sendVerificationEmail(result.rows[0].email, code)
+
+  if (emailResult.error) {
+    throw createError({ statusCode: 502, statusMessage: 'Failed to send verification email. Please try again later.' })
+  }
 
   return { sent: true }
 })

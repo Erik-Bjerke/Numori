@@ -37,7 +37,11 @@ export default defineEventHandler(async (event) => {
     [code, expiresAt.toISOString(), 'password_recovery', user.id]
   )
 
-  await sendPasswordRecoveryEmail(emailNorm, code)
+  const emailResult = await sendPasswordRecoveryEmail(emailNorm, code)
+
+  if (emailResult.error) {
+    throw createError({ statusCode: 502, statusMessage: 'Failed to send recovery email. Please try again later.' })
+  }
 
   return { sent: true }
 })

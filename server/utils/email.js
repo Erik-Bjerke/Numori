@@ -29,6 +29,7 @@ function getTransporter() {
 
 /**
  * Send an email. Falls back to console.log if SMTP is not configured.
+ * Never throws — returns { accepted, error? } so callers can check success.
  */
 export async function sendEmail({ to, subject, html }) {
   const from = process.env.SMTP_FROM || 'noreply@numori.app'
@@ -41,7 +42,12 @@ export async function sendEmail({ to, subject, html }) {
     return { accepted: [to], preview: true }
   }
 
-  return transporter.sendMail({ from, to, subject, html })
+  try {
+    return await transporter.sendMail({ from, to, subject, html })
+  } catch (err) {
+    console.error(`[email] Failed to send to ${to}:`, err.message)
+    return { accepted: [], error: err.message }
+  }
 }
 
 /**
