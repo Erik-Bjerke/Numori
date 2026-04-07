@@ -127,6 +127,15 @@ export const useAuth = () => {
   }
 
   const logout = async () => {
+    // Revoke session server-side (best-effort)
+    if (token.value) {
+      try {
+        await apiFetch('/api/auth/logout', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token.value}` }
+        })
+      } catch { /* ignore — token may already be invalid */ }
+    }
     token.value = null
     user.value = null
     encKey.value = null

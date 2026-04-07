@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs'
 import { query } from '../../utils/db.js'
 import { signJwt } from '../../utils/auth.js'
+import { createSession } from '../../utils/session.js'
 
 /**
  * POST /api/auth/login
@@ -37,6 +38,9 @@ export default defineEventHandler(async (event) => {
 
   const secret = process.env.JWT_SECRET
   const token = await signJwt({ userId: user.id, email: user.email }, secret)
+
+  // Track session
+  await createSession(user.id, token, event)
 
   return {
     user: { id: user.id, email: user.email, name: user.name, avatarUrl: user.avatar_url, createdAt: user.created_at, emailVerified: user.email_verified },

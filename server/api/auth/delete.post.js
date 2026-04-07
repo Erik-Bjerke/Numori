@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs'
 import { requireAuth } from '../../utils/auth.js'
 import { query } from '../../utils/db.js'
 import { notifyDataWipe } from '../../utils/syncBroadcast.js'
+import { revokeAllSessions } from '../../utils/session.js'
 
 export default defineEventHandler(async (event) => {
   const auth = await requireAuth(event)
@@ -32,6 +33,7 @@ export default defineEventHandler(async (event) => {
   }
 
   if (type === 'account') {
+    await query('DELETE FROM sessions WHERE user_id = $1', [auth.userId])
     await query('DELETE FROM shared_notes WHERE user_id = $1', [auth.userId])
     await query('DELETE FROM notes WHERE user_id = $1', [auth.userId])
     await query('DELETE FROM deleted_notes WHERE user_id = $1', [auth.userId])

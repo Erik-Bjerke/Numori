@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs'
 import { query } from '../../utils/db.js'
 import { signJwt } from '../../utils/auth.js'
 import { generateOtp, sendVerificationEmail } from '../../utils/email.js'
+import { createSession } from '../../utils/session.js'
 
 /**
  * POST /api/auth/register
@@ -40,6 +41,9 @@ export default defineEventHandler(async (event) => {
   const user = result.rows[0]
   const secret = process.env.JWT_SECRET
   const token = await signJwt({ userId: user.id, email: user.email }, secret)
+
+  // Track session
+  await createSession(user.id, token, event)
 
   // Send verification email (non-blocking — don't fail registration if email fails)
   try {

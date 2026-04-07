@@ -65,7 +65,8 @@ export async function verifyJwt(token, secret) {
 
 /**
  * Extract and verify the JWT from the Authorization header.
- * Returns the decoded payload or throws a 401 error.
+ * Also validates the session exists (hasn't been revoked) and updates last_used_at.
+ * Returns the decoded payload (with tokenHash attached) or throws a 401 error.
  */
 export async function requireAuth(event) {
   const header = getHeader(event, 'authorization')
@@ -76,11 +77,24 @@ export async function requireAuth(event) {
   const token = header.slice(7)
   const secret = process.env.JWT_SECRET
 
+  let payload
   try {
-    return await verifyJwt(token, secret)
+    payload = await verifyJwt(token, secret)
   } catch {
     throw createError({ statusCode: 401, statusMessage: 'Invalid or expired token' })
   }
+
+  // Validate session exists (not revoked) and touch last_used_at
+  const { hashToken, touchSession } = await import('./session.js')
+  const tokenHash = await hashToken(token)
+  const session = await touchSession(tokenHash)
+  if (!session) {
+    // Session was revoked — token is valid but session deleted
+    throw createError({ statusCode: 401, statusMessage: 'Session revoked' })
+  }
+
+  payload.tokenHash = tokenHash
+  return payload
 }
 
 /**

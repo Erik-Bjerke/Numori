@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs'
 import { requireAuth } from '../../utils/auth.js'
 import { query } from '../../utils/db.js'
+import { revokeAllSessions } from '../../utils/session.js'
 
 /**
  * PUT /api/auth/password — Change password with atomic note re-encryption.
@@ -37,6 +38,9 @@ export default defineEventHandler(async (event) => {
   // Update password hash
   const newHash = await bcrypt.hash(newAuthKey, 12)
   await query('UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2', [newHash, auth.userId])
+
+  // Revoke all sessions — user must re-login with new password
+  await revokeAllSessions(auth.userId)
 
   // Overwrite all notes with re-encrypted data
   for (const note of reEncryptedNotes) {

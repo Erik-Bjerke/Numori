@@ -301,5 +301,27 @@ export async function migrate() {
     END $do$
   `)
 
+  // Sessions table for multi-device session management
+  await query(`
+    CREATE TABLE IF NOT EXISTS sessions (
+      id            SERIAL PRIMARY KEY,
+      user_id       INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      token_hash    TEXT NOT NULL,
+      device_name   TEXT,
+      ip_address    TEXT,
+      location      TEXT,
+      created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      last_used_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `)
+
+  await query(`
+    CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id)
+  `)
+
+  await query(`
+    CREATE INDEX IF NOT EXISTS idx_sessions_token_hash ON sessions(token_hash)
+  `)
+
   console.log('[migrate] Database tables ready')
 }

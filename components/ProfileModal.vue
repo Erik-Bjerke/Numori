@@ -90,6 +90,11 @@
                     <Icon name="mdi:shield-lock-outline" class="w-5 h-5 text-gray-400 flex-shrink-0" />
                     <span class="truncate">Security</span>
                   </button>
+                  <button @click="openSessionsSection"
+                    class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                    <Icon name="mdi:devices" class="w-5 h-5 text-gray-400 flex-shrink-0" />
+                    <span class="truncate">Active Sessions</span>
+                  </button>
                   <button @click="activeSection = 'danger'"
                     class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
                     <Icon name="mdi:alert-outline" class="w-5 h-5 flex-shrink-0" />
@@ -377,6 +382,63 @@
                 </div>
               </div>
 
+              <!-- ═══ Active Sessions ═══ -->
+              <div v-else-if="activeSection === 'sessions'" class="space-y-3">
+                <div v-if="loadingSessions" class="flex items-center justify-center py-8">
+                  <Icon name="mdi:loading" class="w-6 h-6 text-gray-400 animate-spin" />
+                </div>
+                <template v-else>
+                  <!-- Close all other sessions -->
+                  <button v-if="sessions.length > 1" @click="closeOtherSessions" :disabled="savingSessions"
+                    class="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors disabled:opacity-50">
+                    <Icon v-if="savingSessions" name="mdi:loading" class="w-4 h-4 animate-spin" />
+                    <Icon v-else name="mdi:logout-variant" class="w-4 h-4" />
+                    Close all other sessions
+                  </button>
+
+                  <div v-for="s in sessions" :key="s.id"
+                    class="px-3 py-2.5 rounded-lg border"
+                    :class="s.isCurrent
+                      ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800'
+                      : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800'">
+                    <div class="flex items-start justify-between gap-2">
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-1.5">
+                          <Icon :name="getDeviceIcon(s.deviceName)" class="w-4 h-4 flex-shrink-0"
+                            :class="s.isCurrent ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400'" />
+                          <p class="text-sm font-medium truncate"
+                            :class="s.isCurrent ? 'text-primary-700 dark:text-primary-300' : 'text-gray-900 dark:text-gray-200'">
+                            {{ s.deviceName || 'Unknown device' }}
+                          </p>
+                          <span v-if="s.isCurrent"
+                            class="text-[10px] px-1.5 py-0.5 rounded-full bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 flex-shrink-0">
+                            current
+                          </span>
+                        </div>
+                        <div class="mt-1 space-y-0.5">
+                          <p v-if="s.location || s.ipAddress" class="text-xs text-gray-500 dark:text-gray-500 truncate">
+                            {{ s.location || s.ipAddress }}
+                          </p>
+                          <p class="text-xs text-gray-400 dark:text-gray-600">
+                            Opened {{ formatSessionDate(s.createdAt) }} · Last used {{ formatSessionDate(s.lastUsedAt) }}
+                          </p>
+                        </div>
+                      </div>
+                      <button v-if="!s.isCurrent" @click="closeSession(s.id)" :disabled="savingSessions"
+                        class="flex-shrink-0 p-1.5 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors disabled:opacity-50"
+                        title="Close session">
+                        <Icon name="mdi:close" class="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div v-if="!sessions.length" class="text-center py-8">
+                    <Icon name="mdi:devices" class="w-8 h-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+                    <p class="text-sm text-gray-500 dark:text-gray-500">No active sessions</p>
+                  </div>
+                </template>
+              </div>
+
               <!-- ═══ Shared Notes ═══ -->
               <div v-else-if="activeSection === 'shared'" class="space-y-3">
                 <div v-if="loadingShared" class="flex items-center justify-center py-8">
@@ -498,6 +560,11 @@ const savingPrivacy = ref(false)
 const passwordRecoveryEnabled = ref(false)
 const savingSecurity = ref(false)
 
+// Sessions
+const sessions = ref([])
+const loadingSessions = ref(false)
+const savingSessions = ref(false)
+
 watch(() => props.isOpen, (open) => {
   if (open) {
     privacyNoTracking.value = props.user?.privacyNoTracking !== false
@@ -517,7 +584,7 @@ watch(() => props.isOpen, (open) => {
 })
 
 const sectionTitle = computed(() => {
-  const titles = { edit: 'Edit Profile', password: 'Change Password', danger: 'Data & Account', shared: 'Shared Notes', avatar: 'Change Avatar', security: 'Security' }
+  const titles = { edit: 'Edit Profile', password: 'Change Password', danger: 'Data & Account', shared: 'Shared Notes', avatar: 'Change Avatar', security: 'Security', sessions: 'Active Sessions' }
   return titles[activeSection.value] || 'Profile'
 })
 
@@ -773,6 +840,81 @@ const togglePasswordRecovery = async () => {
     showFeedback(err?.data?.statusMessage || 'Failed to update security setting', 'error')
   } finally {
     savingSecurity.value = false
+  }
+}
+
+const getDeviceIcon = (deviceName) => {
+  if (!deviceName) return 'mdi:help-circle-outline'
+  const d = deviceName.toLowerCase()
+  if (d.includes('android')) return 'mdi:android'
+  if (d.includes('ios') || d.includes('iphone') || d.includes('ipad')) return 'mdi:apple'
+  if (d.includes('mobile') || d.includes('app')) return 'mdi:cellphone'
+  if (d.includes('windows')) return 'mdi:microsoft-windows'
+  if (d.includes('mac')) return 'mdi:apple'
+  if (d.includes('linux')) return 'mdi:linux'
+  return 'mdi:monitor'
+}
+
+const formatSessionDate = (iso) => {
+  if (!iso) return 'Unknown'
+  const d = new Date(iso)
+  const now = new Date()
+  const diff = now - d
+  if (diff < 60000) return 'just now'
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`
+  if (diff < 7 * 86400000) return `${Math.floor(diff / 86400000)}d ago`
+  return d.toLocaleDateString()
+}
+
+const loadSessions = async () => {
+  loadingSessions.value = true
+  try {
+    if (!props.authHeaders?.Authorization) return
+    sessions.value = await apiFetch('/api/auth/sessions', {
+      headers: props.authHeaders
+    })
+  } catch {
+    sessions.value = []
+  } finally {
+    loadingSessions.value = false
+  }
+}
+
+const openSessionsSection = () => {
+  activeSection.value = 'sessions'
+  loadSessions()
+}
+
+const closeSession = async (sessionId) => {
+  savingSessions.value = true
+  try {
+    await apiFetch(`/api/auth/sessions/${sessionId}`, {
+      method: 'DELETE',
+      headers: props.authHeaders
+    })
+    sessions.value = sessions.value.filter(s => s.id !== sessionId)
+    showFeedback('Session closed')
+  } catch (err) {
+    showFeedback(err?.data?.statusMessage || 'Failed to close session', 'error')
+  } finally {
+    savingSessions.value = false
+  }
+}
+
+const closeOtherSessions = async () => {
+  savingSessions.value = true
+  try {
+    await apiFetch('/api/auth/sessions', {
+      method: 'DELETE',
+      headers: props.authHeaders
+    })
+    sessions.value = sessions.value.filter(s => s.isCurrent)
+    showFeedback('All other sessions closed')
+  } catch (err) {
+    showFeedback(err?.data?.statusMessage || 'Failed to close sessions', 'error')
+  } finally {
+    savingSessions.value = false
   }
 }
 

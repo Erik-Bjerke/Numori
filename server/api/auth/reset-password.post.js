@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs'
 import { verifyJwt, signJwt } from '../../utils/auth.js'
 import { query } from '../../utils/db.js'
+import { createSession, revokeAllSessions } from '../../utils/session.js'
 
 /**
  * POST /api/auth/reset-password
@@ -39,8 +40,14 @@ export default defineEventHandler(async (event) => {
   // Clean up tombstones too since all notes are gone
   await query('DELETE FROM deleted_notes WHERE user_id = $1', [payload.userId])
 
+  // Revoke all existing sessions
+  await revokeAllSessions(payload.userId)
+
   // Issue a fresh login token
   const token = await signJwt({ userId: payload.userId, email: payload.email }, secret)
+
+  // Track session
+  await createSession(payload.userId, token, event)
 
   const result = await query(
     'SELECT id, email, name, avatar_url, created_at, email_verified FROM users WHERE id = $1',
