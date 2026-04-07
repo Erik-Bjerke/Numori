@@ -623,6 +623,13 @@ const handleChangePassword = async ({ currentPassword, newPassword, onProgress }
 
 const handleDeleteData = async (password) => {
   await auth.requestDeletion('data', password)
+  // Clear local notes and all note-related state (but keep the user logged in)
+  notes.value = []
+  currentNoteId.value = null
+  await db.notes.clear()
+  await db.appState.bulkDelete(['deleted_note_ids', 'last_synced_at', 'welcome_note_created'])
+  lastSyncedAt.value = null
+  deletedIds.value = []
   await auth.refreshUser()
 }
 

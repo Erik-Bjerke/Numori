@@ -322,15 +322,54 @@
                     </button>
                   </div>
                 </div>
-                <div class="space-y-2">
-                  <button @click="handleDeleteData" :disabled="saving || !dangerPassword"
+
+                <!-- Confirmation prompt -->
+                <Transition enter-active-class="transition duration-200" enter-from-class="opacity-0 scale-95" leave-active-class="transition duration-150" leave-to-class="opacity-0 scale-95">
+                  <div v-if="confirmingAction" class="rounded-lg border p-4 space-y-3"
+                    :class="confirmingAction === 'data'
+                      ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-800'
+                      : 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-800'">
+                    <div class="flex gap-2.5">
+                      <Icon :name="confirmingAction === 'data' ? 'mdi:database-remove-outline' : 'mdi:account-remove-outline'"
+                        class="w-5 h-5 flex-shrink-0 mt-0.5"
+                        :class="confirmingAction === 'data' ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'" />
+                      <div class="text-xs space-y-1.5">
+                        <p class="font-semibold" :class="confirmingAction === 'data' ? 'text-amber-800 dark:text-amber-200' : 'text-red-800 dark:text-red-200'">
+                          {{ confirmingAction === 'data' ? 'Reset account data?' : 'Delete your account?' }}
+                        </p>
+                        <p :class="confirmingAction === 'data' ? 'text-amber-700 dark:text-amber-300' : 'text-red-700 dark:text-red-300'" class="leading-relaxed">
+                          {{ confirmingAction === 'data'
+                            ? 'This will permanently delete all your notes, shared notes, and related data. Your account will be reset as if newly created. This cannot be undone.'
+                            : 'This will permanently delete your account and all associated data. You will be logged out and will not be able to recover your account.' }}
+                        </p>
+                      </div>
+                    </div>
+                    <div class="flex gap-2">
+                      <button @click="confirmingAction = null"
+                        class="flex-1 px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors">
+                        Cancel
+                      </button>
+                      <button @click="executeConfirmedAction" :disabled="saving"
+                        class="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-white rounded-lg transition-colors"
+                        :class="confirmingAction === 'data'
+                          ? 'bg-amber-600 hover:bg-amber-700 disabled:opacity-50'
+                          : 'bg-red-600 hover:bg-red-700 disabled:opacity-50'">
+                        <Icon v-if="saving" name="mdi:loading" class="w-4 h-4 animate-spin" />
+                        {{ confirmingAction === 'data' ? 'Delete All Data' : 'Delete Account' }}
+                      </button>
+                    </div>
+                  </div>
+                </Transition>
+
+                <div v-if="!confirmingAction" class="space-y-2">
+                  <button @click="confirmingAction = 'data'" :disabled="saving || !dangerPassword"
                     class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
                     <Icon v-if="saving" name="mdi:loading" class="w-4 h-4 animate-spin" />
                     <Icon v-else name="mdi:database-remove-outline" class="w-4 h-4" />
-                    Delete All Cloud Data
+                    Delete All Data
                   </button>
-                  <p class="text-xs text-gray-500 dark:text-gray-500">Removes all synced and shared notes from the server. Your account stays active.</p>
-                  <button @click="handleDeleteAccount" :disabled="saving || !dangerPassword"
+                  <p class="text-xs text-gray-500 dark:text-gray-500">Resets your account as if newly created. All notes, shared notes, and related data are permanently deleted with no possibility of recovery.</p>
+                  <button @click="confirmingAction = 'account'" :disabled="saving || !dangerPassword"
                     class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
                     <Icon v-if="saving" name="mdi:loading" class="w-4 h-4 animate-spin" />
                     <Icon v-else name="mdi:account-remove-outline" class="w-4 h-4" />
@@ -444,6 +483,7 @@ const showConfirmNewPassword = ref(false)
 // Danger zone
 const dangerPassword = ref('')
 const showDangerPassword = ref(false)
+const confirmingAction = ref(null)
 
 // Shared notes
 const sharedNotes = ref([])
@@ -472,6 +512,7 @@ watch(() => props.isOpen, (open) => {
     newPassword.value = ''
     confirmNewPassword.value = ''
     dangerPassword.value = ''
+    confirmingAction.value = null
   }
 })
 
@@ -483,6 +524,7 @@ const sectionTitle = computed(() => {
 const goBack = () => {
   activeSection.value = 'main'
   feedback.value = null
+  confirmingAction.value = null
 }
 
 const showFeedback = (msg, type = 'success') => {
@@ -585,13 +627,13 @@ const savePassword = async () => {
 }
 
 const handleDeleteData = async () => {
-  if (!confirm('This will permanently delete all your cloud notes and shared notes. Continue?')) return
   saving.value = true
   feedback.value = null
   try {
     await emit('delete-data', dangerPassword.value)
-    showFeedback('All cloud data deleted')
+    showFeedback('All data deleted — account reset')
     dangerPassword.value = ''
+    confirmingAction.value = null
     activeSection.value = 'main'
   } catch (err) {
     showFeedback(err?.data?.statusMessage || 'Failed to delete data', 'error')
@@ -601,7 +643,6 @@ const handleDeleteData = async () => {
 }
 
 const handleDeleteAccount = async () => {
-  if (!confirm('This will permanently delete your account and all associated data. This cannot be undone. Continue?')) return
   saving.value = true
   feedback.value = null
   try {
@@ -610,6 +651,11 @@ const handleDeleteAccount = async () => {
     showFeedback(err?.data?.statusMessage || 'Failed to delete account', 'error')
     saving.value = false
   }
+}
+
+const executeConfirmedAction = () => {
+  if (confirmingAction.value === 'data') handleDeleteData()
+  else if (confirmingAction.value === 'account') handleDeleteAccount()
 }
 
 const loadSharedNotes = async () => {
