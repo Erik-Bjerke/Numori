@@ -622,15 +622,27 @@ const handleChangePassword = async ({ currentPassword, newPassword, onProgress }
 }
 
 const handleDeleteData = async (password) => {
-  await auth.requestDeletion('data', password)
-  // Clear local notes and all note-related state (but keep the user logged in)
+  // Clear local state first to prevent any concurrent sync from
+  // re-pushing notes to the server during the deletion request.
+  const backupNotes = [...notes.value]
+  const backupCurrentNoteId = currentNoteId.value
   notes.value = []
   currentNoteId.value = null
-  await db.notes.clear()
-  await db.appState.bulkDelete(['deleted_note_ids', 'last_synced_at', 'welcome_note_created'])
-  lastSyncedAt.value = null
   deletedIds.value = []
-  await auth.refreshUser()
+
+  try {
+    await auth.requestDeletion('data', password)
+    // Server deletion succeeded — persist the local cleanup
+    await db.notes.clear()
+    await db.appState.bulkDelete(['deleted_note_ids', 'last_synced_at', 'welcome_note_created'])
+    lastSyncedAt.value = null
+    await auth.refreshUser()
+  } catch (err) {
+    // Server call failed — restore local state
+    notes.value = backupNotes
+    currentNoteId.value = backupCurrentNoteId
+    throw err
+  }
 }
 
 const handleDeleteAccount = async (password) => {
