@@ -14,6 +14,7 @@ Do math with natural language and get results in real time as you type. Just wri
 - **Variables** — `rent = 1200` then use `rent` in later lines
 - **Aggregation** — `sum` and `average` across previous lines
 - **Cloud sync with E2E encryption** — optional account, end-to-end encrypted, the server never sees your notes
+- **Session management** — view active sessions across devices, revoke any session remotely, automatic logout on revoked devices
 - **Works everywhere** — PWA for desktop and mobile browsers, plus native iOS and Android via Capacitor
 - **Offline-first** — everything runs client-side with IndexedDB; no internet required for core features
 - **Share notes** — password-protected shared links with view analytics
@@ -74,7 +75,7 @@ npm run dev                 # http://localhost:3000
 │   ├── NoteEditor.vue             # CodeMirror editor wrapper with calc integration
 │   ├── NoteListItem.vue           # Single note row in the sidebar
 │   ├── NoteMetaModal.vue          # Note rename / metadata / share modal
-│   ├── ProfileModal.vue           # User profile, password change, data deletion
+│   ├── ProfileModal.vue           # User profile, sessions, password change, data deletion
 │   ├── SettingsModal.vue          # Locale and display preferences
 │   ├── ShareAnalyticsModal.vue    # Shared note view analytics
 │   ├── SharedNoteToolbar.vue      # Toolbar for the public shared-note page
@@ -96,7 +97,7 @@ npm run dev                 # http://localhost:3000
 │   │   └── units.js               # Unit conversion (length, weight, …)
 │   ├── useApi.js                  # API fetch wrapper (app-level)
 │   ├── useApiBase.js              # Base fetch helper (shared with shared page)
-│   ├── useAuth.js                 # Auth state, key derivation, session persistence
+│   ├── useAuth.js                 # Auth state, key derivation, session persistence and validation
 │   ├── useNumoriLanguage.js        # Custom CodeMirror language (numori)
 │   ├── useCalculator.js           # Calculator composable (delegates to calculator/)
 │   ├── useCodeHighlight.js        # Syntax highlighting helpers
@@ -126,6 +127,12 @@ npm run dev                 # http://localhost:3000
 │   │   │   ├── profile.put.js     # PUT  /api/auth/profile — update profile
 │   │   │   ├── password.put.js    # PUT  /api/auth/password — change password + re-encrypt
 │   │   │   ├── privacy.put.js     # PUT  /api/auth/privacy — tracking preferences
+│   │   │   ├── security.put.js    # PUT  /api/auth/security — toggle security settings
+│   │   │   ├── sessions.get.js    # GET  /api/auth/sessions — list active sessions
+│   │   │   ├── sessions.delete.js # DELETE /api/auth/sessions — revoke all other sessions
+│   │   │   ├── sessions/
+│   │   │   │   └── [id].delete.js # DELETE /api/auth/sessions/:id — revoke single session
+│   │   │   ├── logout.post.js     # POST /api/auth/logout — revoke current session
 │   │   │   └── delete.post.js     # POST /api/auth/delete — delete data or account
 │   │   ├── notes/
 │   │   │   ├── index.get.js       # GET  /api/notes — list notes
@@ -152,6 +159,7 @@ npm run dev                 # http://localhost:3000
 │       ├── auth.js                # JWT sign / verify, requireAuth helper
 │       ├── db.js                  # PostgreSQL connection pool + query helper
 │       ├── migrate.js             # SQL migration runner
+│       ├── session.js             # Session creation, validation, revocation helpers
 │       └── syncBroadcast.js       # SSE broadcast to connected clients
 ├── locales/
 │   ├── en-GB.json                 # English translations
@@ -278,10 +286,12 @@ sequenceDiagram
     alt Register
         U->>S: POST /api/auth/register { email, authKey }
         S->>S: store bcrypt(authKey)
+        S->>S: create session (device, IP, location)
         S-->>U: { token, user }
     else Login
         U->>S: POST /api/auth/login { email, authKey, password* }
         S->>S: verify bcrypt(authKey) or bcrypt(password)
+        S->>S: create session (device, IP, location)
         Note over S: *password sent only for legacy account migration
         S-->>U: { token, user }
     end
@@ -296,18 +306,56 @@ On login the server tries `authKey` first. For legacy accounts (created before E
 
 The JWT token and the exported `encKey` bytes (base64-encoded) are both persisted in IndexedDB via the Dexie `appState` table. This means the session survives page refreshes, tab closures, and browser restarts. Both are cleared on logout.
 
-On page load, `restore()` recovers the JWT from IndexedDB, validates it against the server (`GET /api/auth/me`), and re-imports the `encKey` from IndexedDB. If either is missing or the token is invalid, the user must log in again.
+On page load, `restore()` recovers the JWT from IndexedDB, validates it against the server (`GET /api/auth/me`), and re-imports the `encKey` from IndexedDB. If either is missing or the token is invalid, the user must log in again. If the session was revoked remotely, `restore()` also clears all local notes from IndexedDB so no data is left behind.
 
 ```mermaid
 flowchart TD
     LOAD[Page load / refresh] --> JWT{JWT in IndexedDB?}
     JWT -- No --> GUEST[Guest mode — local only]
     JWT -- Yes --> VERIFY[GET /api/auth/me]
-    VERIFY -- 401 --> CLEAR[Clear token + key from IndexedDB] --> GUEST
+    VERIFY -- 401 --> CLEAR[Clear token + key + notes from IndexedDB] --> GUEST
     VERIFY -- 200 --> KEY{encKey in IndexedDB?}
     KEY -- Yes --> IMPORT[Import AES key from bytes] --> READY[Sync enabled]
     KEY -- No --> NOSYNC[Logged in but sync paused — re-login required]
 ```
+
+### Session management
+
+Each login, registration, or password reset creates a server-side session record in the `sessions` table. Sessions are identified by a SHA-256 hash of the JWT (the raw token is never stored server-side). Each session tracks:
+
+- Device name (parsed from User-Agent)
+- IP address
+- Location (from reverse proxy / CDN geolocation headers, when available)
+- Created timestamp
+- Last-used timestamp (updated on every authenticated API call)
+
+`requireAuth()` validates the session on every request — if the session row has been deleted (revoked), the request fails with 401 even if the JWT itself is still cryptographically valid. This means session revocation is immediate and doesn't depend on JWT expiry.
+
+#### Revocation propagation
+
+When a session is revoked remotely, the affected client is notified through three independent mechanisms (belt-and-suspenders):
+
+1. **SSE push** — the server broadcasts a `session-revoked` message to all connected SSE clients. The receiving client calls `GET /api/auth/me` to check if its own session is still valid. If not, it clears all local data and logs out.
+2. **Session heartbeat** — a 30-second interval polls `GET /api/auth/me` independently of SSE. This catches revocations when SSE isn't connected yet (e.g. immediately after login) or was temporarily disconnected.
+3. **Sync 401 fallback** — if a sync request returns 401, the client treats it as a session revocation and clears local data.
+
+When any of these paths detects a revoked session, the client clears notes from both memory and IndexedDB, removes auth tokens and encryption keys, and returns to guest mode.
+
+#### Offline devices
+
+Devices that are offline when their session is revoked will not receive the SSE notification. When they come back online, the `isOnline` watcher immediately triggers a session validation call. If the session was revoked, the device is logged out and local data is cleared before any sync can occur.
+
+#### Session lifecycle
+
+| Event | Session effect |
+|---|---|
+| Login / Register / Password reset | New session created |
+| Any authenticated API call | `last_used_at` updated |
+| Logout | Current session deleted |
+| Password change | All sessions deleted (re-login required) |
+| "Close all other sessions" | All sessions except current deleted |
+| "Close session" (specific) | Target session deleted |
+| Account deletion | All sessions cascade-deleted |
 
 ### Encryption format
 
@@ -337,7 +385,7 @@ sequenceDiagram
     Note over S: Server only ever sees encrypted blobs
 ```
 
-Sync triggers: immediate on create/delete/reorder, debounced (3 s) on edits, 2-minute interval, and SSE push from other clients.
+Sync triggers: immediate on create/delete/reorder, debounced (3 s) on edits, 2-minute interval, and SSE push from other clients. A separate 30-second session heartbeat validates the session is still active independently of sync.
 
 ### Password change
 
@@ -359,6 +407,7 @@ sequenceDiagram
     C->>S: PUT /api/auth/password { currentAuthKey, newAuthKey, reEncryptedNotes }
     S->>S: verify currentAuthKey, update hash to bcrypt(newAuthKey)
     S->>S: overwrite all notes with re-encrypted data
+    S->>S: revoke all sessions
     S-->>C: { updated: true }
     C->>C: logout — user must re-login with new password
 ```
@@ -386,7 +435,7 @@ The following items are known trade-offs or areas for future improvement:
 
 4. **Server-side note metadata exposure** — While note content fields are encrypted, the server can still observe: number of notes, note sizes, timestamps, sort order, and sync frequency. A padding or fixed-size scheme could mitigate size-based analysis.
 
-5. **JWT in IndexedDB** — The JWT is stored in IndexedDB (not httpOnly cookie) because the app is a client-side SPA that calls the API directly. This means the token is accessible to JavaScript and vulnerable to XSS. The token has an expiry, but there is no refresh token rotation yet.
+5. **JWT in IndexedDB** — The JWT is stored in IndexedDB (not httpOnly cookie) because the app is a client-side SPA that calls the API directly. This means the token is accessible to JavaScript and vulnerable to XSS. The token has an expiry, and server-side session management means stolen tokens can be revoked immediately via the Active Sessions UI. However, there is no refresh token rotation yet.
 
 6. **Legacy password fallback** — During the migration period, the login endpoint accepts both `authKey` and raw `password`. The raw password is sent over TLS but does reach the server. Once all accounts are migrated, the raw password fallback should be removed.
 
