@@ -52,7 +52,7 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onD
   })
 
   const sync = async (source = 'unknown') => {
-    if (!auth.isLoggedIn.value) return
+    if (!auth.isLoggedIn.value || sessionRevokedHandled) return
     // encKey is required for E2E encryption. If the user restored a session
     // without entering their password, we can't encrypt/decrypt.
     if (!auth.encKey.value) return
@@ -169,21 +169,25 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onD
     } catch (err) {
       syncError.value = err.data?.statusMessage || err.message || 'Sync failed'
       // If session was revoked, clear local data and log out
-      if (err.status === 401 || err.statusCode === 401) {
+      const status = err.status || err.statusCode || err.data?.statusCode
+      if (status === 401) {
         handleSessionRevoked()
         return
       }
     } finally {
       syncing.value = false
-      if (pendingSync) {
+      if (pendingSync && !sessionRevokedHandled) {
         const queued = pendingSync
         pendingSync = null
         sync(queued)
+      } else {
+        pendingSync = null
       }
     }
   }
 
   const syncNow = (noteId) => {
+    if (sessionRevokedHandled) return
     if (noteId) pendingNoteIds.value = new Set([...pendingNoteIds.value, noteId])
     clearTimeout(debounceTimer)
     if (!auth.isLoggedIn.value || !auth.encKey.value) {
@@ -194,6 +198,7 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onD
   }
 
   const debouncedSync = (noteId) => {
+    if (sessionRevokedHandled) return
     if (noteId) pendingNoteIds.value = new Set([...pendingNoteIds.value, noteId])
     if (!auth.isLoggedIn.value || !auth.encKey.value) return
     clearTimeout(debounceTimer)

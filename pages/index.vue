@@ -354,15 +354,18 @@ _onDataWipe = async () => {
 
 /** Called when the current session was revoked remotely. Clear everything and log out. */
 _onSessionRevoked = async () => {
-  notes.value = []
-  currentNoteId.value = null
-  deletedIds.value = []
-  await db.notes.clear()
-  await db.appState.bulkDelete(['auth_token', 'enc_key', 'deleted_note_ids', 'last_synced_at', 'welcome_note_created'])
-  lastSyncedAt.value = null
+  // Clear auth state FIRST (synchronous) so isLoggedIn becomes false immediately
+  // and no sync/SSE can fire while we clean up IndexedDB
   auth.user.value = null
   auth.token.value = null
   auth.encKey.value = null
+  notes.value = []
+  currentNoteId.value = null
+  deletedIds.value = []
+  lastSyncedAt.value = null
+  // Then clean up IndexedDB (async)
+  await db.notes.clear()
+  await db.appState.bulkDelete(['auth_token', 'enc_key', 'deleted_note_ids', 'last_synced_at', 'welcome_note_created'])
 }
 const sw = useServiceWorker()
 
