@@ -447,10 +447,12 @@ const props = defineProps({
   isOpen: { type: Boolean, default: false },
   user: { type: Object, default: null },
   lastSyncedAt: { type: String, default: null },
-  authHeaders: { type: Object, default: () => ({}) }
+  authHeaders: { type: Object, default: () => ({}) },
+  onDeleteData: { type: Function, default: null },
+  onDeleteAccount: { type: Function, default: null }
 })
 
-const emit = defineEmits(['close', 'update-profile', 'change-password', 'delete-data', 'delete-account', 'logout', 'unshare', 'open-analytics', 'sync-now', 'show-notes'])
+const emit = defineEmits(['close', 'update-profile', 'change-password', 'logout', 'unshare', 'open-analytics', 'sync-now', 'show-notes'])
 
 const activeSection = ref('main')
 const feedback = ref(null)
@@ -628,7 +630,7 @@ const handleDeleteData = async () => {
   saving.value = true
   feedback.value = null
   try {
-    await emit('delete-data', dangerPassword.value)
+    await props.onDeleteData(dangerPassword.value)
     showFeedback('All data deleted — account reset')
     dangerPassword.value = ''
     confirmingAction.value = null
@@ -644,7 +646,7 @@ const handleDeleteAccount = async () => {
   saving.value = true
   feedback.value = null
   try {
-    await emit('delete-account', dangerPassword.value)
+    await props.onDeleteAccount(dangerPassword.value)
   } catch (err) {
     showFeedback(err?.data?.statusMessage || 'Failed to delete account', 'error')
     saving.value = false
