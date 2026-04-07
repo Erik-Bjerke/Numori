@@ -62,6 +62,9 @@ export const useAuth = () => {
     }
   }
 
+  /** True if restore() found a stored token but the session was invalid/revoked. */
+  const wasSessionInvalid = ref(false)
+
   const restore = async () => {
     if (!import.meta.client) return
     const row = await db.appState.get('auth_token')
@@ -75,10 +78,15 @@ export const useAuth = () => {
       // Restore encKey from IndexedDB (survives refresh)
       encKey.value = await _restoreEncKey()
     } catch {
+      // Session invalid or revoked — clear all auth AND local data
       token.value = null
       encKey.value = null
       await _clearEncKey()
       await db.appState.delete('auth_token')
+      // Clear notes so revoked sessions don't leave data behind
+      await db.notes.clear()
+      await db.appState.bulkDelete(['deleted_note_ids', 'last_synced_at', 'welcome_note_created'])
+      wasSessionInvalid.value = true
     }
   }
 
@@ -354,7 +362,7 @@ export const useAuth = () => {
   onMounted(() => restore())
 
   return {
-    user, token, loading, error, isLoggedIn, authHeaders, encKey,
+    user, token, loading, error, isLoggedIn, authHeaders, encKey, wasSessionInvalid,
     register, login, logout, restore,
     updateProfile, changePassword, requestDeletion, refreshUser,
     sendVerification, verifyEmail,

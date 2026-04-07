@@ -165,12 +165,7 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onD
       syncError.value = err.data?.statusMessage || err.message || 'Sync failed'
       // If session was revoked, clear local data and log out
       if (err.status === 401 || err.statusCode === 401) {
-        if (!sessionRevokedHandled) {
-          sessionRevokedHandled = true
-          disconnectSSE()
-          stopAutoSync()
-          if (onSessionRevoked) onSessionRevoked()
-        }
+        handleSessionRevoked()
         return
       }
     } finally {
@@ -221,6 +216,7 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onD
   // SSE — real-time notifications from other clients
   let eventSource = null
   let sessionRevokedHandled = false
+  let sseReconnectTimer = null
 
   /** Check if our session is still valid. If not, clear local data and log out. */
   const validateSessionOrLogout = async () => {
@@ -230,16 +226,22 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onD
       // Session still valid — ignore
     } catch {
       // Session revoked — clear everything
-      sessionRevokedHandled = true
-      disconnectSSE()
-      stopAutoSync()
-      if (onSessionRevoked) onSessionRevoked()
+      handleSessionRevoked()
     }
+  }
+
+  const handleSessionRevoked = () => {
+    if (sessionRevokedHandled) return
+    sessionRevokedHandled = true
+    clearTimeout(sseReconnectTimer)
+    disconnectSSE()
+    stopAutoSync()
+    if (onSessionRevoked) onSessionRevoked()
   }
 
   const connectSSE = () => {
     disconnectSSE()
-    if (!auth.token.value) return
+    if (!auth.token.value || sessionRevokedHandled) return
 
     eventSource = new EventSource(
       apiUrl(`/api/sync/events?token=${auth.token.value}&sessionId=${sessionId}`)
@@ -261,8 +263,9 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onD
 
     eventSource.onerror = () => {
       disconnectSSE()
-      setTimeout(() => {
-        if (auth.isLoggedIn.value) connectSSE()
+      if (sessionRevokedHandled) return
+      sseReconnectTimer = setTimeout(() => {
+        if (auth.isLoggedIn.value && !sessionRevokedHandled) connectSSE()
       }, 5000)
     }
   }
@@ -284,6 +287,7 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onD
       } else if (!loggedIn) {
         stopAutoSync()
         disconnectSSE()
+        clearTimeout(sseReconnectTimer)
       }
     },
     { immediate: true }
@@ -298,6 +302,7 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onD
   onBeforeUnmount(() => {
     stopAutoSync()
     disconnectSSE()
+    clearTimeout(sseReconnectTimer)
     if (import.meta.client) {
       window.removeEventListener('beforeunload', onBeforeUnload)
     }

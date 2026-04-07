@@ -330,6 +330,17 @@ let _onDataWipe = null
 let _onSessionRevoked = null
 const { syncing, lastSyncedAt, syncError, pendingNoteIds, isOnline, sync, syncNow, debouncedSync } = useSync(auth, notes, saveNotes, deletedIds, clearDeletedIds, () => _onDataWipe?.(), () => _onSessionRevoked?.())
 
+// If restore() found a stale token from a revoked session, clear in-memory notes
+// (IndexedDB was already cleared by restore, but loadNotes ran first)
+watch(() => auth.wasSessionInvalid.value, (invalid) => {
+  if (invalid) {
+    notes.value = []
+    currentNoteId.value = null
+    deletedIds.value = []
+    lastSyncedAt.value = null
+  }
+})
+
 /** Called by other devices via SSE when data was wiped from the profile modal. */
 _onDataWipe = async () => {
   notes.value = []
@@ -505,9 +516,22 @@ const loadSharedNotes = async () => {
 }
 
 // Reload shared notes when auth changes or after sharing
-watch(() => auth.isLoggedIn.value, (loggedIn) => {
-  if (loggedIn) loadSharedNotes()
-  else { sharedNoteIds.value = []; sharedNotesMap.value = new Map(); analyticsNotesMap.value = new Map() }
+watch(() => auth.isLoggedIn.value, async (loggedIn, wasLoggedIn) => {
+  if (loggedIn) {
+    loadSharedNotes()
+  } else {
+    sharedNoteIds.value = []; sharedNotesMap.value = new Map(); analyticsNotesMap.value = new Map()
+    // If we transitioned from logged-in to logged-out (session revoked, restore failed, etc.),
+    // clear local notes so no data is left behind from a revoked session.
+    if (wasLoggedIn) {
+      notes.value = []
+      currentNoteId.value = null
+      deletedIds.value = []
+      await db.notes.clear()
+      await db.appState.bulkDelete(['deleted_note_ids', 'last_synced_at', 'welcome_note_created'])
+      lastSyncedAt.value = null
+    }
+  }
 })
 
 onMounted(() => {
