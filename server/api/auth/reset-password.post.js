@@ -35,7 +35,9 @@ export default defineEventHandler(async (event) => {
   await query('UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2', [newHash, payload.userId])
 
   // Delete all encrypted notes — they can't be decrypted without the old password
-  await query('UPDATE notes SET deleted_at = NOW() WHERE user_id = $1 AND deleted_at IS NULL', [payload.userId])
+  await query('DELETE FROM notes WHERE user_id = $1', [payload.userId])
+  // Clean up tombstones too since all notes are gone
+  await query('DELETE FROM deleted_notes WHERE user_id = $1', [payload.userId])
 
   // Issue a fresh login token
   const token = await signJwt({ userId: payload.userId, email: payload.email }, secret)

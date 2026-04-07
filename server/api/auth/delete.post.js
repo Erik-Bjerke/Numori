@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs'
 import { requireAuth } from '../../utils/auth.js'
 import { query } from '../../utils/db.js'
+import { notifySync } from '../../utils/syncBroadcast.js'
 
 /**
  * POST /api/auth/delete — Delete account data or the entire account.
@@ -33,8 +34,11 @@ export default defineEventHandler(async (event) => {
 
   if (type === 'data') {
     await query('DELETE FROM notes WHERE user_id = $1', [auth.userId])
+    await query('DELETE FROM deleted_notes WHERE user_id = $1', [auth.userId])
     await query('DELETE FROM shared_notes WHERE user_id = $1', [auth.userId])
     await query('UPDATE users SET welcome_created = FALSE WHERE id = $1', [auth.userId])
+    // Notify other devices so they sync immediately
+    notifySync(auth.userId, null)
     return { deleted: 'data' }
   }
 
@@ -42,6 +46,7 @@ export default defineEventHandler(async (event) => {
     // Permanently delete account and all associated data
     await query('DELETE FROM shared_notes WHERE user_id = $1', [auth.userId])
     await query('DELETE FROM notes WHERE user_id = $1', [auth.userId])
+    await query('DELETE FROM deleted_notes WHERE user_id = $1', [auth.userId])
     await query('DELETE FROM users WHERE id = $1', [auth.userId])
     return { deleted: 'account' }
   }

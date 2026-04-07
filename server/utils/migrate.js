@@ -72,14 +72,6 @@ export async function migrate() {
     END $do$
   `)
 
-  // Add deletion_requested columns if missing
-  await query(`
-    DO $do$ BEGIN
-      ALTER TABLE users ADD COLUMN IF NOT EXISTS deletion_requested_at TIMESTAMPTZ;
-    EXCEPTION WHEN duplicate_column THEN NULL;
-    END $do$
-  `)
-
   // Add sort_order column for manual ordering
   await query(`
     DO $do$ BEGIN
@@ -88,12 +80,28 @@ export async function migrate() {
     END $do$
   `)
 
-  // Add deleted_at column for soft-delete sync
+  // Drop legacy columns that are no longer used
   await query(`
     DO $do$ BEGIN
-      ALTER TABLE notes ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
-    EXCEPTION WHEN duplicate_column THEN NULL;
+      ALTER TABLE users DROP COLUMN IF EXISTS deletion_requested_at;
+      ALTER TABLE notes DROP COLUMN IF EXISTS deleted_at;
+    EXCEPTION WHEN others THEN NULL;
     END $do$
+  `)
+
+  // Lightweight tombstone table for multi-device sync (no note content stored)
+  await query(`
+    CREATE TABLE IF NOT EXISTS deleted_notes (
+      id         SERIAL PRIMARY KEY,
+      user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      client_id  TEXT NOT NULL,
+      deleted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (user_id, client_id)
+    )
+  `)
+
+  await query(`
+    CREATE INDEX IF NOT EXISTS idx_deleted_notes_user_id ON deleted_notes(user_id)
   `)
 
   // Add collect_analytics flag to shared_notes

@@ -2,7 +2,7 @@
  * Unit tests for server/api/notes/sync.post.js
  *
  * Focuses on encryption-related behavior: opaque field storage,
- * tags handling (string vs array), soft-delete, and pull responses.
+ * tags handling (string vs array), hard delete with tombstones, and pull responses.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
@@ -46,7 +46,7 @@ describe('POST /api/notes/sync', () => {
       deletedClientIds: []
     })
 
-    // 1. Check soft-delete for n1
+    // 1. Check tombstone for n1
     mockQuery.mockResolvedValueOnce({ rows: [] })
     // 2. INSERT/UPSERT
     mockQuery.mockResolvedValueOnce({
@@ -58,10 +58,12 @@ describe('POST /api/notes/sync', () => {
     })
     // 3. Check server-deleted IDs
     mockQuery.mockResolvedValueOnce({ rows: [] })
-    // 4. Pull all active notes
+    // 4. Pull all notes
     mockQuery.mockResolvedValueOnce({ rows: [] })
     // 5. SELECT welcome_created
     mockQuery.mockResolvedValueOnce({ rows: [{ welcome_created: false }] })
+    // 6. Tombstone purge
+    mockQuery.mockResolvedValueOnce({ rows: [] })
 
     await handler({})
 
@@ -84,7 +86,7 @@ describe('POST /api/notes/sync', () => {
       deletedClientIds: []
     })
 
-    mockQuery.mockResolvedValueOnce({ rows: [] }) // check deleted
+    mockQuery.mockResolvedValueOnce({ rows: [] }) // check tombstone
     mockQuery.mockResolvedValueOnce({
       rows: [{
         id: 1, client_id: 'n1', title: 'Plain Title',
@@ -95,6 +97,7 @@ describe('POST /api/notes/sync', () => {
     mockQuery.mockResolvedValueOnce({ rows: [] }) // server-deleted IDs
     mockQuery.mockResolvedValueOnce({ rows: [] }) // pull
     mockQuery.mockResolvedValueOnce({ rows: [{ welcome_created: false }] }) // welcome_created
+    mockQuery.mockResolvedValueOnce({ rows: [] }) // tombstone purge
 
     await handler({})
 
@@ -102,29 +105,36 @@ describe('POST /api/notes/sync', () => {
     expect(insertCall[1][4]).toBe('["tag1","tag2"]')
   })
 
-  it('soft-deletes notes and does not cascade to shared_notes', async () => {
+  it('hard-deletes notes and records tombstones', async () => {
     readBody.mockResolvedValue({
       notes: [],
       deletedClientIds: ['n1', 'n2']
     })
 
-    // 1. Soft-delete query
+    // 1. DELETE FROM notes
     mockQuery.mockResolvedValueOnce({ rows: [] })
-    // 2. Pull query (no notes to check for server-deleted since clientNotes is empty)
+    // 2. INSERT tombstone for n1
     mockQuery.mockResolvedValueOnce({ rows: [] })
-    // 3. SELECT welcome_created
+    // 3. INSERT tombstone for n2
+    mockQuery.mockResolvedValueOnce({ rows: [] })
+    // 4. Pull query
+    mockQuery.mockResolvedValueOnce({ rows: [] })
+    // 5. SELECT welcome_created
     mockQuery.mockResolvedValueOnce({ rows: [{ welcome_created: false }] })
+    // 6. Tombstone purge
+    mockQuery.mockResolvedValueOnce({ rows: [] })
 
     await handler({})
 
-    // 3 queries: soft-delete + pull + welcome_created
-    expect(mockQuery).toHaveBeenCalledTimes(3)
-    // First query is the soft-delete UPDATE
-    expect(mockQuery.mock.calls[0][0]).toContain('UPDATE notes SET deleted_at')
+    // First query is the hard DELETE
+    expect(mockQuery.mock.calls[0][0]).toContain('DELETE FROM notes')
     expect(mockQuery.mock.calls[0][1]).toEqual([1, ['n1', 'n2']])
+    // Tombstone inserts
+    expect(mockQuery.mock.calls[1][0]).toContain('INSERT INTO deleted_notes')
+    expect(mockQuery.mock.calls[2][0]).toContain('INSERT INTO deleted_notes')
   })
 
-  it('skips notes that are soft-deleted on server', async () => {
+  it('skips notes that have a tombstone on server', async () => {
     readBody.mockResolvedValue({
       notes: [{
         clientId: 'n1',
@@ -137,26 +147,26 @@ describe('POST /api/notes/sync', () => {
       deletedClientIds: []
     })
 
-    // 1. Check deleted: note exists and IS soft-deleted
-    mockQuery.mockResolvedValueOnce({ rows: [{ deleted_at: '2025-01-01' }] })
-    // 2. Check server-deleted IDs (n1 has a clientId)
+    // 1. Check tombstone: exists
+    mockQuery.mockResolvedValueOnce({ rows: [{ id: 1 }] })
+    // 2. Check server-deleted IDs
     mockQuery.mockResolvedValueOnce({ rows: [{ client_id: 'n1' }] })
     // 3. Pull query
     mockQuery.mockResolvedValueOnce({ rows: [] })
     // 4. SELECT welcome_created
     mockQuery.mockResolvedValueOnce({ rows: [{ welcome_created: false }] })
+    // 5. Tombstone purge
+    mockQuery.mockResolvedValueOnce({ rows: [] })
 
     const result = await handler({})
 
-    // 4 queries: check deleted + server-deleted IDs + pull + welcome_created
-    expect(mockQuery).toHaveBeenCalledTimes(4)
     expect(result.pushed).toEqual([])
   })
 
   it('returns pulled notes with encrypted fields intact', async () => {
     readBody.mockResolvedValue({ notes: [], deletedClientIds: [] })
 
-    // Pull query (no notes sent, so no check-deleted or server-deleted queries)
+    // Pull query
     mockQuery.mockResolvedValueOnce({
       rows: [{
         id: 1, client_id: 'n1',
@@ -171,6 +181,8 @@ describe('POST /api/notes/sync', () => {
     })
     // SELECT welcome_created
     mockQuery.mockResolvedValueOnce({ rows: [{ welcome_created: false }] })
+    // Tombstone purge
+    mockQuery.mockResolvedValueOnce({ rows: [] })
 
     const result = await handler({})
 
@@ -188,6 +200,7 @@ describe('POST /api/notes/sync', () => {
     })
     mockQuery.mockResolvedValueOnce({ rows: [] }) // pull
     mockQuery.mockResolvedValueOnce({ rows: [{ welcome_created: false }] }) // welcome_created
+    mockQuery.mockResolvedValueOnce({ rows: [] }) // tombstone purge
 
     await handler({})
 
@@ -202,28 +215,31 @@ describe('POST /api/notes/sync', () => {
     })
     mockQuery.mockResolvedValueOnce({ rows: [] }) // pull
     mockQuery.mockResolvedValueOnce({ rows: [{ welcome_created: false }] }) // welcome_created
+    mockQuery.mockResolvedValueOnce({ rows: [] }) // tombstone purge
 
     await handler({})
 
     expect(mockNotifySync).not.toHaveBeenCalled()
   })
 
-  it('reports server-deleted client IDs', async () => {
+  it('reports server-deleted client IDs via tombstones', async () => {
     readBody.mockResolvedValue({
       notes: [{ clientId: 'n1', title: 't', content: 'c', sortOrder: 0, createdAt: '2025-01-01T00:00:00Z', updatedAt: '2025-01-01T00:00:00Z' }],
       deletedClientIds: []
     })
 
-    // 1. Check deleted for n1: not deleted
+    // 1. Check tombstone for n1: not deleted
     mockQuery.mockResolvedValueOnce({ rows: [] })
     // 2. INSERT
     mockQuery.mockResolvedValueOnce({ rows: [{ id: 1, client_id: 'n1', title: 't', description: '', tags: '[]', content: 'c', sort_order: 0, created_at: '2025-01-01', updated_at: '2025-01-01' }] })
-    // 3. Check which client IDs are deleted on server
+    // 3. Check which client IDs are tombstoned
     mockQuery.mockResolvedValueOnce({ rows: [{ client_id: 'n1' }] })
     // 4. Pull
     mockQuery.mockResolvedValueOnce({ rows: [] })
     // 5. SELECT welcome_created
     mockQuery.mockResolvedValueOnce({ rows: [{ welcome_created: false }] })
+    // 6. Tombstone purge
+    mockQuery.mockResolvedValueOnce({ rows: [] })
 
     const result = await handler({})
     expect(result.deletedClientIds).toEqual(['n1'])

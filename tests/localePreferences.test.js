@@ -73,6 +73,8 @@ const EXPECTED_DEFAULTS = {
   copyAnimationStyle: 'scale-pop',
   showResultsInCodeBlocks: false,
   markdownMode: 'edit',
+  // Updates
+  updateCheckInterval: 30,
 }
 
 describe('Default Preferences', () => {

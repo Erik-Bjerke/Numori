@@ -3,7 +3,7 @@ import { query } from '../../utils/db.js'
 import { notifySync } from '../../utils/syncBroadcast.js'
 
 /**
- * POST /api/notes/sync — Bulk sync endpoint with soft-delete support.
+ * POST /api/notes/sync — Bulk sync endpoint.
  *
  * Client sends:
  *   { notes: [...], deletedClientIds: [...], lastSyncedAt: ISO_DATE | null }
@@ -11,11 +11,11 @@ import { notifySync } from '../../utils/syncBroadcast.js'
  * Server responds:
  *   { pushed: [...], pulled: [...], deletedClientIds: [...], syncedAt: ISO_DATE }
  *
- * Deletion strategy: soft-delete (deleted_at timestamp).
- * - Client sends deletedClientIds → server marks those as soft-deleted.
- * - Server tells client which of its notes are soft-deleted → client removes locally.
- * - Upserts skip soft-deleted notes (won't resurrect them).
- * - Pulls exclude soft-deleted notes.
+ * Deletion strategy: hard delete.
+ * - Client sends deletedClientIds → server deletes those notes immediately.
+ * - A lightweight tombstone (user_id + client_id only, no content) is recorded
+ *   so other devices learn about the deletion on their next sync.
+ * - Tombstones older than 30 days are purged automatically.
  */
 export default defineEventHandler(async (event) => {
   const auth = await requireAuth(event)
@@ -24,37 +24,36 @@ export default defineEventHandler(async (event) => {
 
   const deletedSet = new Set(deletedClientIds)
 
-  // 1. Soft-delete notes the client deleted
-  // Note: With E2E encryption, titles are opaque ciphertext on the server,
-  // so we can no longer cascade deletes to shared_notes by title match.
-  // Shared note cleanup is handled client-side or via explicit unshare.
+  // 1. Hard-delete notes and record tombstones for multi-device sync
   if (deletedClientIds.length > 0) {
     await query(
-      `UPDATE notes SET deleted_at = NOW(), updated_at = NOW()
-       WHERE user_id = $1 AND client_id = ANY($2) AND deleted_at IS NULL`,
+      'DELETE FROM notes WHERE user_id = $1 AND client_id = ANY($2)',
       [auth.userId, deletedClientIds]
     )
+    // Record tombstones so other devices learn about the deletion
+    for (const clientId of deletedClientIds) {
+      await query(
+        `INSERT INTO deleted_notes (user_id, client_id)
+         VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+        [auth.userId, clientId]
+      )
+    }
   }
 
-  // 2. Upsert each client note — but ONLY if it's not soft-deleted on server
+  // 2. Upsert each client note — skip if tombstoned
   const pushed = []
 
   for (const note of clientNotes) {
     if (!note.clientId || deletedSet.has(note.clientId)) continue
 
-    // Check if this note is soft-deleted on server
-    const checkDeleted = await query(
-      'SELECT deleted_at FROM notes WHERE user_id = $1 AND client_id = $2',
+    // Check if this note was deleted (tombstone exists)
+    const tombstone = await query(
+      'SELECT 1 FROM deleted_notes WHERE user_id = $1 AND client_id = $2',
       [auth.userId, note.clientId]
     )
-
-    // If it exists and is soft-deleted, skip — don't resurrect it
-    if (checkDeleted.rows.length > 0 && checkDeleted.rows[0].deleted_at) {
-      continue
-    }
+    if (tombstone.rows.length > 0) continue
 
     // Tags may be an encrypted string (E2E) or an array (legacy).
-    // Store as-is — the server treats encrypted fields as opaque strings.
     const tagsValue = typeof note.tags === 'string' ? note.tags : JSON.stringify(note.tags || [])
 
     const result = await query(`
@@ -69,7 +68,7 @@ export default defineEventHandler(async (event) => {
         sort_order = EXCLUDED.sort_order,
         archived = EXCLUDED.archived,
         updated_at = EXCLUDED.updated_at
-      WHERE notes.deleted_at IS NULL AND EXCLUDED.updated_at >= notes.updated_at
+      WHERE EXCLUDED.updated_at >= notes.updated_at
       RETURNING id, client_id, title, description, tags, content, sort_order, archived, created_at, updated_at
     `, [
       auth.userId,
@@ -101,22 +100,21 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // 3. Tell the client which of its notes are soft-deleted on server
+  // 3. Tell the client which of its notes have been deleted
   const allClientIds = clientNotes.map(n => n.clientId).filter(Boolean)
   let serverDeletedIds = []
   if (allClientIds.length > 0) {
     const deletedResult = await query(
-      `SELECT client_id FROM notes
-       WHERE user_id = $1 AND client_id = ANY($2) AND deleted_at IS NOT NULL`,
+      'SELECT client_id FROM deleted_notes WHERE user_id = $1 AND client_id = ANY($2)',
       [auth.userId, allClientIds]
     )
     serverDeletedIds = deletedResult.rows.map(r => r.client_id)
   }
 
-  // 4. Pull ALL active notes from server — client-side merge handles dedup
+  // 4. Pull all notes from server
   const pullResult = await query(`
     SELECT id, client_id, title, description, tags, content, sort_order, archived, created_at, updated_at
-    FROM notes WHERE user_id = $1 AND deleted_at IS NULL
+    FROM notes WHERE user_id = $1
     ORDER BY sort_order ASC
   `, [auth.userId])
 
@@ -133,12 +131,12 @@ export default defineEventHandler(async (event) => {
     updatedAt: row.updated_at
   }))
 
-  // Notify other connected clients (skip if this was an SSE-triggered pull)
+  // Notify other connected clients
   if (broadcast !== false) {
     notifySync(auth.userId, sessionId || null)
   }
 
-  // ── Welcome-note flag: persist on server so it survives device resets ──
+  // Welcome-note flag
   if (welcomeCreated) {
     await query(
       'UPDATE users SET welcome_created = TRUE WHERE id = $1 AND welcome_created = FALSE',
@@ -147,6 +145,12 @@ export default defineEventHandler(async (event) => {
   }
   const wcRow = await query('SELECT welcome_created FROM users WHERE id = $1', [auth.userId])
   const serverWelcomeCreated = wcRow.rows[0]?.welcome_created ?? false
+
+  // Purge old tombstones (30 days)
+  await query(
+    `DELETE FROM deleted_notes WHERE user_id = $1 AND deleted_at < NOW() - INTERVAL '30 days'`,
+    [auth.userId]
+  )
 
   return {
     pushed,

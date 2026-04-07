@@ -57,7 +57,7 @@ export default defineEventHandler(async (event) => {
         tags = $3,
         content = $4,
         updated_at = NOW()
-      WHERE user_id = $5 AND client_id = $6 AND deleted_at IS NULL
+      WHERE user_id = $5 AND client_id = $6
     `, [
       note.title,
       note.description,

@@ -15,6 +15,15 @@ export default defineEventHandler(async (event) => {
 
   // If clientId is provided, upsert (for sync — avoids duplicates)
   if (clientId) {
+    // Check tombstone — don't resurrect deleted notes
+    const tombstone = await query(
+      'SELECT 1 FROM deleted_notes WHERE user_id = $1 AND client_id = $2',
+      [auth.userId, clientId]
+    )
+    if (tombstone.rows.length > 0) {
+      throw createError({ statusCode: 410, statusMessage: 'Note has been deleted' })
+    }
+
     const result = await query(`
       INSERT INTO notes (user_id, client_id, title, description, tags, content)
       VALUES ($1, $2, $3, $4, $5, $6)
@@ -25,7 +34,6 @@ export default defineEventHandler(async (event) => {
         tags = EXCLUDED.tags,
         content = EXCLUDED.content,
         updated_at = NOW()
-      WHERE notes.deleted_at IS NULL
       RETURNING id, client_id, title, description, tags, content, created_at, updated_at
     `, [auth.userId, clientId, title || 'Untitled Note', description || '', JSON.stringify(tags || []), content || ''])
 

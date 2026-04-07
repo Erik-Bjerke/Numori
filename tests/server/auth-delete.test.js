@@ -6,9 +6,11 @@ import bcrypt from 'bcryptjs'
 
 const mockQuery = vi.fn()
 const mockRequireAuth = vi.fn()
+const mockNotifySync = vi.fn()
 
 vi.mock('../../server/utils/db.js', () => ({ query: (...args) => mockQuery(...args) }))
 vi.mock('../../server/utils/auth.js', () => ({ requireAuth: (...args) => mockRequireAuth(...args) }))
+vi.mock('../../server/utils/syncBroadcast.js', () => ({ notifySync: (...args) => mockNotifySync(...args) }))
 
 globalThis.defineEventHandler = (handler) => handler
 globalThis.readBody = vi.fn()
@@ -38,7 +40,9 @@ describe('POST /api/auth/delete', () => {
     mockQuery
       .mockResolvedValueOnce({ rows: [{ password_hash: hash }] })
       .mockResolvedValueOnce({ rows: [] }) // DELETE notes
+      .mockResolvedValueOnce({ rows: [] }) // DELETE deleted_notes
       .mockResolvedValueOnce({ rows: [] }) // DELETE shared_notes
+      .mockResolvedValueOnce({ rows: [] }) // UPDATE welcome_created
 
     const result = await handler({})
     expect(result).toEqual({ deleted: 'data' })
@@ -50,8 +54,10 @@ describe('POST /api/auth/delete', () => {
     readBody.mockResolvedValue({ type: 'data', password })
     mockQuery
       .mockResolvedValueOnce({ rows: [{ password_hash: hash }] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] }) // DELETE notes
+      .mockResolvedValueOnce({ rows: [] }) // DELETE deleted_notes
+      .mockResolvedValueOnce({ rows: [] }) // DELETE shared_notes
+      .mockResolvedValueOnce({ rows: [] }) // UPDATE welcome_created
 
     const result = await handler({})
     expect(result).toEqual({ deleted: 'data' })
@@ -70,13 +76,17 @@ describe('POST /api/auth/delete', () => {
     readBody.mockResolvedValue({ type: 'data', authKey })
     mockQuery
       .mockResolvedValueOnce({ rows: [{ password_hash: hash }] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] }) // DELETE notes
+      .mockResolvedValueOnce({ rows: [] }) // DELETE deleted_notes
+      .mockResolvedValueOnce({ rows: [] }) // DELETE shared_notes
+      .mockResolvedValueOnce({ rows: [] }) // UPDATE welcome_created
 
     const result = await handler({})
     expect(result).toEqual({ deleted: 'data' })
-    // 3 queries: SELECT password + DELETE notes + DELETE shared_notes
-    expect(mockQuery).toHaveBeenCalledTimes(3)
+    // 5 queries: SELECT password + DELETE notes + DELETE deleted_notes + DELETE shared_notes + UPDATE welcome_created
+    expect(mockQuery).toHaveBeenCalledTimes(5)
+    // Should broadcast to other devices
+    expect(mockNotifySync).toHaveBeenCalledWith(1, null)
   })
 
   it('handles type=account — deletes account and all data', async () => {
@@ -87,11 +97,12 @@ describe('POST /api/auth/delete', () => {
       .mockResolvedValueOnce({ rows: [{ password_hash: hash }] })
       .mockResolvedValueOnce({ rows: [] }) // DELETE shared_notes
       .mockResolvedValueOnce({ rows: [] }) // DELETE notes
+      .mockResolvedValueOnce({ rows: [] }) // DELETE deleted_notes
       .mockResolvedValueOnce({ rows: [] }) // DELETE users
 
     const result = await handler({})
     expect(result).toEqual({ deleted: 'account' })
-    expect(mockQuery).toHaveBeenCalledTimes(4)
+    expect(mockQuery).toHaveBeenCalledTimes(5)
   })
 
   it('rejects invalid type', async () => {

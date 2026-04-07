@@ -2,7 +2,7 @@
  * Tests that local data clearing on logout does NOT trigger
  * server-side deletion of notes.
  *
- * The key invariant: the server sync endpoint only soft-deletes notes
+ * The key invariant: the server sync endpoint only deletes notes
  * explicitly listed in `deletedClientIds`. An empty push is harmless.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
@@ -38,6 +38,7 @@ describe('empty push does not delete server notes', () => {
       broadcast: false
     })
 
+    // pull
     mockQuery.mockResolvedValueOnce({
       rows: [
         { id: 1, client_id: 'n1', title: 'Note 1', description: '', tags: '[]', content: 'c1', sort_order: 0, created_at: '2025-01-01', updated_at: '2025-01-01' },
@@ -47,14 +48,17 @@ describe('empty push does not delete server notes', () => {
     })
     // SELECT welcome_created
     mockQuery.mockResolvedValueOnce({ rows: [{ welcome_created: false }] })
+    // Tombstone purge
+    mockQuery.mockResolvedValueOnce({ rows: [] })
 
     const result = await syncHandler({})
 
     expect(result.pulled).toHaveLength(3)
     expect(result.deletedClientIds).toEqual([])
-    // pull + welcome_created queries — no soft-delete UPDATE
-    expect(mockQuery).toHaveBeenCalledTimes(2)
-    expect(mockQuery.mock.calls[0][0]).not.toContain('deleted_at = NOW()')
+    // No DELETE FROM notes query should have been called
+    for (const call of mockQuery.mock.calls) {
+      expect(call[0]).not.toContain('DELETE FROM notes')
+    }
   })
 
   it('notes absent from the push are not deleted on the server', async () => {
@@ -68,7 +72,7 @@ describe('empty push does not delete server notes', () => {
       broadcast: false
     })
 
-    mockQuery.mockResolvedValueOnce({ rows: [] }) // check deleted
+    mockQuery.mockResolvedValueOnce({ rows: [] }) // check tombstone
     mockQuery.mockResolvedValueOnce({ rows: [{ id: 1, client_id: 'n1', title: 't', description: '', tags: '[]', content: 'c', sort_order: 0, created_at: '2025-01-01', updated_at: '2025-01-01' }] }) // upsert
     mockQuery.mockResolvedValueOnce({ rows: [] }) // server-deleted IDs
     mockQuery.mockResolvedValueOnce({
@@ -80,37 +84,47 @@ describe('empty push does not delete server notes', () => {
     }) // pull
     // SELECT welcome_created
     mockQuery.mockResolvedValueOnce({ rows: [{ welcome_created: false }] })
+    // Tombstone purge
+    mockQuery.mockResolvedValueOnce({ rows: [] })
 
     const result = await syncHandler({})
 
     expect(result.pulled).toHaveLength(3)
+    // No DELETE FROM notes query should have been called
     for (const call of mockQuery.mock.calls) {
-      expect(call[0]).not.toContain('deleted_at = NOW()')
+      expect(call[0]).not.toContain('DELETE FROM notes')
     }
   })
 
-  it('only notes in deletedClientIds are soft-deleted', async () => {
+  it('only notes in deletedClientIds are deleted', async () => {
     readBody.mockResolvedValue({
       notes: [],
       deletedClientIds: ['n2'],
       broadcast: false
     })
 
-    mockQuery.mockResolvedValueOnce({ rows: [] }) // soft-delete
+    // 1. DELETE FROM notes
+    mockQuery.mockResolvedValueOnce({ rows: [] })
+    // 2. INSERT tombstone for n2
+    mockQuery.mockResolvedValueOnce({ rows: [] })
+    // 3. Pull
     mockQuery.mockResolvedValueOnce({
       rows: [
         { id: 1, client_id: 'n1', title: 'Note 1', description: '', tags: '[]', content: 'c1', sort_order: 0, created_at: '2025-01-01', updated_at: '2025-01-01' },
         { id: 3, client_id: 'n3', title: 'Note 3', description: '', tags: '[]', content: 'c3', sort_order: 2, created_at: '2025-01-01', updated_at: '2025-01-01' }
       ]
-    }) // pull
-    // SELECT welcome_created
+    })
+    // 4. SELECT welcome_created
     mockQuery.mockResolvedValueOnce({ rows: [{ welcome_created: false }] })
+    // 5. Tombstone purge
+    mockQuery.mockResolvedValueOnce({ rows: [] })
 
     const result = await syncHandler({})
 
     expect(result.pulled).toHaveLength(2)
+    // First query is the hard DELETE
     const deleteCall = mockQuery.mock.calls[0]
-    expect(deleteCall[0]).toContain('deleted_at = NOW()')
+    expect(deleteCall[0]).toContain('DELETE FROM notes')
     expect(deleteCall[1][1]).toEqual(['n2'])
   })
 })
