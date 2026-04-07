@@ -324,8 +324,7 @@
                 </div>
 
                 <!-- Confirmation prompt -->
-                <Transition enter-active-class="transition duration-200" enter-from-class="opacity-0 scale-95" leave-active-class="transition duration-150" leave-to-class="opacity-0 scale-95">
-                  <div v-if="confirmingAction" class="rounded-lg border p-4 space-y-3"
+                <div v-if="confirmingAction" class="rounded-lg border p-4 space-y-3"
                     :class="confirmingAction === 'data'
                       ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-800'
                       : 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-800'">
@@ -358,8 +357,7 @@
                         {{ confirmingAction === 'data' ? 'Delete All Data' : 'Delete Account' }}
                       </button>
                     </div>
-                  </div>
-                </Transition>
+                </div>
 
                 <div v-if="!confirmingAction" class="space-y-2">
                   <button @click="confirmingAction = 'data'" :disabled="saving || !dangerPassword"
