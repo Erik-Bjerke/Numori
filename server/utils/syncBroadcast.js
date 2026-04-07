@@ -49,3 +49,21 @@ export function notifyDataWipe(userId, excludeSessionId = null) {
     }
   }
 }
+
+/**
+ * Notify specific sessions that they have been revoked.
+ * Receiving clients should clear local data and log out.
+ * If revokedSessionIds is null, notifies ALL sessions except the excluded one.
+ */
+export function notifySessionRevoked(userId, excludeSessionId = null, revokedSessionIds = null) {
+  const sessions = listeners.get(userId)
+  if (!sessions) return
+
+  const data = `data: ${JSON.stringify({ type: 'session-revoked', timestamp: new Date().toISOString() })}\n\n`
+  for (const [sessionId, stream] of sessions) {
+    if (sessionId === excludeSessionId) continue
+    // If specific IDs given, we can't match SSE sessionIds to DB session IDs directly,
+    // so when revoking "all others" we just notify everyone except the current session.
+    try { stream.write(data) } catch { /* client disconnected */ }
+  }
+}

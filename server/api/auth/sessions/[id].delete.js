@@ -1,5 +1,6 @@
 import { requireAuth } from '../../../utils/auth.js'
 import { revokeSession } from '../../../utils/session.js'
+import { notifySessionRevoked } from '../../../utils/syncBroadcast.js'
 
 /**
  * DELETE /api/auth/sessions/:id
@@ -17,6 +18,9 @@ export default defineEventHandler(async (event) => {
   if (!deleted) {
     throw createError({ statusCode: 404, statusMessage: 'Session not found' })
   }
+
+  // Notify all connected SSE clients — revoked ones will validate and log out
+  notifySessionRevoked(auth.userId)
 
   return { ok: true }
 })

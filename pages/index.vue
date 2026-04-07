@@ -327,7 +327,8 @@ const auth = useAuth()
 const { apiFetch } = useApi()
 
 let _onDataWipe = null
-const { syncing, lastSyncedAt, syncError, pendingNoteIds, isOnline, sync, syncNow, debouncedSync } = useSync(auth, notes, saveNotes, deletedIds, clearDeletedIds, () => _onDataWipe?.())
+let _onSessionRevoked = null
+const { syncing, lastSyncedAt, syncError, pendingNoteIds, isOnline, sync, syncNow, debouncedSync } = useSync(auth, notes, saveNotes, deletedIds, clearDeletedIds, () => _onDataWipe?.(), () => _onSessionRevoked?.())
 
 /** Called by other devices via SSE when data was wiped from the profile modal. */
 _onDataWipe = async () => {
@@ -338,6 +339,19 @@ _onDataWipe = async () => {
   await db.appState.bulkDelete(['deleted_note_ids', 'last_synced_at', 'welcome_note_created'])
   lastSyncedAt.value = null
   await auth.refreshUser()
+}
+
+/** Called when the current session was revoked remotely. Clear everything and log out. */
+_onSessionRevoked = async () => {
+  notes.value = []
+  currentNoteId.value = null
+  deletedIds.value = []
+  await db.notes.clear()
+  await db.appState.bulkDelete(['auth_token', 'enc_key', 'deleted_note_ids', 'last_synced_at', 'welcome_note_created'])
+  lastSyncedAt.value = null
+  auth.user.value = null
+  auth.token.value = null
+  auth.encKey.value = null
 }
 const sw = useServiceWorker()
 

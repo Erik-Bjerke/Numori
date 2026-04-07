@@ -14,7 +14,7 @@
 import db from '~/db.js'
 import { encryptNote, decryptNote } from '~/utils/crypto.js'
 
-export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onDataWipe) => {
+export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onDataWipe, onSessionRevoked) => {
   const { apiFetch, apiUrl } = useApi()
 
   const syncing = ref(false)
@@ -163,6 +163,16 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onD
       }
     } catch (err) {
       syncError.value = err.data?.statusMessage || err.message || 'Sync failed'
+      // If session was revoked, clear local data and log out
+      if (err.status === 401 || err.statusCode === 401) {
+        if (!sessionRevokedHandled) {
+          sessionRevokedHandled = true
+          disconnectSSE()
+          stopAutoSync()
+          if (onSessionRevoked) onSessionRevoked()
+        }
+        return
+      }
     } finally {
       syncing.value = false
       if (pendingSync) {
@@ -210,6 +220,22 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onD
 
   // SSE — real-time notifications from other clients
   let eventSource = null
+  let sessionRevokedHandled = false
+
+  /** Check if our session is still valid. If not, clear local data and log out. */
+  const validateSessionOrLogout = async () => {
+    if (sessionRevokedHandled) return
+    try {
+      await apiFetch('/api/auth/me', { headers: auth.authHeaders.value })
+      // Session still valid — ignore
+    } catch {
+      // Session revoked — clear everything
+      sessionRevokedHandled = true
+      disconnectSSE()
+      stopAutoSync()
+      if (onSessionRevoked) onSessionRevoked()
+    }
+  }
 
   const connectSSE = () => {
     disconnectSSE()
@@ -224,6 +250,9 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onD
         const msg = JSON.parse(e.data)
         if (msg.type === 'data-wipe') {
           if (onDataWipe) onDataWipe()
+        } else if (msg.type === 'session-revoked') {
+          // Validate our session is still alive — if not, clear local data
+          validateSessionOrLogout()
         } else if (msg.type === 'sync' && !syncing.value && !expectingSelfEcho) {
           sync('sse')
         }
