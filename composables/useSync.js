@@ -33,6 +33,7 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onD
 
   const AUTO_SYNC_INTERVAL = 2 * 60 * 1000
   const DEBOUNCE_DELAY = 3000
+  const SESSION_CHECK_INTERVAL = 30 * 1000 // Check session validity every 30s
 
   onMounted(async () => {
     if (import.meta.client) {
@@ -43,7 +44,11 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onD
 
   // Flush pending changes when connectivity returns
   watch(isOnline, (online) => {
-    if (online && pendingNoteIds.value.size > 0) syncNow()
+    if (online && auth.isLoggedIn.value) {
+      // Validate session immediately when coming back online
+      validateSessionOrLogout()
+      if (pendingNoteIds.value.size > 0) syncNow()
+    }
   })
 
   const sync = async (source = 'unknown') => {
@@ -217,6 +222,22 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onD
   let eventSource = null
   let sessionRevokedHandled = false
   let sseReconnectTimer = null
+  let sessionCheckId = null
+
+  /** Lightweight session heartbeat — catches revocations that SSE missed. */
+  const startSessionCheck = () => {
+    stopSessionCheck()
+    sessionCheckId = setInterval(() => {
+      if (auth.isLoggedIn.value && isOnline.value && !sessionRevokedHandled) {
+        validateSessionOrLogout()
+      }
+    }, SESSION_CHECK_INTERVAL)
+  }
+
+  const stopSessionCheck = () => {
+    clearInterval(sessionCheckId)
+    sessionCheckId = null
+  }
 
   /** Check if our session is still valid. If not, clear local data and log out. */
   const validateSessionOrLogout = async () => {
@@ -236,6 +257,7 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onD
     clearTimeout(sseReconnectTimer)
     disconnectSSE()
     stopAutoSync()
+    stopSessionCheck()
     if (onSessionRevoked) onSessionRevoked()
   }
 
@@ -284,9 +306,11 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onD
       if (loggedIn && key) {
         startAutoSync()
         connectSSE()
+        startSessionCheck()
       } else if (!loggedIn) {
         stopAutoSync()
         disconnectSSE()
+        stopSessionCheck()
         clearTimeout(sseReconnectTimer)
       }
     },
@@ -302,6 +326,7 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onD
   onBeforeUnmount(() => {
     stopAutoSync()
     disconnectSSE()
+    stopSessionCheck()
     clearTimeout(sseReconnectTimer)
     if (import.meta.client) {
       window.removeEventListener('beforeunload', onBeforeUnload)
