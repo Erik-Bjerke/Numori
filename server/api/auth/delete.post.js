@@ -25,6 +25,7 @@ export default defineEventHandler(async (event) => {
 
   if (type === 'data') {
     await query('DELETE FROM notes WHERE user_id = $1', [auth.userId])
+    await query('DELETE FROM groups WHERE user_id = $1', [auth.userId])
     await query('DELETE FROM deleted_notes WHERE user_id = $1', [auth.userId])
     await query('DELETE FROM shared_notes WHERE user_id = $1', [auth.userId])
     await query('UPDATE users SET welcome_created = FALSE WHERE id = $1', [auth.userId])
@@ -36,6 +37,7 @@ export default defineEventHandler(async (event) => {
     await query('DELETE FROM sessions WHERE user_id = $1', [auth.userId])
     await query('DELETE FROM shared_notes WHERE user_id = $1', [auth.userId])
     await query('DELETE FROM notes WHERE user_id = $1', [auth.userId])
+    await query('DELETE FROM groups WHERE user_id = $1', [auth.userId])
     await query('DELETE FROM deleted_notes WHERE user_id = $1', [auth.userId])
     await query('DELETE FROM users WHERE id = $1', [auth.userId])
     return { deleted: 'account' }

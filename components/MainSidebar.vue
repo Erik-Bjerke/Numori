@@ -164,45 +164,127 @@
 
     <!-- Notes List -->
     <div class="flex-1 overflow-y-auto" ref="listRef">
-      <div v-if="filteredNotes.length === 0" class="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
+      <div v-if="filteredNotes.length === 0 && filteredGroups.length === 0" class="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
         {{ showArchive ? 'No archived notes' : 'No notes found' }}
       </div>
-      <div v-for="(note, index) in filteredNotes" :key="note.id"
-        :data-index="index"
-        :draggable="canReorder"
-        @dragstart="onDragStart($event, index)"
-        @dragover.prevent="onDragOver($event, index)"
-        @dragend="onDragEnd"
-        @touchstart="onTouchStart($event, index)"
-        class="relative"
-        :class="{
-          'border-t-2 border-t-primary-500': dropTargetIndex === index && dropPosition === 'before',
-          'border-b-2 border-b-primary-500': dropTargetIndex === index && dropPosition === 'after',
-          'opacity-50': draggingIndex === index
-        }">
-        <NoteListItem
-          :note="note" :active="note.id === currentNoteId"
-          :select-mode="selectMode"
-          :selected="selectedIds.has(note.id)"
-          :shared="sharedNoteIds.includes(note.id)"
-          :share-hash="sharedNotesMap.get(note.id) || null"
-          :analytics-hash="analyticsNotesMap.get(note.id) || null"
-          :pending="pendingNoteIds.has(note.id)"
-          :is-logged-in="isLoggedIn"
-          @select="id => $emit('select-note', id)"
-          @delete="id => $emit('delete-note', id)"
-          @share="id => $emit('share-note', id)"
-          @unshare="id => $emit('unshare-note', id)"
-          @properties="id => $emit('show-properties', id)"
-          @open-analytics="hash => $emit('open-analytics', hash)"
-          @duplicate="id => $emit('duplicate-note', id)"
-          @export="id => $emit('export-note', id)"
-          @copy-to-clipboard="id => $emit('copy-to-clipboard', id)"
-          @print="id => $emit('print-note', id)"
-          @archive="id => $emit('archive-note', id)"
-          @unarchive="id => $emit('unarchive-note', id)"
-          @toggle-select="toggleNoteSelection" />
-      </div>
+
+      <!-- Ungrouped notes -->
+      <template v-for="(note, index) in ungroupedNotes" :key="note.id">
+        <div
+          :data-note-id="note.id"
+          :data-index="index"
+          :data-type="'note'"
+          :draggable="canReorder"
+          @dragstart="onDragStart($event, note.id, 'note')"
+          @dragover.prevent="onDragOverItem($event, note.id, 'note')"
+          @dragend="onDragEnd"
+          @touchstart="onTouchStart($event, note.id, 'note')"
+          class="relative"
+          :class="{
+            'border-t-2 border-t-primary-500': dropTarget?.id === note.id && dropTarget?.position === 'before',
+            'border-b-2 border-b-primary-500': dropTarget?.id === note.id && dropTarget?.position === 'after',
+            'opacity-50': draggingId === note.id
+          }">
+          <NoteListItem
+            :note="note" :active="note.id === currentNoteId"
+            :select-mode="selectMode"
+            :selected="selectedIds.has(note.id)"
+            :shared="sharedNoteIds.includes(note.id)"
+            :share-hash="sharedNotesMap.get(note.id) || null"
+            :analytics-hash="analyticsNotesMap.get(note.id) || null"
+            :pending="pendingNoteIds.has(note.id)"
+            :is-logged-in="isLoggedIn"
+            @select="id => $emit('select-note', id)"
+            @delete="id => $emit('delete-note', id)"
+            @share="id => $emit('share-note', id)"
+            @unshare="id => $emit('unshare-note', id)"
+            @properties="id => $emit('show-properties', id)"
+            @open-analytics="hash => $emit('open-analytics', hash)"
+            @duplicate="id => $emit('duplicate-note', id)"
+            @export="id => $emit('export-note', id)"
+            @copy-to-clipboard="id => $emit('copy-to-clipboard', id)"
+            @print="id => $emit('print-note', id)"
+            @archive="id => $emit('archive-note', id)"
+            @unarchive="id => $emit('unarchive-note', id)"
+            @toggle-select="toggleNoteSelection"
+            @add-to-group="id => $emit('add-to-group', id)" />
+        </div>
+      </template>
+
+      <!-- Groups -->
+      <template v-for="group in filteredGroups" :key="group.id">
+        <div
+          :data-group-id="group.id"
+          :data-type="'group'"
+          :draggable="canReorder"
+          @dragstart="onDragStart($event, group.id, 'group')"
+          @dragover.prevent="onDragOverItem($event, group.id, 'group')"
+          @dragend="onDragEnd"
+          class="relative">
+          <GroupListItem
+            :group="group"
+            :note-count="getGroupNotes(group.id).length"
+            :drop-indicator="dropTarget?.id === group.id ? dropTarget?.position : null"
+            @toggle-collapse="id => $emit('toggle-group-collapse', id)"
+            @edit="id => $emit('edit-group', id)"
+            @delete="id => $emit('delete-group', id)" />
+        </div>
+
+        <!-- Group's notes (when expanded) -->
+        <Transition
+          enter-active-class="transition-all duration-200 ease-out"
+          enter-from-class="opacity-0 max-h-0"
+          enter-to-class="opacity-100 max-h-[2000px]"
+          leave-active-class="transition-all duration-150 ease-in"
+          leave-from-class="opacity-100 max-h-[2000px]"
+          leave-to-class="opacity-0 max-h-0">
+          <div v-if="!group.collapsed" class="overflow-hidden">
+            <div v-for="(note, idx) in getGroupNotes(group.id)" :key="note.id"
+              :data-note-id="note.id"
+              :data-type="'note'"
+              :data-group="group.id"
+              :draggable="canReorder"
+              @dragstart="onDragStart($event, note.id, 'note')"
+              @dragover.prevent="onDragOverItem($event, note.id, 'note')"
+              @dragend="onDragEnd"
+              @touchstart="onTouchStart($event, note.id, 'note')"
+              class="relative pl-4 border-l-2 border-l-primary-200 dark:border-l-primary-800/50"
+              :class="{
+                'border-t-2 border-t-primary-500': dropTarget?.id === note.id && dropTarget?.position === 'before',
+                'border-b-2 border-b-primary-500': dropTarget?.id === note.id && dropTarget?.position === 'after',
+                'opacity-50': draggingId === note.id
+              }">
+              <NoteListItem
+                :note="note" :active="note.id === currentNoteId"
+                :select-mode="selectMode"
+                :selected="selectedIds.has(note.id)"
+                :shared="sharedNoteIds.includes(note.id)"
+                :share-hash="sharedNotesMap.get(note.id) || null"
+                :analytics-hash="analyticsNotesMap.get(note.id) || null"
+                :pending="pendingNoteIds.has(note.id)"
+                :is-logged-in="isLoggedIn"
+                @select="id => $emit('select-note', id)"
+                @delete="id => $emit('delete-note', id)"
+                @share="id => $emit('share-note', id)"
+                @unshare="id => $emit('unshare-note', id)"
+                @properties="id => $emit('show-properties', id)"
+                @open-analytics="hash => $emit('open-analytics', hash)"
+                @duplicate="id => $emit('duplicate-note', id)"
+                @export="id => $emit('export-note', id)"
+                @copy-to-clipboard="id => $emit('copy-to-clipboard', id)"
+                @print="id => $emit('print-note', id)"
+                @archive="id => $emit('archive-note', id)"
+                @unarchive="id => $emit('unarchive-note', id)"
+                @toggle-select="toggleNoteSelection"
+                @add-to-group="id => $emit('add-to-group', id)" />
+            </div>
+            <div v-if="getGroupNotes(group.id).length === 0"
+              class="pl-4 border-l-2 border-l-primary-200 dark:border-l-primary-800/50 px-4 py-3 text-xs text-gray-400 dark:text-gray-500 italic">
+              No notes in this group
+            </div>
+          </div>
+        </Transition>
+      </template>
     </div>
 
     <!-- User Account Section -->
@@ -293,6 +375,7 @@
 <script setup>
 const props = defineProps({
   notes: { type: Array, required: true },
+  groups: { type: Array, default: () => [] },
   currentNoteId: { type: String, default: null },
   allTags: { type: Array, default: () => [] },
   isLoggedIn: { type: Boolean, default: false },
@@ -310,7 +393,9 @@ const emit = defineEmits([
   'bulk-delete', 'selection-change', 'reorder',
   'share-note', 'unshare-note', 'show-properties', 'open-analytics',
   'duplicate-note', 'export-note', 'copy-to-clipboard', 'print-note',
-  'archive-note', 'unarchive-note', 'bulk-archive', 'bulk-unarchive'
+  'archive-note', 'unarchive-note', 'bulk-archive', 'bulk-unarchive',
+  'add-to-group', 'toggle-group-collapse', 'edit-group', 'delete-group',
+  'move-note-to-group'
 ])
 
 const searchQuery = ref('')
@@ -369,32 +454,69 @@ const clearFilters = () => {
   selectedTags.value = []
 }
 
-// ── Drag-to-reorder ─────────────────────────────────────
+// ── Drag-to-reorder (with group support) ─────────────────────────────
 
-const draggingIndex = ref(null)
-const dropTargetIndex = ref(null)
-const dropPosition = ref(null)
+const draggingId = ref(null)
+const draggingType = ref(null) // 'note' | 'group'
+const dropTarget = ref(null) // { id, type, position: 'before'|'after'|'inside' }
+
+const GROUP_DROP_THRESHOLD = 0.3 // 30% from edges = reorder zone, middle = drop inside
 
 const isFiltering = computed(() => searchQuery.value.trim() !== '' || selectedTags.value.length > 0 || hasActiveFilters.value)
 const canReorder = computed(() => !selectMode.value && !isFiltering.value)
 
+// -- Computed: grouped notes --
+
+const ungroupedNotes = computed(() => {
+  return filteredNotes.value.filter(n => !n.groupId)
+})
+
+const filteredGroups = computed(() => {
+  if (showArchive.value) return [] // Don't show groups in archive view
+  if (isFiltering.value) return [] // Don't show groups when filtering
+  return props.groups
+})
+
+const getGroupNotes = (groupId) => {
+  return filteredNotes.value.filter(n => n.groupId === groupId)
+}
+
 // -- Mouse (HTML5 drag) --
 
-const onDragStart = (e, index) => {
+const onDragStart = (e, id, type) => {
   if (!canReorder.value) return
-  draggingIndex.value = index
+  draggingId.value = id
+  draggingType.value = type
   e.dataTransfer.effectAllowed = 'move'
 }
 
-const onDragOver = (e, index) => {
-  if (draggingIndex.value === null || draggingIndex.value === index) {
-    dropTargetIndex.value = null
-    dropPosition.value = null
+const onDragOverItem = (e, targetId, targetType) => {
+  if (draggingId.value === null || draggingId.value === targetId) {
+    dropTarget.value = null
     return
   }
+
   const rect = e.currentTarget.getBoundingClientRect()
-  dropPosition.value = e.clientY < rect.top + rect.height / 2 ? 'before' : 'after'
-  dropTargetIndex.value = index
+  const y = e.clientY - rect.top
+  const h = rect.height
+
+  // If dragging a note over a group header, use threshold zones
+  if (draggingType.value === 'note' && targetType === 'group') {
+    if (y < h * GROUP_DROP_THRESHOLD) {
+      dropTarget.value = { id: targetId, type: targetType, position: 'before' }
+    } else if (y > h * (1 - GROUP_DROP_THRESHOLD)) {
+      dropTarget.value = { id: targetId, type: targetType, position: 'after' }
+    } else {
+      dropTarget.value = { id: targetId, type: targetType, position: 'inside' }
+    }
+  } else {
+    // Note-to-note or group-to-group: simple before/after
+    dropTarget.value = {
+      id: targetId,
+      type: targetType,
+      position: y < h / 2 ? 'before' : 'after'
+    }
+  }
 }
 
 const onDragEnd = () => {
@@ -407,25 +529,37 @@ let touchDragActive = false
 let touchHoldTimer = null
 const TOUCH_HOLD_MS = 300
 
-const onTouchStart = (e, index) => {
+const onTouchStart = (e, id, type) => {
   if (!canReorder.value) return
 
-  // Wait a short hold before activating drag so normal taps/scrolls aren't hijacked
   touchHoldTimer = setTimeout(() => {
     touchDragActive = true
-    draggingIndex.value = index
+    draggingId.value = id
+    draggingType.value = type
 
     const onTouchMove = (ev) => {
       if (!touchDragActive) return
-      ev.preventDefault() // stop scrolling while dragging
+      ev.preventDefault()
       const touch = ev.touches[0]
       const hit = getItemAtY(touch.clientY)
-      if (hit !== null && hit.index !== draggingIndex.value) {
-        dropTargetIndex.value = hit.index
-        dropPosition.value = hit.position
+      if (hit && hit.id !== draggingId.value) {
+        // Apply group threshold for note-to-group drops
+        if (draggingType.value === 'note' && hit.type === 'group') {
+          const rect = hit.rect
+          const y = touch.clientY - rect.top
+          const h = rect.height
+          if (y < h * GROUP_DROP_THRESHOLD) {
+            dropTarget.value = { id: hit.id, type: hit.type, position: 'before' }
+          } else if (y > h * (1 - GROUP_DROP_THRESHOLD)) {
+            dropTarget.value = { id: hit.id, type: hit.type, position: 'after' }
+          } else {
+            dropTarget.value = { id: hit.id, type: hit.type, position: 'inside' }
+          }
+        } else {
+          dropTarget.value = { id: hit.id, type: hit.type, position: hit.position }
+        }
       } else {
-        dropTargetIndex.value = null
-        dropPosition.value = null
+        dropTarget.value = null
       }
     }
 
@@ -442,14 +576,12 @@ const onTouchStart = (e, index) => {
     document.addEventListener('touchcancel', onTouchEnd)
   }, TOUCH_HOLD_MS)
 
-  // If the finger moves before the hold completes, cancel (it's a scroll)
   const onEarlyMove = () => {
     clearTimeout(touchHoldTimer)
     e.target.removeEventListener('touchmove', onEarlyMove)
   }
   e.target.addEventListener('touchmove', onEarlyMove, { once: true, passive: true })
 
-  // Clean up hold timer if touch ends before hold
   const onEarlyEnd = () => {
     clearTimeout(touchHoldTimer)
     e.target.removeEventListener('touchend', onEarlyEnd)
@@ -460,13 +592,16 @@ const onTouchStart = (e, index) => {
 
 const getItemAtY = (y) => {
   if (!listRef.value) return null
-  const items = listRef.value.querySelectorAll('[data-index]')
+  const items = listRef.value.querySelectorAll('[data-note-id], [data-group-id]')
   for (const item of items) {
     const rect = item.getBoundingClientRect()
     if (y >= rect.top && y <= rect.bottom) {
+      const isGroup = item.dataset.groupId !== undefined
       return {
-        index: parseInt(item.dataset.index),
-        position: y < rect.top + rect.height / 2 ? 'before' : 'after'
+        id: isGroup ? item.dataset.groupId : item.dataset.noteId,
+        type: isGroup ? 'group' : 'note',
+        position: y < rect.top + rect.height / 2 ? 'before' : 'after',
+        rect
       }
     }
   }
@@ -476,18 +611,37 @@ const getItemAtY = (y) => {
 // -- Shared --
 
 const commitReorder = () => {
-  if (draggingIndex.value !== null && dropTargetIndex.value !== null && draggingIndex.value !== dropTargetIndex.value) {
-    const ordered = [...filteredNotes.value]
-    const [moved] = ordered.splice(draggingIndex.value, 1)
-    let insertAt = dropTargetIndex.value
-    if (draggingIndex.value < dropTargetIndex.value) insertAt--
-    if (dropPosition.value === 'after') insertAt++
-    ordered.splice(insertAt, 0, moved)
-    emit('reorder', ordered.map(n => n.id))
+  if (draggingId.value !== null && dropTarget.value !== null) {
+    const dt = dropTarget.value
+
+    // Note dropped inside a group
+    if (draggingType.value === 'note' && dt.type === 'group' && dt.position === 'inside') {
+      emit('move-note-to-group', { noteId: draggingId.value, groupId: dt.id })
+    }
+    // Note dropped on another note (reorder)
+    else if (draggingType.value === 'note' && dt.type === 'note') {
+      const ordered = [...filteredNotes.value]
+      const fromIdx = ordered.findIndex(n => n.id === draggingId.value)
+      const toIdx = ordered.findIndex(n => n.id === dt.id)
+      if (fromIdx !== -1 && toIdx !== -1 && fromIdx !== toIdx) {
+        const [moved] = ordered.splice(fromIdx, 1)
+        let insertAt = ordered.findIndex(n => n.id === dt.id)
+        if (dt.position === 'after') insertAt++
+        ordered.splice(insertAt, 0, moved)
+
+        // If the target note is in a group, move the dragged note to that group
+        const targetNote = filteredNotes.value.find(n => n.id === dt.id)
+        if (targetNote?.groupId && targetNote.groupId !== moved.groupId) {
+          emit('move-note-to-group', { noteId: draggingId.value, groupId: targetNote.groupId })
+        }
+
+        emit('reorder', ordered.map(n => n.id))
+      }
+    }
   }
-  draggingIndex.value = null
-  dropTargetIndex.value = null
-  dropPosition.value = null
+  draggingId.value = null
+  draggingType.value = null
+  dropTarget.value = null
 }
 
 // ── Multi-select ─────────────────────────────────────────
@@ -568,7 +722,8 @@ const filteredNotes = computed(() => {
       const matchDesc = (n.description || '').toLowerCase().includes(q)
       const matchTags = (n.tags || []).some(t => t.toLowerCase().includes(q))
       const matchContent = filters.searchContent && (n.content || '').toLowerCase().includes(q)
-      return matchTitle || matchDesc || matchTags || matchContent
+      const matchInternalName = (n.internalName || '').toLowerCase().includes(q)
+      return matchTitle || matchDesc || matchTags || matchContent || matchInternalName
     })
   }
   if (selectedTags.value.length) {

@@ -26,6 +26,19 @@
 
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">
+                Internal Name
+              </label>
+              <input v-model="localInternalName" type="text"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-500 font-mono text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                placeholder="untitled_note"
+                @input="internalNameManuallyEdited = true" />
+              <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                Auto-generated from title. Edit to customise.
+              </p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">
                 Description
               </label>
               <textarea v-model="localDescription" rows="3"
@@ -128,16 +141,21 @@
 </template>
 
 <script setup>
+import { normaliseName, uniqueInternalName } from '~/utils/normaliseName.js'
+
 const props = defineProps({
   isOpen: { type: Boolean, default: false },
   title: { type: String, default: '' },
+  internalName: { type: String, default: '' },
   description: { type: String, default: '' },
   tags: { type: Array, default: () => [] },
   allTags: { type: Array, default: () => [] },
   noteId: { type: String, default: null },
   shared: { type: Boolean, default: false },
   shareHash: { type: String, default: null },
-  analyticsHash: { type: String, default: null }
+  analyticsHash: { type: String, default: null },
+  existingInternalNames: { type: Array, default: () => [] },
+  allNotes: { type: Array, default: () => [] }
 })
 
 const emit = defineEmits(['close', 'save', 'delete', 'share', 'unshare', 'open-analytics'])
@@ -146,11 +164,20 @@ const { copy: clipboardCopy } = useClipboard()
 const { apiUrl } = useApi()
 
 const localTitle = ref(props.title)
+const localInternalName = ref(props.internalName)
+const internalNameManuallyEdited = ref(false)
 const localDescription = ref(props.description)
 const localTags = ref([...props.tags])
 const tagInput = ref('')
 const tagSuggestions = ref([])
 const copiedLink = ref(false)
+
+// Auto-generate internal name from title.
+// If the user edits the title, always regenerate (back to step 1).
+watch(localTitle, (val) => {
+  internalNameManuallyEdited.value = false
+  localInternalName.value = uniqueInternalName(val, [], 'untitled_note', props.noteId, props.allNotes)
+})
 
 const shareUrl = computed(() => {
   if (!props.shareHash) return ''
@@ -166,6 +193,8 @@ const copyShareLink = async () => {
 watch(() => props.isOpen, (open) => {
   if (open) {
     localTitle.value = props.title
+    localInternalName.value = props.internalName || uniqueInternalName(props.title, [], 'untitled_note', props.noteId, props.allNotes)
+    internalNameManuallyEdited.value = false
     localDescription.value = props.description
     localTags.value = [...props.tags]
     tagInput.value = ''
@@ -202,8 +231,13 @@ const onTagInput = () => {
 }
 
 const save = () => {
+  const rawName = internalNameManuallyEdited.value
+    ? normaliseName(localInternalName.value)
+    : localInternalName.value
+  const finalInternalName = uniqueInternalName(rawName, [], 'untitled_note', props.noteId, props.allNotes)
   emit('save', {
     title: localTitle.value,
+    internalName: finalInternalName,
     description: localDescription.value,
     tags: [...localTags.value]
   })

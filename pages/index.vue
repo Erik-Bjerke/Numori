@@ -60,7 +60,7 @@
             leave-to-class="opacity-0">
             <div v-if="sidebarGlow" class="absolute inset-0 z-10 pointer-events-none bg-primary-500/25 dark:bg-primary-400/20" />
           </Transition>
-          <MainSidebar :notes="notes" :current-note-id="currentNoteId" :all-tags="allTags" :is-logged-in="auth.isLoggedIn.value" :user="auth.user.value" :shared-note-ids="sharedNoteIds" :shared-notes-map="sharedNotesMap" :analytics-notes-map="analyticsNotesMap" :pending-note-ids="pendingNoteIds" @new-note="createNote" @select-note="selectNote"
+          <MainSidebar :notes="notes" :groups="groups" :current-note-id="currentNoteId" :all-tags="allTags" :is-logged-in="auth.isLoggedIn.value" :user="auth.user.value" :shared-note-ids="sharedNoteIds" :shared-notes-map="sharedNotesMap" :analytics-notes-map="analyticsNotesMap" :pending-note-ids="pendingNoteIds" @new-note="createNote" @select-note="selectNote"
             @delete-note="confirmDelete" @edit-note="openEditModal"
             @bulk-delete="confirmBulkDelete" @selection-change="onSelectionChange"
             @show-help="showHelp = true"
@@ -77,7 +77,12 @@
             @archive-note="handleArchiveNote"
             @unarchive-note="handleUnarchiveNote"
             @bulk-archive="handleBulkArchive"
-            @bulk-unarchive="handleBulkUnarchive" />
+            @bulk-unarchive="handleBulkUnarchive"
+            @add-to-group="handleAddToGroup"
+            @toggle-group-collapse="handleToggleGroupCollapse"
+            @edit-group="handleEditGroup"
+            @delete-group="handleDeleteGroup"
+            @move-note-to-group="handleMoveNoteToGroup" />
         </div>
         </aside>
 
@@ -111,7 +116,7 @@
                 leave-to-class="opacity-0">
                 <div v-if="sidebarGlow" class="absolute inset-0 z-10 pointer-events-none bg-primary-500/25 dark:bg-primary-400/20" />
               </Transition>
-              <MainSidebar :notes="notes" :current-note-id="currentNoteId" :all-tags="allTags" :is-logged-in="auth.isLoggedIn.value" :user="auth.user.value" :shared-note-ids="sharedNoteIds" :shared-notes-map="sharedNotesMap" :analytics-notes-map="analyticsNotesMap" :pending-note-ids="pendingNoteIds" @new-note="createNote" @select-note="selectNote"
+              <MainSidebar :notes="notes" :groups="groups" :current-note-id="currentNoteId" :all-tags="allTags" :is-logged-in="auth.isLoggedIn.value" :user="auth.user.value" :shared-note-ids="sharedNoteIds" :shared-notes-map="sharedNotesMap" :analytics-notes-map="analyticsNotesMap" :pending-note-ids="pendingNoteIds" @new-note="createNote" @select-note="selectNote"
               @delete-note="confirmDelete" @edit-note="openEditModal"
               @bulk-delete="confirmBulkDelete" @selection-change="onSelectionChange"
               @show-help="showHelp = true"
@@ -128,7 +133,12 @@
               @archive-note="handleArchiveNote"
               @unarchive-note="handleUnarchiveNote"
               @bulk-archive="handleBulkArchive"
-              @bulk-unarchive="handleBulkUnarchive" />
+              @bulk-unarchive="handleBulkUnarchive"
+              @add-to-group="handleAddToGroup"
+              @toggle-group-collapse="handleToggleGroupCollapse"
+              @edit-group="handleEditGroup"
+              @delete-group="handleDeleteGroup"
+              @move-note-to-group="handleMoveNoteToGroup" />
             </div>
           </aside>
         </Transition>
@@ -202,10 +212,12 @@
 
     <!-- Modals -->
     <NoteMetaModal :is-open="showMetaModal" :title="currentNote?.title || ''"
+      :internal-name="currentNote?.internalName || ''"
       :description="currentNote?.description || ''"
       :tags="currentNote?.tags || []"
       :all-tags="allTags"
       :note-id="currentNote?.id"
+      :all-notes="notes"
       :shared="currentNote ? sharedNoteIds.includes(currentNote.id) : false"
       :share-hash="currentNote ? (sharedNotesMap.get(currentNote.id) || null) : null"
       :analytics-hash="currentNote ? (analyticsNotesMap.get(currentNote.id) || null) : null"
@@ -299,6 +311,29 @@
 
     <SyncIndicator :syncing="syncing" />
 
+    <!-- Group modals -->
+    <GroupModal :is-open="showGroupModal"
+      :editing-group-id="editingGroupId"
+      :initial-name="editingGroupName"
+      :initial-internal-name="editingGroupInternalName"
+      :all-groups="groups"
+      @close="showGroupModal = false"
+      @save="handleGroupModalSave" />
+
+    <DeleteGroupModal :is-open="showDeleteGroupModal"
+      :group-name="pendingDeleteGroup?.name || ''"
+      :note-count="pendingDeleteGroupNoteCount"
+      :other-groups="otherGroupsForDelete"
+      @close="showDeleteGroupModal = false"
+      @confirm="handleDeleteGroupConfirm" />
+
+    <AddToGroupModal :is-open="showAddToGroupModal"
+      :groups="groups"
+      :current-group-id="addToGroupNoteId ? (notes.find(n => n.id === addToGroupNoteId)?.groupId || null) : null"
+      @close="showAddToGroupModal = false"
+      @select="handleAddToGroupSelect"
+      @create-new="handleAddToGroupCreateNew" />
+
     <UpdateNotification
       :visible="sw.updateAvailable.value"
       :is-native="sw.isNative"
@@ -318,7 +353,8 @@
 <script setup>
 import db from '~/db.js'
 
-const { notes, currentNoteId, currentNote, allTags, deletedIds, addNote, deleteNote, updateNoteContent, updateNoteMeta, saveNotes, clearDeletedIds, reorderNotes, archiveNote, unarchiveNote, bulkArchive, bulkUnarchive, removeWelcomeNoteIfNeeded } = useNotes()
+const { notes, currentNoteId, currentNote, allTags, deletedIds, addNote, deleteNote, updateNoteContent, updateNoteMeta, saveNotes, clearDeletedIds, reorderNotes, moveNotesToGroup, removeNotesFromGroup, archiveNote, unarchiveNote, bulkArchive, bulkUnarchive, removeWelcomeNoteIfNeeded } = useNotes()
+const { groups, addGroup, updateGroup, deleteGroup: deleteGroupFromDb, toggleGroupCollapsed, saveGroups } = useGroups()
 const { exportNoteAsText, exportNoteAsJson, exportNoteAsMarkdown, exportNoteAsPdf, exportAllNotes, openFile, importNotes, duplicateNote, copyToClipboard, printNote } = useFileActions()
 const { evaluateLines } = useCalculator()
 const localePrefs = useLocalePreferences()
@@ -328,7 +364,7 @@ const { apiFetch } = useApi()
 
 let _onDataWipe = null
 let _onSessionRevoked = null
-const { syncing, lastSyncedAt, syncError, pendingNoteIds, isOnline, sync, syncNow, debouncedSync } = useSync(auth, notes, saveNotes, deletedIds, clearDeletedIds, () => _onDataWipe?.(), () => _onSessionRevoked?.(), removeWelcomeNoteIfNeeded)
+const { syncing, lastSyncedAt, syncError, pendingNoteIds, isOnline, sync, syncNow, debouncedSync } = useSync(auth, notes, saveNotes, deletedIds, clearDeletedIds, () => _onDataWipe?.(), () => _onSessionRevoked?.(), removeWelcomeNoteIfNeeded, groups, saveGroups)
 
 // If restore() found a stale token from a revoked session, clear in-memory notes
 // (IndexedDB was already cleared by restore, but loadNotes ran first)
@@ -337,6 +373,7 @@ watch(() => auth.wasSessionInvalid.value, (invalid) => {
     notes.value = []
     currentNoteId.value = null
     deletedIds.value = []
+    groups.value = []
     lastSyncedAt.value = null
   }
 })
@@ -346,7 +383,9 @@ _onDataWipe = async () => {
   notes.value = []
   currentNoteId.value = null
   deletedIds.value = []
+  groups.value = []
   await db.notes.clear()
+  await db.groups.clear()
   await db.appState.bulkDelete(['deleted_note_ids', 'last_synced_at', 'welcome_note_created'])
   lastSyncedAt.value = null
   await auth.refreshUser()
@@ -362,9 +401,11 @@ _onSessionRevoked = async () => {
   notes.value = []
   currentNoteId.value = null
   deletedIds.value = []
+  groups.value = []
   lastSyncedAt.value = null
   // Then clean up IndexedDB (async)
   await db.notes.clear()
+  await db.groups.clear()
   await db.appState.bulkDelete(['auth_token', 'enc_key', 'deleted_note_ids', 'last_synced_at', 'welcome_note_created'])
 }
 const sw = useServiceWorker()
@@ -530,7 +571,9 @@ watch(() => auth.isLoggedIn.value, async (loggedIn, wasLoggedIn) => {
       notes.value = []
       currentNoteId.value = null
       deletedIds.value = []
+      groups.value = []
       await db.notes.clear()
+      await db.groups.clear()
       await db.appState.bulkDelete(['deleted_note_ids', 'last_synced_at', 'welcome_note_created'])
       lastSyncedAt.value = null
     }
@@ -609,7 +652,9 @@ const handleResetPassword = async ({ recoveryToken, newPassword }) => {
     // Clear local data since all server notes were deleted
     notes.value = []
     currentNoteId.value = null
+    groups.value = []
     await db.notes.clear()
+    await db.groups.clear()
     await db.appState.delete('deleted_note_ids')
   } catch { /* error shown in modal */ }
 }
@@ -636,7 +681,9 @@ const clearLocalData = async () => {
   auth.logout()
   notes.value = []
   currentNoteId.value = null
+  groups.value = []
   await db.notes.clear()
+  await db.groups.clear()
   await db.appState.delete('deleted_note_ids')
 }
 
@@ -665,6 +712,8 @@ const handleChangePassword = async ({ currentPassword, newPassword, onProgress }
     content: n.content,
     sortOrder: n.sortOrder ?? 0,
     archived: n.archived ?? false,
+    internalName: n.internalName || '',
+    groupId: n.groupId || null,
     createdAt: n.createdAt,
     updatedAt: n.updatedAt
   }))
@@ -678,19 +727,23 @@ const handleChangePassword = async ({ currentPassword, newPassword, onProgress }
 const handleDeleteData = async (password) => {
   const backupNotes = [...notes.value]
   const backupCurrentNoteId = currentNoteId.value
+  const backupGroups = [...groups.value]
   notes.value = []
   currentNoteId.value = null
   deletedIds.value = []
+  groups.value = []
 
   try {
     await auth.requestDeletion('data', password)
     await db.notes.clear()
+    await db.groups.clear()
     await db.appState.bulkDelete(['deleted_note_ids', 'last_synced_at', 'welcome_note_created'])
     lastSyncedAt.value = null
     await auth.refreshUser()
   } catch (err) {
     notes.value = backupNotes
     currentNoteId.value = backupCurrentNoteId
+    groups.value = backupGroups
     throw err
   }
 }
@@ -798,9 +851,9 @@ const updateContent = (content) => {
   }
 }
 
-const updateMeta = ({ title, description, tags }) => {
+const updateMeta = ({ title, description, tags, internalName }) => {
   if (currentNote.value) {
-    updateNoteMeta(currentNote.value.id, { title, description, tags })
+    updateNoteMeta(currentNote.value.id, { title, description, tags, internalName })
     debouncedSync(currentNote.value.id)
   }
 }
@@ -1023,6 +1076,111 @@ const handleBulkArchive = (ids) => {
 const handleBulkUnarchive = (ids) => {
   bulkUnarchive(ids)
   syncNow()
+}
+
+// ── Group management ─────────────────────────────────────
+const showGroupModal = ref(false)
+const editingGroupId = ref(null)
+const editingGroupName = ref('')
+const editingGroupInternalName = ref('')
+
+const showDeleteGroupModal = ref(false)
+const pendingDeleteGroupId = ref(null)
+
+const showAddToGroupModal = ref(false)
+const addToGroupNoteId = ref(null)
+
+const pendingDeleteGroup = computed(() => {
+  return groups.value.find(g => g.id === pendingDeleteGroupId.value) || null
+})
+
+const pendingDeleteGroupNoteCount = computed(() => {
+  if (!pendingDeleteGroupId.value) return 0
+  return notes.value.filter(n => n.groupId === pendingDeleteGroupId.value).length
+})
+
+const otherGroupsForDelete = computed(() => {
+  return groups.value.filter(g => g.id !== pendingDeleteGroupId.value)
+})
+
+const handleAddToGroup = (noteId) => {
+  addToGroupNoteId.value = noteId
+  showAddToGroupModal.value = true
+}
+
+const handleAddToGroupSelect = (groupId) => {
+  if (addToGroupNoteId.value) {
+    moveNotesToGroup([addToGroupNoteId.value], groupId)
+    syncNow(addToGroupNoteId.value)
+  }
+  showAddToGroupModal.value = false
+  addToGroupNoteId.value = null
+}
+
+const handleAddToGroupCreateNew = () => {
+  showAddToGroupModal.value = false
+  editingGroupId.value = null
+  editingGroupName.value = ''
+  editingGroupInternalName.value = ''
+  showGroupModal.value = true
+}
+
+const handleGroupModalSave = ({ id, name, internalName }) => {
+  if (id) {
+    updateGroup(id, { name, internalName })
+  } else {
+    const group = addGroup(name)
+    updateGroup(group.id, { internalName })
+    // If we were adding a note to a new group, assign it
+    if (addToGroupNoteId.value) {
+      moveNotesToGroup([addToGroupNoteId.value], group.id)
+      syncNow(addToGroupNoteId.value)
+      addToGroupNoteId.value = null
+    }
+  }
+}
+
+const handleEditGroup = (groupId) => {
+  const group = groups.value.find(g => g.id === groupId)
+  if (!group) return
+  editingGroupId.value = groupId
+  editingGroupName.value = group.name
+  editingGroupInternalName.value = group.internalName
+  showGroupModal.value = true
+}
+
+const handleDeleteGroup = (groupId) => {
+  pendingDeleteGroupId.value = groupId
+  showDeleteGroupModal.value = true
+}
+
+const handleDeleteGroupConfirm = (action, moveToGroupId) => {
+  const groupId = pendingDeleteGroupId.value
+  if (!groupId) return
+
+  if (action === 'keep') {
+    removeNotesFromGroup(groupId)
+  } else if (action === 'move' && moveToGroupId) {
+    const noteIds = notes.value.filter(n => n.groupId === groupId).map(n => n.id)
+    moveNotesToGroup(noteIds, moveToGroupId)
+  } else if (action === 'delete-all') {
+    const noteIds = notes.value.filter(n => n.groupId === groupId).map(n => n.id)
+    for (const id of noteIds) deleteNote(id)
+  }
+
+  deleteGroupFromDb(groupId)
+  showDeleteGroupModal.value = false
+  pendingDeleteGroupId.value = null
+  syncNow()
+}
+
+const handleToggleGroupCollapse = (groupId) => {
+  toggleGroupCollapsed(groupId)
+}
+
+const handleMoveNoteToGroup = ({ noteId, groupId }) => {
+  moveNotesToGroup([noteId], groupId)
+  syncNow(noteId)
 }
 </script>
 

@@ -57,8 +57,8 @@ export default defineEventHandler(async (event) => {
     const tagsValue = typeof note.tags === 'string' ? note.tags : JSON.stringify(note.tags || [])
 
     const result = await query(`
-      INSERT INTO notes (user_id, client_id, title, description, tags, content, sort_order, archived, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      INSERT INTO notes (user_id, client_id, title, description, tags, content, sort_order, archived, internal_name, group_id, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       ON CONFLICT (user_id, client_id) WHERE client_id IS NOT NULL
       DO UPDATE SET
         title = EXCLUDED.title,
@@ -67,9 +67,11 @@ export default defineEventHandler(async (event) => {
         content = EXCLUDED.content,
         sort_order = EXCLUDED.sort_order,
         archived = EXCLUDED.archived,
+        internal_name = EXCLUDED.internal_name,
+        group_id = EXCLUDED.group_id,
         updated_at = EXCLUDED.updated_at
       WHERE EXCLUDED.updated_at >= notes.updated_at
-      RETURNING id, client_id, title, description, tags, content, sort_order, archived, created_at, updated_at
+      RETURNING id, client_id, title, description, tags, content, sort_order, archived, internal_name, group_id, created_at, updated_at
     `, [
       auth.userId,
       note.clientId,
@@ -79,6 +81,8 @@ export default defineEventHandler(async (event) => {
       note.content || '',
       note.sortOrder ?? 0,
       note.archived ?? false,
+      note.internalName || '',
+      note.groupId || null,
       note.createdAt || new Date().toISOString(),
       note.updatedAt || new Date().toISOString()
     ])
@@ -94,6 +98,8 @@ export default defineEventHandler(async (event) => {
         content: row.content,
         sortOrder: row.sort_order,
         archived: row.archived,
+        internalName: row.internal_name,
+        groupId: row.group_id,
         createdAt: row.created_at,
         updatedAt: row.updated_at
       })
@@ -113,7 +119,7 @@ export default defineEventHandler(async (event) => {
 
   // 4. Pull all notes from server
   const pullResult = await query(`
-    SELECT id, client_id, title, description, tags, content, sort_order, archived, created_at, updated_at
+    SELECT id, client_id, title, description, tags, content, sort_order, archived, internal_name, group_id, created_at, updated_at
     FROM notes WHERE user_id = $1
     ORDER BY sort_order ASC
   `, [auth.userId])
@@ -127,6 +133,8 @@ export default defineEventHandler(async (event) => {
     content: row.content,
     sortOrder: row.sort_order,
     archived: row.archived,
+    internalName: row.internal_name,
+    groupId: row.group_id,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   }))

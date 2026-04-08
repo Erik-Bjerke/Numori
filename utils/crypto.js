@@ -202,13 +202,14 @@ export function isEncrypted(str) {
  * Non-sensitive fields (clientId, sortOrder, timestamps) pass through unchanged.
  */
 export async function encryptNote(note, key) {
-  const [title, description, tags, content] = await Promise.all([
+  const [title, description, tags, content, internalName] = await Promise.all([
     encrypt(note.title || '', key),
     encrypt(note.description || '', key),
     encrypt(JSON.stringify(note.tags || []), key),
-    encrypt(note.content || '', key)
+    encrypt(note.content || '', key),
+    encrypt(note.internalName || '', key)
   ])
-  return { ...note, title, description, tags, content }
+  return { ...note, title, description, tags, content, internalName }
 }
 
 /**
@@ -216,13 +217,16 @@ export async function encryptNote(note, key) {
  * Returns a new object with plaintext title, description, tags, and content.
  */
 export async function decryptNote(note, key) {
-  const [title, description, tagsStr, content] = await Promise.all([
+  // internalName may not be encrypted on older notes — handle gracefully
+  const hasEncryptedInternalName = note.internalName && isEncrypted(note.internalName)
+  const [title, description, tagsStr, content, internalName] = await Promise.all([
     decrypt(note.title, key),
     decrypt(note.description, key),
     decrypt(note.tags, key),
-    decrypt(note.content, key)
+    decrypt(note.content, key),
+    hasEncryptedInternalName ? decrypt(note.internalName, key) : Promise.resolve(note.internalName || '')
   ])
-  return { ...note, title, description, tags: JSON.parse(tagsStr), content }
+  return { ...note, title, description, tags: JSON.parse(tagsStr), content, internalName }
 }
 
 /**

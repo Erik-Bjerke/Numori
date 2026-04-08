@@ -265,6 +265,46 @@ export async function migrate() {
     END $do$
   `)
 
+  // Add internal_name to notes for normalised identifier
+  await query(`
+    DO $do$ BEGIN
+      ALTER TABLE notes ADD COLUMN IF NOT EXISTS internal_name TEXT NOT NULL DEFAULT '';
+    EXCEPTION WHEN duplicate_column THEN NULL;
+    END $do$
+  `)
+
+  // Add group_id to notes for note grouping
+  await query(`
+    DO $do$ BEGIN
+      ALTER TABLE notes ADD COLUMN IF NOT EXISTS group_id TEXT;
+    EXCEPTION WHEN duplicate_column THEN NULL;
+    END $do$
+  `)
+
+  // Groups table for note grouping
+  await query(`
+    CREATE TABLE IF NOT EXISTS groups (
+      id            SERIAL PRIMARY KEY,
+      user_id       INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      client_id     TEXT,
+      name          TEXT NOT NULL DEFAULT 'New Group',
+      internal_name TEXT NOT NULL DEFAULT '',
+      sort_order    INTEGER NOT NULL DEFAULT 0,
+      collapsed     BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `)
+
+  await query(`
+    CREATE INDEX IF NOT EXISTS idx_groups_user_id ON groups(user_id)
+  `)
+
+  await query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_groups_user_client_id
+    ON groups(user_id, client_id) WHERE client_id IS NOT NULL
+  `)
+
   // Email verification and password recovery
   await query(`
     DO $do$ BEGIN

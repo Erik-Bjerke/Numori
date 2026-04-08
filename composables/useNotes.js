@@ -1,5 +1,6 @@
 import { liveQuery } from 'dexie'
 import db from '~/db.js'
+import { normaliseName, uniqueInternalName } from '~/utils/normaliseName.js'
 
 export const useNotes = () => {
   const notes = ref([])
@@ -219,13 +220,16 @@ Discounted: prev - 10%
 
   const createNote = (title = 'Untitled Note', description = '') => {
     const defaultContent = title === 'Welcome' ? WELCOME_CONTENT : ''
+    const existingNames = notes.value.map(n => n.internalName).filter(Boolean)
 
     return {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
       title,
+      internalName: uniqueInternalName(title, existingNames, 'untitled_note'),
       description,
       tags: [],
       sortOrder: 0,
+      groupId: null,
       content: defaultContent,
       archived: false,
       createdAt: new Date().toISOString(),
@@ -277,12 +281,17 @@ Discounted: prev - 10%
     }
   }
 
-  const updateNoteMeta = (id, { title, description, tags }) => {
+  const updateNoteMeta = (id, { title, description, tags, internalName, groupId }) => {
     const note = notes.value.find(n => n.id === id)
     if (note) {
       if (title !== undefined) note.title = title
       if (description !== undefined) note.description = description
       if (tags !== undefined) note.tags = tags
+      if (internalName !== undefined) {
+        // Ensure uniqueness — exclude self from collision check
+        note.internalName = uniqueInternalName(internalName, [], 'untitled_note', id, notes.value)
+      }
+      if (groupId !== undefined) note.groupId = groupId
       note.updatedAt = new Date().toISOString()
       saveNotes()
     }
@@ -346,6 +355,29 @@ Discounted: prev - 10%
     saveNotes()
   }
 
+  const moveNotesToGroup = (noteIds, groupId) => {
+    const now = new Date().toISOString()
+    for (const id of noteIds) {
+      const note = notes.value.find(n => n.id === id)
+      if (note) {
+        note.groupId = groupId
+        note.updatedAt = now
+      }
+    }
+    saveNotes()
+  }
+
+  const removeNotesFromGroup = (groupId) => {
+    const now = new Date().toISOString()
+    for (const note of notes.value) {
+      if (note.groupId === groupId) {
+        note.groupId = null
+        note.updatedAt = now
+      }
+    }
+    saveNotes()
+  }
+
   const currentNote = computed(() => {
     return notes.value.find(n => n.id === currentNoteId.value) || null
   })
@@ -367,6 +399,8 @@ Discounted: prev - 10%
     saveNotes,
     clearDeletedIds,
     reorderNotes,
+    moveNotesToGroup,
+    removeNotesFromGroup,
     archiveNote,
     unarchiveNote,
     bulkArchive,

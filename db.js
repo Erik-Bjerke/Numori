@@ -65,7 +65,36 @@ db.version(1).stores({
   appState: 'key',
 })
 
-// ── Future versions go here ─────────────────────────────────────────────
-// db.version(2).stores({ ... }).upgrade(tx => { ... })
+// ── Version 2 — internal names + note groups ───────────────────────────
+db.version(2).stores({
+  notes: 'id, sortOrder, groupId',
+  groups: 'id, sortOrder',
+}).upgrade(async tx => {
+  // Add default internalName to existing notes with uniqueness
+  const allNotes = await tx.table('notes').toArray()
+  const usedNames = new Set()
+
+  for (const note of allNotes) {
+    let base = (note.title || '')
+      .toLowerCase()
+      .replace(/\s+/g, '_')
+      .replace(/[^a-z0-9_]/g, '')
+      .replace(/_+/g, '_')
+      .replace(/^_|_$/g, '') || 'untitled_note'
+
+    let name = base
+    if (usedNames.has(name)) {
+      let i = 1
+      while (usedNames.has(`${base}_${i}`)) i++
+      name = `${base}_${i}`
+    }
+    usedNames.add(name)
+
+    await tx.table('notes').update(note.id, {
+      internalName: name,
+      groupId: note.groupId === undefined ? null : note.groupId
+    })
+  }
+})
 
 export default db

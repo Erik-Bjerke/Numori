@@ -14,7 +14,7 @@
 import db from '~/db.js'
 import { encryptNote, decryptNote } from '~/utils/crypto.js'
 
-export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onDataWipe, onSessionRevoked, removeWelcomeNoteIfNeeded) => {
+export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onDataWipe, onSessionRevoked, removeWelcomeNoteIfNeeded, groups, saveGroups) => {
   const { apiFetch, apiUrl } = useApi()
 
   const syncing = ref(false)
@@ -84,6 +84,8 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onD
           content: n.content,
           sortOrder: n.sortOrder ?? 0,
           archived: n.archived ?? false,
+          internalName: n.internalName || '',
+          groupId: n.groupId || null,
           createdAt: n.createdAt,
           updatedAt: n.updatedAt
         }
@@ -128,6 +130,8 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onD
             if (JSON.stringify(existing.tags) !== JSON.stringify(decrypted.tags)) existing.tags = decrypted.tags
             if (existing.content !== decrypted.content) existing.content = decrypted.content
             if (existing.archived !== (decrypted.archived ?? false)) existing.archived = decrypted.archived ?? false
+            if (existing.internalName !== (decrypted.internalName || '')) existing.internalName = decrypted.internalName || ''
+            if (existing.groupId !== (decrypted.groupId || null)) existing.groupId = decrypted.groupId || null
             existing.updatedAt = decrypted.updatedAt
           }
           existing.sortOrder = decrypted.sortOrder ?? existing.sortOrder
@@ -140,6 +144,8 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onD
             content: decrypted.content,
             sortOrder: decrypted.sortOrder ?? 0,
             archived: decrypted.archived ?? false,
+            internalName: decrypted.internalName || '',
+            groupId: decrypted.groupId || null,
             createdAt: decrypted.createdAt,
             updatedAt: decrypted.updatedAt
           })
@@ -152,6 +158,57 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onD
       lastSyncedAt.value = data.syncedAt
       await db.appState.put({ key: 'last_synced_at', value: data.syncedAt })
       await saveNotes()
+
+      // Sync groups if available
+      if (groups && saveGroups) {
+        try {
+          const clientGroups = (groups.value || []).map(g => ({
+            clientId: g.id,
+            name: g.name,
+            internalName: g.internalName || '',
+            sortOrder: g.sortOrder ?? 0,
+            collapsed: g.collapsed ?? false,
+            createdAt: g.createdAt,
+            updatedAt: g.updatedAt
+          }))
+
+          const groupData = await apiFetch('/api/groups/sync', {
+            method: 'POST',
+            headers: auth.authHeaders.value,
+            body: { groups: clientGroups, deletedClientIds: [] }
+          })
+
+          // Merge pulled groups
+          for (const remote of (groupData.pulled || [])) {
+            const localId = remote.clientId || remote.id.toString()
+            const existing = groups.value.find(g => g.id === localId)
+            if (existing) {
+              if (new Date(remote.updatedAt) > new Date(existing.updatedAt)) {
+                if (existing.name !== remote.name) existing.name = remote.name
+                if (existing.internalName !== (remote.internalName || '')) existing.internalName = remote.internalName || ''
+                if (existing.collapsed !== (remote.collapsed ?? false)) existing.collapsed = remote.collapsed ?? false
+                existing.updatedAt = remote.updatedAt
+              }
+              existing.sortOrder = remote.sortOrder ?? existing.sortOrder
+            } else {
+              groups.value.push({
+                id: localId,
+                name: remote.name,
+                internalName: remote.internalName || '',
+                sortOrder: remote.sortOrder ?? 0,
+                collapsed: remote.collapsed ?? false,
+                createdAt: remote.createdAt,
+                updatedAt: remote.updatedAt
+              })
+            }
+          }
+          groups.value.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+          await saveGroups()
+        } catch (err) {
+          // Groups sync failure is non-fatal — notes already synced
+          console.warn('Groups sync failed:', err.message)
+        }
+      }
 
       // All notes are now synced — clear pending indicators
       pendingNoteIds.value = new Set()

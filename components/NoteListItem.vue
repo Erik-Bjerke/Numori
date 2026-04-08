@@ -44,6 +44,9 @@
           </h3>
 
         </div>
+        <p v-if="note.internalName" class="text-[10px] text-gray-400 dark:text-gray-500 font-mono truncate">
+          {{ note.internalName }}
+        </p>
         <p v-if="note.description" class="text-sm text-gray-600 dark:text-gray-500 truncate mt-1">
           {{ note.description }}
         </p>
@@ -133,6 +136,11 @@
               <Icon name="mdi:information-outline" class="w-4 h-4" />
               Properties
             </button>
+            <button @click.stop="handleAction('add-to-group')"
+              class="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+              <Icon name="mdi:folder-plus-outline" class="w-4 h-4" />
+              Add to group
+            </button>
             <div class="my-1 border-t border-gray-200 dark:border-gray-700" />
             <button @click.stop="handleAction('delete')"
               class="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
@@ -160,7 +168,7 @@ const props = defineProps({
   isLoggedIn: { type: Boolean, default: false }
 })
 
-const emit = defineEmits(['select', 'delete', 'toggle-select', 'share', 'unshare', 'properties', 'open-analytics', 'duplicate', 'export', 'copy-to-clipboard', 'print', 'archive', 'unarchive'])
+const emit = defineEmits(['select', 'delete', 'toggle-select', 'share', 'unshare', 'properties', 'open-analytics', 'duplicate', 'export', 'copy-to-clipboard', 'print', 'archive', 'unarchive', 'add-to-group'])
 
 const { copy: clipboardCopy } = useClipboard()
 const { apiUrl } = useApi()
@@ -212,6 +220,7 @@ const handleAction = (action) => {
   else if (action === 'print') emit('print', props.note.id)
   else if (action === 'archive') emit('archive', props.note.id)
   else if (action === 'unarchive') emit('unarchive', props.note.id)
+  else if (action === 'add-to-group') emit('add-to-group', props.note.id)
 }
 
 const handleCopyLink = async () => {
