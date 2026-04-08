@@ -832,7 +832,14 @@ const updateDropTarget = (clientY) => {
         dropTarget.value = { id: hit.id, type: hit.type, position: 'before' }
         clearHoverExpand()
       } else if (hy > hh * (1 - GROUP_DROP_THRESHOLD)) {
-        dropTarget.value = { id: hit.id, type: hit.type, position: 'after' }
+        // Below the group header — if the group is expanded, treat as "inside"
+        // (first position in the group), not "after" (which means ungrouped)
+        const group = props.groups.find(g => g.id === hit.id)
+        if (group && !group.collapsed) {
+          dropTarget.value = { id: hit.id, type: hit.type, position: 'inside' }
+        } else {
+          dropTarget.value = { id: hit.id, type: hit.type, position: 'after' }
+        }
         clearHoverExpand()
       } else {
         dropTarget.value = { id: hit.id, type: hit.type, position: 'inside' }
@@ -843,7 +850,6 @@ const updateDropTarget = (clientY) => {
       clearHoverExpand()
     }
   } else if (!hit && listRef.value) {
-    // Below all items → drop at top level after everything
     dropTarget.value = { id: '__bottom__', type: 'bottom', position: 'after' }
     clearHoverExpand()
   } else if (hit && hit.id === draggingId.value) {
