@@ -312,6 +312,27 @@
                   </p>
                 </div>
 
+                <!-- Session duration selector -->
+                <div class="px-3 py-3 rounded-lg bg-gray-50 dark:bg-gray-900 space-y-2">
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 min-w-0">
+                      <Icon name="mdi:timer-outline" class="w-4 h-4 text-gray-500 flex-shrink-0" />
+                      <span class="text-sm text-gray-700 dark:text-gray-300 truncate">Session duration</span>
+                    </div>
+                    <select v-model="sessionDuration" @change="saveSessionDuration" :disabled="savingSessionDuration"
+                      class="text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-1 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                      aria-label="Session duration">
+                      <option :value="3600">1 hour</option>
+                      <option :value="86400">1 day</option>
+                      <option :value="604800">7 days</option>
+                      <option :value="2592000">30 days</option>
+                    </select>
+                  </div>
+                  <p class="text-xs text-gray-500 dark:text-gray-500">
+                    How long you stay logged in. Shorter sessions are more secure. Changes apply on next login.
+                  </p>
+                </div>
+
                 <!-- Warning about recovery -->
                 <div class="space-y-2">
                   <!-- Account access risk -->
@@ -454,7 +475,10 @@
                             {{ s.location || s.ipAddress }}
                           </p>
                           <p class="text-xs text-gray-400 dark:text-gray-600">
-                            Opened {{ formatSessionDate(s.createdAt) }} · Last used {{ formatSessionDate(s.lastUsedAt) }}
+                            Last active {{ formatSessionDate(s.lastUsedAt) }} · Opened {{ formatSessionDate(s.createdAt) }}
+                          </p>
+                          <p v-if="s.expiresAt" class="text-xs text-gray-400 dark:text-gray-600">
+                            Expires {{ formatSessionDate(s.expiresAt) }}
                           </p>
                         </div>
                       </div>
@@ -593,6 +617,8 @@ const savingPrivacy = ref(false)
 // Security
 const passwordRecoveryEnabled = ref(false)
 const savingSecurity = ref(false)
+const sessionDuration = ref(604800)
+const savingSessionDuration = ref(false)
 
 // Sessions
 const sessions = ref([])
@@ -603,6 +629,7 @@ watch(() => props.isOpen, (open) => {
   if (open) {
     privacyNoTracking.value = props.user?.privacyNoTracking !== false
     passwordRecoveryEnabled.value = props.user?.passwordRecoveryEnabled === true
+    sessionDuration.value = props.user?.sessionDuration || 604800
     activeSection.value = 'main'
     feedback.value = null
     editName.value = props.user?.name || ''
@@ -877,6 +904,22 @@ const togglePasswordRecovery = async () => {
   }
 }
 
+const saveSessionDuration = async () => {
+  savingSessionDuration.value = true
+  try {
+    await apiFetch('/api/auth/session-duration', {
+      method: 'PUT',
+      headers: props.authHeaders,
+      body: { duration: Number(sessionDuration.value) }
+    })
+    showFeedback('Session duration updated — takes effect on next login')
+  } catch (err) {
+    showFeedback(err?.data?.statusMessage || 'Failed to update session duration', 'error')
+  } finally {
+    savingSessionDuration.value = false
+  }
+}
+
 const getDeviceIcon = (deviceName) => {
   if (!deviceName) return 'mdi:help-circle-outline'
   const d = deviceName.toLowerCase()
@@ -894,6 +937,17 @@ const formatSessionDate = (iso) => {
   const d = new Date(iso)
   const now = new Date()
   const diff = now - d
+
+  // Future date (for expires_at)
+  if (diff < 0) {
+    const ahead = -diff
+    if (ahead < 3600000) return `in ${Math.ceil(ahead / 60000)}m`
+    if (ahead < 86400000) return `in ${Math.floor(ahead / 3600000)}h`
+    if (ahead < 7 * 86400000) return `in ${Math.floor(ahead / 86400000)}d`
+    return d.toLocaleDateString()
+  }
+
+  // Past date
   if (diff < 60000) return 'just now'
   if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`
   if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`

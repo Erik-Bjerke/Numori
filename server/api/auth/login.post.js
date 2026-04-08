@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
   const emailNorm = email.toLowerCase().trim()
 
   const result = await query(
-    'SELECT id, email, name, password_hash, avatar_url, created_at, email_verified FROM users WHERE email = $1',
+    'SELECT id, email, name, password_hash, avatar_url, created_at, email_verified, session_duration FROM users WHERE email = $1',
     [emailNorm]
   )
 
@@ -39,8 +39,9 @@ export default defineEventHandler(async (event) => {
   const secret = process.env.JWT_SECRET
   const token = await signJwt({ userId: user.id, email: user.email }, secret)
 
-  // Track session
-  await createSession(user.id, token, event)
+  // Track session — expires_at based on user's session_duration preference
+  const sessionDuration = user.session_duration || 7 * 24 * 3600
+  await createSession(user.id, token, event, sessionDuration)
 
   return {
     user: { id: user.id, email: user.email, name: user.name, avatarUrl: user.avatar_url, createdAt: user.created_at, emailVerified: user.email_verified },

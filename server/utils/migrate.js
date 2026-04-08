@@ -363,5 +363,21 @@ export async function migrate() {
     CREATE INDEX IF NOT EXISTS idx_sessions_token_hash ON sessions(token_hash)
   `)
 
+  // Add session_duration preference to users (default 7 days in seconds)
+  await query(`
+    DO $do$ BEGIN
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS session_duration INTEGER NOT NULL DEFAULT 604800;
+    EXCEPTION WHEN duplicate_column THEN NULL;
+    END $do$
+  `)
+
+  // Add expires_at to sessions for server-side expiry enforcement
+  await query(`
+    DO $do$ BEGIN
+      ALTER TABLE sessions ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ;
+    EXCEPTION WHEN duplicate_column THEN NULL;
+    END $do$
+  `)
+
   console.log('[migrate] Database tables ready')
 }

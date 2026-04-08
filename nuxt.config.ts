@@ -74,6 +74,13 @@ export default defineNuxtConfig({
     ]
   },
   nitro: {
+    experimental: {
+      tasks: true
+    },
+    scheduledTasks: {
+      // Every night at 23:59 — purge expired sessions
+      '59 23 * * *': ['purge-sessions']
+    },
     prerender: {
       routes: ['/']
     },

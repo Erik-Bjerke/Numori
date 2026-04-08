@@ -46,8 +46,10 @@ export default defineEventHandler(async (event) => {
   // Issue a fresh login token
   const token = await signJwt({ userId: payload.userId, email: payload.email }, secret)
 
-  // Track session
-  await createSession(payload.userId, token, event)
+  // Track session — expires_at based on user's session_duration preference
+  const userRow = await query('SELECT session_duration FROM users WHERE id = $1', [payload.userId])
+  const sessionDuration = userRow.rows[0]?.session_duration || 7 * 24 * 3600
+  await createSession(payload.userId, token, event, sessionDuration)
 
   const result = await query(
     'SELECT id, email, name, avatar_url, created_at, email_verified FROM users WHERE id = $1',

@@ -25,7 +25,7 @@ async function getKey(secret) {
   )
 }
 
-export async function signJwt(payload, secret, expiresInSeconds = 7 * 24 * 3600) {
+export async function signJwt(payload, secret, expiresInSeconds = 10 * 365 * 24 * 3600) {
   const header = { alg: 'HS256', typ: 'JWT' }
   const now = Math.floor(Date.now() / 1000)
   const body = { ...payload, iat: now, exp: now + expiresInSeconds }

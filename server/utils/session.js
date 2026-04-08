@@ -47,8 +47,9 @@ export function parseDeviceName(ua) {
 /**
  * Create a session record for a newly issued token.
  * Location is resolved asynchronously via IP geolocation.
+ * @param {number} expiresInSeconds — token lifetime; stored as expires_at on the session row.
  */
-export async function createSession(userId, token, event) {
+export async function createSession(userId, token, event, expiresInSeconds = 7 * 24 * 3600) {
   const tokenHash = await hashToken(token)
   const ua = getHeader(event, 'user-agent') || ''
   const deviceName = parseDeviceName(ua)
@@ -58,10 +59,12 @@ export async function createSession(userId, token, event) {
     || event.node?.req?.socket?.remoteAddress
     || null
 
+  const expiresAt = new Date(Date.now() + expiresInSeconds * 1000)
+
   const result = await query(
-    `INSERT INTO sessions (user_id, token_hash, device_name, ip_address)
-     VALUES ($1, $2, $3, $4) RETURNING id`,
-    [userId, tokenHash, deviceName, ip]
+    `INSERT INTO sessions (user_id, token_hash, device_name, ip_address, expires_at)
+     VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+    [userId, tokenHash, deviceName, ip, expiresAt.toISOString()]
   )
 
   const sessionId = result.rows[0]?.id
@@ -73,13 +76,34 @@ export async function createSession(userId, token, event) {
 /**
  * Update last_used_at for a session identified by token hash.
  * Returns the session row or null if not found (revoked).
+ * Enforces server-side expiry and slides the window forward on each touch
+ * based on the user's session_duration preference.
  */
 export async function touchSession(tokenHash) {
   const result = await query(
-    `UPDATE sessions SET last_used_at = NOW() WHERE token_hash = $1 RETURNING id`,
+    `SELECT s.id, s.expires_at, s.user_id, u.session_duration
+     FROM sessions s JOIN users u ON u.id = s.user_id
+     WHERE s.token_hash = $1`,
     [tokenHash]
   )
-  return result.rows[0] || null
+  const session = result.rows[0]
+  if (!session) return null
+
+  // Enforce server-side expiry
+  if (session.expires_at && new Date(session.expires_at) < new Date()) {
+    await query('DELETE FROM sessions WHERE id = $1', [session.id])
+    return null
+  }
+
+  // Slide expires_at forward from now based on user's session_duration
+  const duration = session.session_duration || 7 * 24 * 3600
+  const newExpiresAt = new Date(Date.now() + duration * 1000)
+  await query(
+    `UPDATE sessions SET last_used_at = NOW(), expires_at = $1 WHERE id = $2`,
+    [newExpiresAt.toISOString(), session.id]
+  )
+
+  return session
 }
 
 /**
@@ -108,4 +132,15 @@ export async function revokeSession(userId, sessionId) {
  */
 export async function revokeAllSessions(userId) {
   await query('DELETE FROM sessions WHERE user_id = $1', [userId])
+}
+
+/**
+ * Delete all sessions whose expires_at has passed.
+ * Returns the number of rows removed.
+ */
+export async function purgeExpiredSessions() {
+  const result = await query(
+    `DELETE FROM sessions WHERE expires_at IS NOT NULL AND expires_at < NOW()`
+  )
+  return result.rowCount || 0
 }
