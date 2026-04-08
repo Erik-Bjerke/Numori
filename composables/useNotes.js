@@ -1,6 +1,6 @@
 import { liveQuery } from 'dexie'
 import db from '~/db.js'
-import { normaliseName, uniqueInternalName } from '~/utils/normaliseName.js'
+import { uniqueInternalName } from '~/utils/normaliseName.js'
 
 export const useNotes = () => {
   const notes = ref([])

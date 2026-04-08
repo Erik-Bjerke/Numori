@@ -163,36 +163,100 @@
     </div>
 
     <!-- Notes List -->
-    <div class="flex-1 overflow-y-auto" ref="listRef">
-      <div v-if="filteredNotes.length === 0 && filteredGroups.length === 0" class="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
+    <div class="flex-1 overflow-y-auto" ref="listRef"
+      @dragover.prevent
+      @drop.prevent="onDrop">
+      <div v-if="sidebarItems.length === 0" class="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
         {{ showArchive ? 'No archived notes' : 'No notes found' }}
       </div>
 
-      <!-- Ungrouped notes -->
-      <template v-for="(note, index) in ungroupedNotes" :key="note.id">
-        <div
-          :data-note-id="note.id"
-          :data-index="index"
-          :data-type="'note'"
+      <template v-for="(item, idx) in displayItems" :key="item.id">
+        <!-- ── Gap spacer at drop position ── -->
+        <div v-if="dropInsertIndex === idx && dropInsertIndex !== -1"
+          class="drag-gap bg-primary-100/40 dark:bg-primary-800/20 rounded mx-1 border border-dashed border-primary-300 dark:border-primary-700" />
+
+        <!-- ── Group header ── -->
+        <div v-if="item.kind === 'group'"
+          :data-item-id="item.id"
+          :data-kind="'group'"
           :draggable="canReorder"
-          @dragstart="onDragStart($event, note.id, 'note')"
-          @dragover.prevent="onDragOverItem($event, note.id, 'note')"
+          @dragstart="onDragStart($event, item.id, 'group')"
+          @dragover.prevent="onDragOverItem($event, item.id, 'group')"
           @dragend="onDragEnd"
-          @touchstart="onTouchStart($event, note.id, 'note')"
+          @touchstart="onTouchStart($event, item.id, 'group')"
           class="relative"
-          :class="{
-            'border-t-2 border-t-primary-500': dropTarget?.id === note.id && dropTarget?.position === 'before',
-            'border-b-2 border-b-primary-500': dropTarget?.id === note.id && dropTarget?.position === 'after',
-            'opacity-50': draggingId === note.id
-          }">
+          :class="isDraggedItem(item.id) ? 'drag-item-collapsed' : 'drag-item'">
+          <GroupListItem
+            :group="item.data"
+            :note-count="getGroupNotes(item.id).length"
+            :drop-indicator="dropTarget?.id === item.id ? dropTarget?.position : null"
+            @toggle-collapse="id => $emit('toggle-group-collapse', id)"
+            @edit="id => $emit('edit-group', id)"
+            @delete="id => $emit('delete-group', id)" />
+        </div>
+
+        <!-- ── Grouped note (child of a group) ── -->
+        <div v-else-if="item.kind === 'grouped-note'"
+          :data-item-id="item.id"
+          :data-kind="'note'"
+          :data-group="item.parentGroupId"
+          :draggable="canReorder"
+          @dragstart="onDragStart($event, item.id, 'note')"
+          @dragover.prevent="onDragOverItem($event, item.id, 'note')"
+          @dragend="onDragEnd"
+          @touchstart="onTouchStart($event, item.id, 'note')"
+          class="relative pl-4 border-l-2 border-l-primary-200 dark:border-l-primary-800/50"
+          :class="isDraggedItem(item.id) ? 'drag-item-collapsed' : 'drag-item'">
           <NoteListItem
-            :note="note" :active="note.id === currentNoteId"
+            :note="item.data" :active="item.data.id === currentNoteId"
             :select-mode="selectMode"
-            :selected="selectedIds.has(note.id)"
-            :shared="sharedNoteIds.includes(note.id)"
-            :share-hash="sharedNotesMap.get(note.id) || null"
-            :analytics-hash="analyticsNotesMap.get(note.id) || null"
-            :pending="pendingNoteIds.has(note.id)"
+            :selected="selectedIds.has(item.data.id)"
+            :shared="sharedNoteIds.includes(item.data.id)"
+            :share-hash="sharedNotesMap.get(item.data.id) || null"
+            :analytics-hash="analyticsNotesMap.get(item.data.id) || null"
+            :pending="pendingNoteIds.has(item.data.id)"
+            :is-logged-in="isLoggedIn"
+            @select="id => $emit('select-note', id)"
+            @delete="id => $emit('delete-note', id)"
+            @share="id => $emit('share-note', id)"
+            @unshare="id => $emit('unshare-note', id)"
+            @properties="id => $emit('show-properties', id)"
+            @open-analytics="hash => $emit('open-analytics', hash)"
+            @duplicate="id => $emit('duplicate-note', id)"
+            @export="id => $emit('export-note', id)"
+            @copy-to-clipboard="id => $emit('copy-to-clipboard', id)"
+            @print="id => $emit('print-note', id)"
+            @archive="id => $emit('archive-note', id)"
+            @unarchive="id => $emit('unarchive-note', id)"
+            @toggle-select="toggleNoteSelection"
+            @add-to-group="id => $emit('add-to-group', id)" />
+        </div>
+
+        <!-- ── Empty group placeholder ── -->
+        <div v-else-if="item.kind === 'group-empty'"
+          class="pl-4 border-l-2 border-l-primary-200 dark:border-l-primary-800/50 px-4 py-3 text-xs text-gray-400 dark:text-gray-500 italic">
+          No notes in this group
+        </div>
+
+        <!-- ── Ungrouped note ── -->
+        <div v-else
+          :data-item-id="item.id"
+          :data-kind="'note'"
+          :draggable="canReorder"
+          @dragstart="onDragStart($event, item.id, 'note')"
+          @dragover.prevent="onDragOverItem($event, item.id, 'note')"
+          @dragend="onDragEnd"
+          @touchstart="onTouchStart($event, item.id, 'note')"
+          class="relative"
+          :class="isDraggedItem(item.id) ? 'drag-item-collapsed' : 'drag-item'">
+          <NoteListItem
+            :note="item.data" :active="item.data.id === currentNoteId"
+            :select-mode="selectMode"
+            :selected="selectedIds.has(item.data.id)"
+            :shared="sharedNoteIds.includes(item.data.id)"
+            :share-hash="sharedNotesMap.get(item.data.id) || null"
+            :analytics-hash="analyticsNotesMap.get(item.data.id) || null"
+            :pending="pendingNoteIds.has(item.data.id)"
             :is-logged-in="isLoggedIn"
             @select="id => $emit('select-note', id)"
             @delete="id => $emit('delete-note', id)"
@@ -211,82 +275,9 @@
         </div>
       </template>
 
-      <!-- Groups -->
-      <template v-for="group in filteredGroups" :key="group.id">
-        <div
-          :data-group-id="group.id"
-          :data-type="'group'"
-          :draggable="canReorder"
-          @dragstart="onDragStart($event, group.id, 'group')"
-          @dragover.prevent="onDragOverItem($event, group.id, 'group')"
-          @dragend="onDragEnd"
-          @touchstart="onTouchStart($event, group.id, 'group')"
-          class="relative"
-          :class="{ 'opacity-50': draggingId === group.id }">
-          <GroupListItem
-            :group="group"
-            :note-count="getGroupNotes(group.id).length"
-            :drop-indicator="dropTarget?.id === group.id ? dropTarget?.position : null"
-            @toggle-collapse="id => $emit('toggle-group-collapse', id)"
-            @edit="id => $emit('edit-group', id)"
-            @delete="id => $emit('delete-group', id)" />
-        </div>
-
-        <!-- Group's notes (when expanded) -->
-        <Transition
-          enter-active-class="transition-all duration-200 ease-out"
-          enter-from-class="opacity-0 max-h-0"
-          enter-to-class="opacity-100 max-h-[2000px]"
-          leave-active-class="transition-all duration-150 ease-in"
-          leave-from-class="opacity-100 max-h-[2000px]"
-          leave-to-class="opacity-0 max-h-0">
-          <div v-if="!group.collapsed" class="overflow-hidden">
-            <div v-for="(note, idx) in getGroupNotes(group.id)" :key="note.id"
-              :data-note-id="note.id"
-              :data-type="'note'"
-              :data-group="group.id"
-              :draggable="canReorder"
-              @dragstart="onDragStart($event, note.id, 'note')"
-              @dragover.prevent="onDragOverItem($event, note.id, 'note')"
-              @dragend="onDragEnd"
-              @touchstart="onTouchStart($event, note.id, 'note')"
-              class="relative pl-4 border-l-2 border-l-primary-200 dark:border-l-primary-800/50"
-              :class="{
-                'border-t-2 border-t-primary-500': dropTarget?.id === note.id && dropTarget?.position === 'before',
-                'border-b-2 border-b-primary-500': dropTarget?.id === note.id && dropTarget?.position === 'after',
-                'opacity-50': draggingId === note.id
-              }">
-              <NoteListItem
-                :note="note" :active="note.id === currentNoteId"
-                :select-mode="selectMode"
-                :selected="selectedIds.has(note.id)"
-                :shared="sharedNoteIds.includes(note.id)"
-                :share-hash="sharedNotesMap.get(note.id) || null"
-                :analytics-hash="analyticsNotesMap.get(note.id) || null"
-                :pending="pendingNoteIds.has(note.id)"
-                :is-logged-in="isLoggedIn"
-                @select="id => $emit('select-note', id)"
-                @delete="id => $emit('delete-note', id)"
-                @share="id => $emit('share-note', id)"
-                @unshare="id => $emit('unshare-note', id)"
-                @properties="id => $emit('show-properties', id)"
-                @open-analytics="hash => $emit('open-analytics', hash)"
-                @duplicate="id => $emit('duplicate-note', id)"
-                @export="id => $emit('export-note', id)"
-                @copy-to-clipboard="id => $emit('copy-to-clipboard', id)"
-                @print="id => $emit('print-note', id)"
-                @archive="id => $emit('archive-note', id)"
-                @unarchive="id => $emit('unarchive-note', id)"
-                @toggle-select="toggleNoteSelection"
-                @add-to-group="id => $emit('add-to-group', id)" />
-            </div>
-            <div v-if="getGroupNotes(group.id).length === 0"
-              class="pl-4 border-l-2 border-l-primary-200 dark:border-l-primary-800/50 px-4 py-3 text-xs text-gray-400 dark:text-gray-500 italic">
-              No notes in this group
-            </div>
-          </div>
-        </Transition>
-      </template>
+      <!-- ── Gap spacer at the very end ── -->
+      <div v-if="dropInsertIndex === displayItems.length && dropInsertIndex !== -1"
+        class="drag-gap bg-primary-100/40 dark:bg-primary-800/20 rounded mx-1 border border-dashed border-primary-300 dark:border-primary-700" />
     </div>
 
     <!-- User Account Section -->
@@ -397,7 +388,7 @@ const emit = defineEmits([
   'duplicate-note', 'export-note', 'copy-to-clipboard', 'print-note',
   'archive-note', 'unarchive-note', 'bulk-archive', 'bulk-unarchive',
   'add-to-group', 'toggle-group-collapse', 'edit-group', 'delete-group',
-  'move-note-to-group', 'reorder-groups'
+  'move-note-to-group', 'reorder-groups', 'reorder-all', 'reorder-within-group'
 ])
 
 const searchQuery = ref('')
@@ -456,26 +447,42 @@ const clearFilters = () => {
   selectedTags.value = []
 }
 
-// ── Drag-to-reorder (with group support) ─────────────────────────────
+// ── Drag-to-reorder (unified list) ───────────────────────────────────
 
 const draggingId = ref(null)
 const draggingType = ref(null) // 'note' | 'group'
-const dropTarget = ref(null) // { id, type, position: 'before'|'after'|'inside' }
+const dropTarget = ref(null)   // { id, type, position: 'before'|'after'|'inside' }
 
-const GROUP_DROP_THRESHOLD = 0.3 // 30% from edges = reorder zone, middle = drop inside
+const GROUP_DROP_THRESHOLD = 0.3
 
 const isFiltering = computed(() => searchQuery.value.trim() !== '' || selectedTags.value.length > 0 || hasActiveFilters.value)
 const canReorder = computed(() => !selectMode.value && !isFiltering.value)
 
-// -- Computed: grouped notes --
+// ── Auto-expand collapsed groups on hover ────────────────
+let hoverExpandTimer = null
+const HOVER_EXPAND_MS = 500
+const dragExpandedGroupIds = ref(new Set()) // groups we auto-expanded during this drag
 
-const ungroupedNotes = computed(() => {
-  return filteredNotes.value.filter(n => !n.groupId)
-})
+const startHoverExpand = (groupId) => {
+  clearHoverExpand()
+  const group = props.groups.find(g => g.id === groupId)
+  if (!group || !group.collapsed) return
+  hoverExpandTimer = setTimeout(() => {
+    emit('toggle-group-collapse', groupId)
+    dragExpandedGroupIds.value = new Set([...dragExpandedGroupIds.value, groupId])
+  }, HOVER_EXPAND_MS)
+}
+
+const clearHoverExpand = () => {
+  clearTimeout(hoverExpandTimer)
+  hoverExpandTimer = null
+}
+
+// ── Unified sidebar items ────────────────────────────────
 
 const filteredGroups = computed(() => {
-  if (showArchive.value) return [] // Don't show groups in archive view
-  if (isFiltering.value) return [] // Don't show groups when filtering
+  if (showArchive.value) return []
+  if (isFiltering.value) return []
   return props.groups
 })
 
@@ -483,18 +490,98 @@ const getGroupNotes = (groupId) => {
   return filteredNotes.value.filter(n => n.groupId === groupId)
 }
 
+const sidebarItems = computed(() => {
+  const items = []
+  for (const n of filteredNotes.value) {
+    if (!n.groupId) {
+      items.push({ id: n.id, kind: 'note', sortOrder: n.sortOrder ?? 0, data: n })
+    }
+  }
+  for (const g of filteredGroups.value) {
+    items.push({ id: g.id, kind: 'group', sortOrder: g.sortOrder ?? 0, data: g })
+  }
+  items.sort((a, b) => a.sortOrder - b.sortOrder)
+  return items
+})
+
+const displayItems = computed(() => {
+  const list = []
+  for (const item of sidebarItems.value) {
+    list.push(item)
+    if (item.kind === 'group') {
+      const children = getGroupNotes(item.id)
+      if (!item.data.collapsed) {
+        if (children.length > 0) {
+          for (const n of children) {
+            list.push({ id: n.id, kind: 'grouped-note', sortOrder: n.sortOrder ?? 0, data: n, parentGroupId: item.id })
+          }
+        } else {
+          list.push({ id: `${item.id}__empty`, kind: 'group-empty', sortOrder: 0, data: null, parentGroupId: item.id })
+        }
+      }
+    }
+  }
+  return list
+})
+
+const dropInsertIndex = computed(() => {
+  if (!dropTarget.value || !draggingId.value) return -1
+  const dt = dropTarget.value
+  if (dt.position === 'inside') return -1
+  const targetIdx = displayItems.value.findIndex(i => i.id === dt.id)
+  if (targetIdx === -1) return -1
+  return dt.position === 'before' ? targetIdx : targetIdx + 1
+})
+
+const GAP_PX = 52
+
+const isDraggedItem = (id) => draggingId.value !== null && draggingId.value === id
+
+// -- Custom drag image --
+
+const createDragImage = (el) => {
+  const clone = el.cloneNode(true)
+  clone.style.position = 'absolute'
+  clone.style.top = '-9999px'
+  clone.style.left = '-9999px'
+  clone.style.width = el.offsetWidth + 'px'
+  clone.style.opacity = '0.85'
+  clone.style.borderRadius = '8px'
+  clone.style.boxShadow = '0 8px 24px rgba(0,0,0,0.18)'
+  clone.style.pointerEvents = 'none'
+  clone.style.zIndex = '9999'
+  clone.style.transform = 'rotate(1.5deg) scale(1.02)'
+  document.body.appendChild(clone)
+  return clone
+}
+
+let dragImageEl = null
+
 // -- Mouse (HTML5 drag) --
 
 const onDragStart = (e, id, type) => {
   if (!canReorder.value) return
   draggingId.value = id
   draggingType.value = type
+  dragExpandedGroupIds.value = new Set()
   e.dataTransfer.effectAllowed = 'move'
+
+  // Custom drag image: clone the actual DOM element
+  const el = e.currentTarget
+  dragImageEl = createDragImage(el)
+  e.dataTransfer.setDragImage(dragImageEl, el.offsetWidth / 2, 20)
+  // Clean up clone after a frame (browser captures it synchronously)
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (dragImageEl) { dragImageEl.remove(); dragImageEl = null }
+    })
+  })
 }
 
 const onDragOverItem = (e, targetId, targetType) => {
   if (draggingId.value === null || draggingId.value === targetId) {
     dropTarget.value = null
+    clearHoverExpand()
     return
   }
 
@@ -502,26 +589,46 @@ const onDragOverItem = (e, targetId, targetType) => {
   const y = e.clientY - rect.top
   const h = rect.height
 
-  // If dragging a note over a group header, use threshold zones
   if (draggingType.value === 'note' && targetType === 'group') {
     if (y < h * GROUP_DROP_THRESHOLD) {
       dropTarget.value = { id: targetId, type: targetType, position: 'before' }
+      clearHoverExpand()
     } else if (y > h * (1 - GROUP_DROP_THRESHOLD)) {
       dropTarget.value = { id: targetId, type: targetType, position: 'after' }
+      clearHoverExpand()
     } else {
       dropTarget.value = { id: targetId, type: targetType, position: 'inside' }
+      // Auto-expand collapsed group on hover
+      startHoverExpand(targetId)
     }
   } else {
-    // Note-to-note or group-to-group: simple before/after
     dropTarget.value = {
       id: targetId,
       type: targetType,
       position: y < h / 2 ? 'before' : 'after'
     }
+    clearHoverExpand()
   }
 }
 
 const onDragEnd = () => {
+  // Cleanup only — the actual commit happens in onDrop
+  // onDragEnd fires even if drop was cancelled (e.g. pressing Escape)
+  clearHoverExpand()
+  if (draggingId.value !== null) {
+    // If we get here without onDrop having fired, it means the drop was cancelled
+    for (const gid of dragExpandedGroupIds.value) {
+      emit('toggle-group-collapse', gid)
+    }
+    draggingId.value = null
+    draggingType.value = null
+    dropTarget.value = null
+    dragExpandedGroupIds.value = new Set()
+  }
+}
+
+const onDrop = () => {
+  clearHoverExpand()
   commitReorder()
 }
 
@@ -538,6 +645,7 @@ const onTouchStart = (e, id, type) => {
     touchDragActive = true
     draggingId.value = id
     draggingType.value = type
+    dragExpandedGroupIds.value = new Set()
 
     const onTouchMove = (ev) => {
       if (!touchDragActive) return
@@ -545,23 +653,26 @@ const onTouchStart = (e, id, type) => {
       const touch = ev.touches[0]
       const hit = getItemAtY(touch.clientY)
       if (hit && hit.id !== draggingId.value) {
-        // Apply group threshold for note-to-group drops
         if (draggingType.value === 'note' && hit.type === 'group') {
-          const rect = hit.rect
-          const y = touch.clientY - rect.top
-          const h = rect.height
-          if (y < h * GROUP_DROP_THRESHOLD) {
+          const hy = touch.clientY - hit.rect.top
+          const hh = hit.rect.height
+          if (hy < hh * GROUP_DROP_THRESHOLD) {
             dropTarget.value = { id: hit.id, type: hit.type, position: 'before' }
-          } else if (y > h * (1 - GROUP_DROP_THRESHOLD)) {
+            clearHoverExpand()
+          } else if (hy > hh * (1 - GROUP_DROP_THRESHOLD)) {
             dropTarget.value = { id: hit.id, type: hit.type, position: 'after' }
+            clearHoverExpand()
           } else {
             dropTarget.value = { id: hit.id, type: hit.type, position: 'inside' }
+            startHoverExpand(hit.id)
           }
         } else {
           dropTarget.value = { id: hit.id, type: hit.type, position: hit.position }
+          clearHoverExpand()
         }
       } else {
         dropTarget.value = null
+        clearHoverExpand()
       }
     }
 
@@ -570,6 +681,7 @@ const onTouchStart = (e, id, type) => {
       document.removeEventListener('touchend', onTouchEnd)
       document.removeEventListener('touchcancel', onTouchEnd)
       touchDragActive = false
+      clearHoverExpand()
       commitReorder()
     }
 
@@ -594,14 +706,14 @@ const onTouchStart = (e, id, type) => {
 
 const getItemAtY = (y) => {
   if (!listRef.value) return null
-  const items = listRef.value.querySelectorAll('[data-note-id], [data-group-id]')
+  const items = listRef.value.querySelectorAll('[data-item-id]')
   for (const item of items) {
     const rect = item.getBoundingClientRect()
     if (y >= rect.top && y <= rect.bottom) {
-      const isGroup = item.dataset.groupId !== undefined
+      const kind = item.dataset.kind
       return {
-        id: isGroup ? item.dataset.groupId : item.dataset.noteId,
-        type: isGroup ? 'group' : 'note',
+        id: item.dataset.itemId,
+        type: kind === 'group' ? 'group' : 'note',
         position: y < rect.top + rect.height / 2 ? 'before' : 'after',
         rect
       }
@@ -610,65 +722,129 @@ const getItemAtY = (y) => {
   return null
 }
 
-// -- Shared --
+// -- Commit --
 
 const commitReorder = () => {
-  if (draggingId.value !== null && dropTarget.value !== null) {
-    const dt = dropTarget.value
+  if (draggingId.value === null || dropTarget.value === null) {
+    for (const gid of dragExpandedGroupIds.value) {
+      emit('toggle-group-collapse', gid)
+    }
+    draggingId.value = null
+    draggingType.value = null
+    dropTarget.value = null
+    dragExpandedGroupIds.value = new Set()
+    return
+  }
 
-    if (draggingType.value === 'note') {
-      // ── Note dropped inside a group header → move into that group
-      if (dt.type === 'group' && dt.position === 'inside') {
-        emit('move-note-to-group', { noteId: draggingId.value, groupId: dt.id })
+  const dt = dropTarget.value
+  const draggedNote = draggingType.value === 'note'
+    ? filteredNotes.value.find(n => n.id === draggingId.value)
+    : null
+  const targetDisplayItem = displayItems.value.find(i => i.id === dt.id)
+
+  if (draggingType.value === 'note') {
+    // ── Note → group header (inside zone) → move into group
+    if (dt.type === 'group' && dt.position === 'inside') {
+      emit('move-note-to-group', { noteId: draggingId.value, groupId: dt.id })
+    } else {
+      // Figure out what group the note ends up in
+      let newGroupId = null
+      if (targetDisplayItem?.kind === 'grouped-note') {
+        newGroupId = targetDisplayItem.parentGroupId
+      } else if (targetDisplayItem?.kind === 'group') {
+        newGroupId = null // before/after group header → ungrouped
       }
-      // ── Note dropped on a group header (before/after) → remove from group + reorder
-      else if (dt.type === 'group' && (dt.position === 'before' || dt.position === 'after')) {
-        // Dragging a note to the before/after zone of a group header means
-        // the user wants the note ungrouped and placed at that position
-        const draggedNote = filteredNotes.value.find(n => n.id === draggingId.value)
-        if (draggedNote?.groupId) {
-          emit('move-note-to-group', { noteId: draggingId.value, groupId: null })
-        }
-      }
-      // ── Note dropped on another note → reorder + adopt target's group
-      else if (dt.type === 'note') {
-        const ordered = [...filteredNotes.value]
+      // else 'note' (ungrouped) → null
+
+      const oldGroupId = draggedNote?.groupId || null
+
+      // ── Intra-group reorder (same group, both grouped)
+      if (oldGroupId && newGroupId === oldGroupId && targetDisplayItem?.kind === 'grouped-note') {
+        const siblings = getGroupNotes(oldGroupId)
+        const ordered = [...siblings]
         const fromIdx = ordered.findIndex(n => n.id === draggingId.value)
         const toIdx = ordered.findIndex(n => n.id === dt.id)
         if (fromIdx !== -1 && toIdx !== -1 && fromIdx !== toIdx) {
           const [moved] = ordered.splice(fromIdx, 1)
           let insertAt = ordered.findIndex(n => n.id === dt.id)
+          if (insertAt === -1) insertAt = ordered.length
           if (dt.position === 'after') insertAt++
           ordered.splice(insertAt, 0, moved)
+          emit('reorder-within-group', { groupId: oldGroupId, orderedNoteIds: ordered.map(n => n.id) })
+        }
+      }
+      // ── Cross-group or ungrouped reorder
+      else {
+        // Change group if needed
+        if (newGroupId !== oldGroupId) {
+          emit('move-note-to-group', { noteId: draggingId.value, groupId: newGroupId })
+        }
 
-          // Adopt the target note's group (including null = ungrouped)
-          const targetNote = filteredNotes.value.find(n => n.id === dt.id)
-          const targetGroupId = targetNote?.groupId || null
-          if (targetGroupId !== moved.groupId) {
-            emit('move-note-to-group', { noteId: draggingId.value, groupId: targetGroupId })
+        // If moving into a group, reorder within that group
+        if (newGroupId && targetDisplayItem?.kind === 'grouped-note') {
+          const siblings = getGroupNotes(newGroupId).filter(n => n.id !== draggingId.value)
+          const targetIdx = siblings.findIndex(n => n.id === dt.id)
+          let insertAt = targetIdx === -1 ? siblings.length : targetIdx
+          if (dt.position === 'after') insertAt++
+          siblings.splice(insertAt, 0, draggedNote)
+          emit('reorder-within-group', { groupId: newGroupId, orderedNoteIds: siblings.map(n => n.id) })
+        }
+        // If moving to top-level, reorder top-level
+        else if (!newGroupId) {
+          const topLevel = [...sidebarItems.value]
+          const fromIdx = topLevel.findIndex(i => i.id === draggingId.value)
+          let movedItem
+          if (fromIdx !== -1) {
+            [movedItem] = topLevel.splice(fromIdx, 1)
+          } else {
+            movedItem = { id: draggingId.value, kind: 'note', sortOrder: 0, data: draggedNote }
           }
 
-          emit('reorder', ordered.map(n => n.id))
+          let targetTopId = dt.id
+          if (targetDisplayItem?.kind === 'grouped-note') {
+            targetTopId = targetDisplayItem.parentGroupId
+          }
+          let insertAt = topLevel.findIndex(i => i.id === targetTopId)
+          if (insertAt === -1) insertAt = topLevel.length
+          if (dt.position === 'after') insertAt++
+          topLevel.splice(insertAt, 0, movedItem)
+
+          emitUnifiedOrder(topLevel)
         }
       }
     }
-    // ── Group dropped on another group → reorder groups
-    else if (draggingType.value === 'group' && dt.type === 'group') {
-      const ordered = [...props.groups]
-      const fromIdx = ordered.findIndex(g => g.id === draggingId.value)
-      const toIdx = ordered.findIndex(g => g.id === dt.id)
-      if (fromIdx !== -1 && toIdx !== -1 && fromIdx !== toIdx) {
-        const [moved] = ordered.splice(fromIdx, 1)
-        let insertAt = ordered.findIndex(g => g.id === dt.id)
-        if (dt.position === 'after') insertAt++
-        ordered.splice(insertAt, 0, moved)
-        emit('reorder-groups', ordered.map(g => g.id))
-      }
+  }
+  // ── Group reorder
+  else if (draggingType.value === 'group') {
+    const topLevel = [...sidebarItems.value]
+    const fromIdx = topLevel.findIndex(i => i.id === draggingId.value)
+    let targetTopId = dt.id
+    if (targetDisplayItem?.kind === 'grouped-note') {
+      targetTopId = targetDisplayItem.parentGroupId
+    }
+    if (fromIdx !== -1) {
+      const [moved] = topLevel.splice(fromIdx, 1)
+      let insertAt = topLevel.findIndex(i => i.id === targetTopId)
+      if (insertAt === -1) insertAt = topLevel.length
+      if (dt.position === 'after') insertAt++
+      topLevel.splice(insertAt, 0, moved)
+      emitUnifiedOrder(topLevel)
     }
   }
+
   draggingId.value = null
   draggingType.value = null
   dropTarget.value = null
+  dragExpandedGroupIds.value = new Set()
+}
+
+const emitUnifiedOrder = (topLevel) => {
+  const orders = topLevel.map((item, idx) => ({
+    id: item.id,
+    kind: item.kind,
+    sortOrder: idx
+  }))
+  emit('reorder-all', orders)
 }
 
 // ── Multi-select ─────────────────────────────────────────
@@ -785,3 +961,34 @@ const filteredNotes = computed(() => {
   return result.slice().sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
 })
 </script>
+
+<style scoped>
+/* Dragged item collapses out of flow */
+.drag-item {
+  max-height: 200px;
+  opacity: 1;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out, opacity 0.15s ease-out;
+}
+.drag-item-collapsed {
+  max-height: 0 !important;
+  opacity: 0 !important;
+  overflow: hidden;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  border-width: 0 !important;
+  transition: max-height 0.2s ease-out, opacity 0.15s ease-out, padding 0.2s ease-out, margin 0.2s ease-out;
+}
+
+/* Gap spacer animates open */
+.drag-gap {
+  height: 52px;
+  animation: gap-open 0.2s ease-out;
+}
+@keyframes gap-open {
+  from { height: 0; opacity: 0; }
+  to   { height: 52px; opacity: 1; }
+}
+</style>

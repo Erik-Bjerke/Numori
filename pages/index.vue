@@ -83,7 +83,9 @@
             @edit-group="handleEditGroup"
             @delete-group="handleDeleteGroup"
             @move-note-to-group="handleMoveNoteToGroup"
-            @reorder-groups="handleReorderGroups" />
+            @reorder-groups="handleReorderGroups"
+            @reorder-all="handleReorderAll"
+            @reorder-within-group="handleReorderWithinGroup" />
         </div>
         </aside>
 
@@ -140,7 +142,9 @@
               @edit-group="handleEditGroup"
               @delete-group="handleDeleteGroup"
               @move-note-to-group="handleMoveNoteToGroup"
-              @reorder-groups="handleReorderGroups" />
+              @reorder-groups="handleReorderGroups"
+              @reorder-all="handleReorderAll"
+              @reorder-within-group="handleReorderWithinGroup" />
             </div>
           </aside>
         </Transition>
@@ -422,6 +426,13 @@ localePrefs.ready.then(() => {
 
 // Wrapper: create note + instant sync
 const createNote = () => {
+  // Bump group sortOrders so the new note (sortOrder 0) appears at the top
+  const now = new Date().toISOString()
+  groups.value.forEach(g => {
+    g.sortOrder = (g.sortOrder ?? 0) + 1
+    g.updatedAt = now
+  })
+  saveGroups()
   const note = addNote()
   syncNow(note.id)
   return note
@@ -430,6 +441,50 @@ const createNote = () => {
 const handleReorder = (orderedIds) => {
   reorderNotes(orderedIds)
   syncNow() // reorder affects all notes
+}
+
+const handleReorderAll = (orders) => {
+  const noteOrders = orders.filter(o => o.kind === 'note')
+  const groupOrders = orders.filter(o => o.kind === 'group')
+
+  // Apply sortOrders to notes
+  const now = new Date().toISOString()
+  for (const { id, sortOrder } of noteOrders) {
+    const note = notes.value.find(n => n.id === id)
+    if (note) {
+      note.sortOrder = sortOrder
+      note.updatedAt = now
+    }
+  }
+  notes.value.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+  saveNotes()
+
+  // Apply sortOrders to groups
+  for (const { id, sortOrder } of groupOrders) {
+    const group = groups.value.find(g => g.id === id)
+    if (group) {
+      group.sortOrder = sortOrder
+      group.updatedAt = now
+    }
+  }
+  groups.value.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+  saveGroups()
+
+  syncNow()
+}
+
+const handleReorderWithinGroup = ({ groupId, orderedNoteIds }) => {
+  const now = new Date().toISOString()
+  orderedNoteIds.forEach((id, index) => {
+    const note = notes.value.find(n => n.id === id)
+    if (note) {
+      note.sortOrder = index
+      note.updatedAt = now
+    }
+  })
+  notes.value.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+  saveNotes()
+  syncNow()
 }
 
 // Keyboard shortcuts — must be declared before refs so handlers can reference them
