@@ -379,21 +379,5 @@ export async function migrate() {
     END $do$
   `)
 
-  // pg_cron: schedule nightly cleanup of expired sessions inside PostgreSQL.
-  // Gracefully skipped if pg_cron extension is not available.
-  try {
-    await query(`CREATE EXTENSION IF NOT EXISTS pg_cron`)
-    await query(`
-      SELECT cron.schedule(
-        'purge-expired-sessions',
-        '59 23 * * *',
-        $$DELETE FROM sessions WHERE expires_at IS NOT NULL AND expires_at < NOW()$$
-      )
-    `)
-    console.log('[migrate] pg_cron job "purge-expired-sessions" scheduled')
-  } catch (err) {
-    console.warn('[migrate] pg_cron not available — expired sessions will only be cleaned on access.', err.message)
-  }
-
   console.log('[migrate] Database tables ready')
 }
