@@ -188,6 +188,7 @@
           :share-hash="sharedNotesMap.get(note.id) || null"
           :analytics-hash="analyticsNotesMap.get(note.id) || null"
           :pending="pendingNoteIds.has(note.id)"
+          :is-logged-in="isLoggedIn"
           @select="id => $emit('select-note', id)"
           @delete="id => $emit('delete-note', id)"
           @share="id => $emit('share-note', id)"

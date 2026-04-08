@@ -1,11 +1,14 @@
 <template>
   <div
     @click="handleClick"
-    class="p-4 border-b border-gray-200 dark:border-gray-800 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-850 transition-colors"
+    class="relative border-b border-gray-200 dark:border-gray-800 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-850 transition-colors"
     :class="{
       'bg-white dark:bg-gray-925 border-l-4 border-l-primary-500': active && !selectMode,
       'bg-primary-50 dark:bg-primary-900/20': selectMode && selected
     }">
+    <!-- Sync pending dot — left side, vertically centered, only for logged-in users -->
+    <span v-if="pending && isLoggedIn" class="absolute left-1.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500" title="Not synced" />
+    <div class="p-4" :class="{ 'pl-6': pending && isLoggedIn }">
     <div class="flex items-start justify-between gap-2">
       <!-- Animated checkbox for select mode -->
       <Transition
@@ -39,7 +42,7 @@
           <h3 class="font-medium text-gray-900 dark:text-gray-400 truncate">
             {{ note.title || 'Untitled' }}
           </h3>
-          <span v-if="pending" class="flex-shrink-0 w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500" title="Not synced" />
+
         </div>
         <p v-if="note.description" class="text-sm text-gray-600 dark:text-gray-500 truncate mt-1">
           {{ note.description }}
@@ -140,6 +143,7 @@
         </Transition>
       </div>
     </div>
+    </div>
   </div>
 </template>
 
@@ -152,7 +156,8 @@ const props = defineProps({
   shared: { type: Boolean, default: false },
   shareHash: { type: String, default: null },
   analyticsHash: { type: String, default: null },
-  pending: { type: Boolean, default: false }
+  pending: { type: Boolean, default: false },
+  isLoggedIn: { type: Boolean, default: false }
 })
 
 const emit = defineEmits(['select', 'delete', 'toggle-select', 'share', 'unshare', 'properties', 'open-analytics', 'duplicate', 'export', 'copy-to-clipboard', 'print', 'archive', 'unarchive'])
