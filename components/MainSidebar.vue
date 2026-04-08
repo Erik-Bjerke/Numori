@@ -536,6 +536,7 @@ const dropInsertIndex = computed(() => {
   if (!dropTarget.value || !draggingId.value || !hasDragMoved.value) return -1
   const dt = dropTarget.value
   if (dt.position === 'inside') return -1
+  if (dt.id === '__bottom__') return displayItems.value.length
   const targetIdx = displayItems.value.findIndex(i => i.id === dt.id)
   if (targetIdx === -1) return -1
   return dt.position === 'before' ? targetIdx : targetIdx + 1
@@ -556,6 +557,8 @@ const isTouchDraggedItem = (id) => draggingId.value !== null && draggingId.value
 const isGapInsideGroup = computed(() => {
   const idx = dropInsertIndex.value
   if (idx === -1) return false
+  // Bottom drop zone is always top-level
+  if (dropTarget.value?.id === '__bottom__') return false
   // Check the item AT the insert index — if it's a grouped-note, we're inserting before it (inside its group)
   const itemAt = displayItems.value[idx]
   if (itemAt?.kind === 'grouped-note') return true
@@ -670,11 +673,9 @@ const onDrop = () => {
 
 const onDragOverBottom = (e) => {
   if (draggingId.value === null) return
-  // Treat as "after" the last item
-  const last = displayItems.value.filter(i => i.kind !== 'group-empty').at(-1)
-  if (last && last.id !== draggingId.value) {
-    dropTarget.value = { id: last.id, type: last.kind === 'group' ? 'group' : 'note', position: 'after' }
-  }
+  hasDragMoved.value = true
+  // Special target: after everything, at top level (not inside any group)
+  dropTarget.value = { id: '__bottom__', type: 'bottom', position: 'after' }
 }
 
 // -- Touch --
@@ -749,11 +750,8 @@ const onTouchStart = (e, id, type) => {
         }
       } else if (!hit && listRef.value) {
         hasDragMoved.value = true
-        // Below all items → treat as after last
-        const last = displayItems.value.filter(i => i.kind !== 'group-empty').at(-1)
-        if (last && last.id !== draggingId.value) {
-          dropTarget.value = { id: last.id, type: last.kind === 'group' ? 'group' : 'note', position: 'after' }
-        }
+        // Below all items → drop at top level after everything
+        dropTarget.value = { id: '__bottom__', type: 'bottom', position: 'after' }
         clearHoverExpand()
       } else {
         dropTarget.value = null
@@ -829,8 +827,24 @@ const commitReorder = () => {
   const targetDisplayItem = displayItems.value.find(i => i.id === dt.id)
 
   if (draggingType.value === 'note') {
+    // ── Note → bottom drop zone → ungroup and place at end
+    if (dt.id === '__bottom__') {
+      if (draggedNote?.groupId) {
+        emit('move-note-to-group', { noteId: draggingId.value, groupId: null })
+      }
+      const topLevel = [...sidebarItems.value]
+      const fromIdx = topLevel.findIndex(i => i.id === draggingId.value)
+      let movedItem
+      if (fromIdx !== -1) {
+        [movedItem] = topLevel.splice(fromIdx, 1)
+      } else {
+        movedItem = { id: draggingId.value, kind: 'note', sortOrder: 0, data: draggedNote }
+      }
+      topLevel.push(movedItem)
+      emitUnifiedOrder(topLevel)
+    }
     // ── Note → group header (inside zone) → move into group
-    if (dt.type === 'group' && dt.position === 'inside') {
+    else if (dt.type === 'group' && dt.position === 'inside') {
       emit('move-note-to-group', { noteId: draggingId.value, groupId: dt.id })
     } else {
       // Figure out what group the note ends up in
@@ -904,16 +918,20 @@ const commitReorder = () => {
   else if (draggingType.value === 'group') {
     const topLevel = [...sidebarItems.value]
     const fromIdx = topLevel.findIndex(i => i.id === draggingId.value)
-    let targetTopId = dt.id
-    if (targetDisplayItem?.kind === 'grouped-note') {
-      targetTopId = targetDisplayItem.parentGroupId
-    }
     if (fromIdx !== -1) {
       const [moved] = topLevel.splice(fromIdx, 1)
-      let insertAt = topLevel.findIndex(i => i.id === targetTopId)
-      if (insertAt === -1) insertAt = topLevel.length
-      if (dt.position === 'after') insertAt++
-      topLevel.splice(insertAt, 0, moved)
+      if (dt.id === '__bottom__') {
+        topLevel.push(moved)
+      } else {
+        let targetTopId = dt.id
+        if (targetDisplayItem?.kind === 'grouped-note') {
+          targetTopId = targetDisplayItem.parentGroupId
+        }
+        let insertAt = topLevel.findIndex(i => i.id === targetTopId)
+        if (insertAt === -1) insertAt = topLevel.length
+        if (dt.position === 'after') insertAt++
+        topLevel.splice(insertAt, 0, moved)
+      }
       emitUnifiedOrder(topLevel)
     }
   }
