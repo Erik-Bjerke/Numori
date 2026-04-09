@@ -1,21 +1,34 @@
 // Sum and average operations
 import { convertCurrency } from './currency'
 
-export const calculateSum = (currentIndex, allResults) => {
+// Check if a raw input line is a checkbox and whether it matches the filter
+const matchesCheckboxFilter = (input, filter) => {
+  if (!filter) return true // no filter — include all lines
+  const checkMatch = input.match(/^\s*- \[([ x])\]\s/)
+  if (!checkMatch) return true // not a checkbox line — include it (filter only applies to checkboxes)
+  const isChecked = checkMatch[1] === 'x'
+  if (filter === 'checked') return isChecked
+  if (filter === 'unchecked') return !isChecked
+  return true
+}
+
+export const calculateSum = (currentIndex, allResults, filter = null) => {
   let sum = 0
   for (let i = currentIndex - 1; i >= 0; i--) {
     const line = allResults[i]
     if (!line || !line.input.trim()) break
+    if (!matchesCheckboxFilter(line.input, filter)) continue
     if (line.result && !isNaN(parseFloat(line.result))) sum += parseFloat(line.result)
   }
   return sum
 }
 
-export const detectSumCurrency = (currentIndex, allResults) => {
+export const detectSumCurrency = (currentIndex, allResults, filter = null) => {
   let firstCurrency = null
   for (let i = currentIndex - 1; i >= 0; i--) {
     const line = allResults[i]
     if (!line || !line.input.trim()) break
+    if (!matchesCheckboxFilter(line.input, filter)) continue
     if (line.result) {
       const currMatch = line.result.match(/^-?[\d.,]+\s+([A-Z]{3})$/)
       if (currMatch) {
@@ -26,11 +39,12 @@ export const detectSumCurrency = (currentIndex, allResults) => {
   return firstCurrency
 }
 
-export const calculateSumWithCurrency = (currentIndex, allResults, targetCurrency) => {
+export const calculateSumWithCurrency = (currentIndex, allResults, targetCurrency, filter = null) => {
   let sum = 0
   for (let i = currentIndex - 1; i >= 0; i--) {
     const line = allResults[i]
     if (!line || !line.input.trim()) break
+    if (!matchesCheckboxFilter(line.input, filter)) continue
     if (line.result) {
       const resultMatch = line.result.match(/^(-?[\d.]+)\s*([A-Z]{3})?$/)
       if (resultMatch) {
@@ -45,11 +59,12 @@ export const calculateSumWithCurrency = (currentIndex, allResults, targetCurrenc
   return sum
 }
 
-export const calculateSub = (currentIndex, allResults) => {
+export const calculateSub = (currentIndex, allResults, filter = null) => {
   const values = []
   for (let i = currentIndex - 1; i >= 0; i--) {
     const line = allResults[i]
     if (!line || !line.input.trim()) break
+    if (!matchesCheckboxFilter(line.input, filter)) continue
     if (line.result && !isNaN(parseFloat(line.result))) values.push(parseFloat(line.result))
   }
   if (values.length === 0) return 0
@@ -59,11 +74,12 @@ export const calculateSub = (currentIndex, allResults) => {
   return result
 }
 
-export const calculateSubWithCurrency = (currentIndex, allResults, targetCurrency) => {
+export const calculateSubWithCurrency = (currentIndex, allResults, targetCurrency, filter = null) => {
   const values = []
   for (let i = currentIndex - 1; i >= 0; i--) {
     const line = allResults[i]
     if (!line || !line.input.trim()) break
+    if (!matchesCheckboxFilter(line.input, filter)) continue
     if (line.result) {
       const resultMatch = line.result.match(/^(-?[\d.]+)\s*([A-Z]{3})?$/)
       if (resultMatch) {

@@ -221,19 +221,49 @@ export const useCalculator = () => {
     }
 
     // Sum / total (only if not a defined variable)
-    const isSumKeyword = cleanLower === 'sum' && !variables.value['sum']
+    // Check for checkbox filter: "sum checked", "sum unchecked"
+    const sumFilterMatch = cleanLower.match(/^sum\s+(checked|unchecked)$/)
+    const sumFilter = sumFilterMatch ? sumFilterMatch[1] : null
+
+    const isSumKeyword = (cleanLower === 'sum' || sumFilterMatch) && !variables.value['sum']
     if (isSumKeyword) {
-      const currency = detectSumCurrency(index, allResults)
+      const currency = detectSumCurrency(index, allResults, sumFilter)
       if (currency) {
-        const sum = calculateSumWithCurrency(index, allResults, currency)
+        const sum = calculateSumWithCurrency(index, allResults, currency, sumFilter)
         return { value: sum, display: `${formatResult(sum)} ${currency}`, currency }
       }
-      const sum = calculateSum(index, allResults)
+      const sum = calculateSum(index, allResults, sumFilter)
       return { value: sum, display: formatResult(sum) }
     }
 
-    const isSumWithOp = cleanLower.startsWith('sum ') && !variables.value['sum']
+    const isSumWithOp = cleanLower.startsWith('sum ') && !variables.value['sum'] && !sumFilterMatch
     if (isSumWithOp) {
+      // Check for "sum checked/unchecked" followed by an operation
+      const sumFilterOpMatch = cleanInput.match(/^sum\s+(checked|unchecked)\s+(.+)$/i)
+      if (sumFilterOpMatch) {
+        const filter = sumFilterOpMatch[1].toLowerCase()
+        const rest = sumFilterOpMatch[2].trim()
+        const currency = detectSumCurrency(index, allResults, filter)
+        // Check for currency conversion: "sum checked in EUR"
+        const convMatch = rest.match(/^(in|as)\s+([a-zA-Z€$£¥₹₽]+\d?|m\/s|km\/h|mi\/h|ft\/s)/i)
+        if (convMatch) {
+          const targetStr = convMatch[2].trim()
+          const targetCurrency = currencyMap[targetStr.toLowerCase()] || targetStr.toUpperCase()
+          if (exchangeRates.value[targetCurrency]) {
+            const sum = calculateSumWithCurrency(index, allResults, targetCurrency, filter)
+            return { value: sum, display: `${formatResult(sum)} ${targetCurrency}`, currency: targetCurrency }
+          }
+          const sum = calculateSum(index, allResults, filter)
+          return { value: sum, display: `${formatResult(sum)} ${targetStr}` }
+        }
+        const sum = currency
+          ? calculateSumWithCurrency(index, allResults, currency, filter)
+          : calculateSum(index, allResults, filter)
+        const expression = rest.replace(/^/, `${sum} `)
+        const result = evaluateMath(expression)
+        return { value: result, display: formatResult(result) }
+      }
+
       const sumConvMatch = cleanInput.match(/^sum\s+(in|as)\s+([a-zA-Z€$£¥₹₽]+\d?|m\/s|km\/h|mi\/h|ft\/s)/i)
       if (sumConvMatch) {
         const targetStr = sumConvMatch[2].trim()
@@ -252,19 +282,48 @@ export const useCalculator = () => {
     }
 
     // Sub (subtraction aggregation)
-    const isSubKeyword = cleanLower === 'sub' && !variables.value['sub']
+    // Check for checkbox filter: "sub checked", "sub unchecked"
+    const subFilterMatch = cleanLower.match(/^sub\s+(checked|unchecked)$/)
+    const subFilter = subFilterMatch ? subFilterMatch[1] : null
+
+    const isSubKeyword = (cleanLower === 'sub' || subFilterMatch) && !variables.value['sub']
     if (isSubKeyword) {
-      const currency = detectSumCurrency(index, allResults)
+      const currency = detectSumCurrency(index, allResults, subFilter)
       if (currency) {
-        const sub = calculateSubWithCurrency(index, allResults, currency)
+        const sub = calculateSubWithCurrency(index, allResults, currency, subFilter)
         return { value: sub, display: `${formatResult(sub)} ${currency}`, currency }
       }
-      const sub = calculateSub(index, allResults)
+      const sub = calculateSub(index, allResults, subFilter)
       return { value: sub, display: formatResult(sub) }
     }
 
-    const isSubWithOp = cleanLower.startsWith('sub ') && !variables.value['sub']
+    const isSubWithOp = cleanLower.startsWith('sub ') && !variables.value['sub'] && !subFilterMatch
     if (isSubWithOp) {
+      // Check for "sub checked/unchecked" followed by an operation
+      const subFilterOpMatch = cleanInput.match(/^sub\s+(checked|unchecked)\s+(.+)$/i)
+      if (subFilterOpMatch) {
+        const filter = subFilterOpMatch[1].toLowerCase()
+        const rest = subFilterOpMatch[2].trim()
+        const currency = detectSumCurrency(index, allResults, filter)
+        const convMatch = rest.match(/^(in|as)\s+([a-zA-Z€$£¥₹₽]+\d?|m\/s|km\/h|mi\/h|ft\/s)/i)
+        if (convMatch) {
+          const targetStr = convMatch[2].trim()
+          const targetCurrency = currencyMap[targetStr.toLowerCase()] || targetStr.toUpperCase()
+          if (exchangeRates.value[targetCurrency]) {
+            const sub = calculateSubWithCurrency(index, allResults, targetCurrency, filter)
+            return { value: sub, display: `${formatResult(sub)} ${targetCurrency}`, currency: targetCurrency }
+          }
+          const sub = calculateSub(index, allResults, filter)
+          return { value: sub, display: `${formatResult(sub)} ${targetStr}` }
+        }
+        const sub = currency
+          ? calculateSubWithCurrency(index, allResults, currency, filter)
+          : calculateSub(index, allResults, filter)
+        const expression = rest.replace(/^/, `${sub} `)
+        const result = evaluateMath(expression)
+        return { value: result, display: formatResult(result) }
+      }
+
       const subConvMatch = cleanInput.match(/^sub\s+(in|as)\s+([a-zA-Z€$£¥₹₽]+\d?|m\/s|km\/h|mi\/h|ft\/s)/i)
       if (subConvMatch) {
         const targetStr = subConvMatch[2].trim()

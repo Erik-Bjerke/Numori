@@ -71,6 +71,9 @@ export const numoriStreamParser = {
     // ── Aggregation keywords ─────────────────────────────────────
     if (stream.match(/\b(sum|sub|total|average|avg|prev)\b/)) return 'keyword'
 
+    // ── Checkbox filter keywords ─────────────────────────────────
+    if (stream.match(/\b(checked|unchecked)\b/)) return 'keyword'
+
     // ── Conversion glue words ────────────────────────────────────
     if (stream.match(/\b(in|to|as|into|of|on|off)\b/)) return 'operatorKeyword'
 
