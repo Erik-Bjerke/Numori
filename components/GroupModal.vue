@@ -84,7 +84,7 @@ const save = () => {
   if (!localName.value.trim()) return
   const rawName = internalNameManuallyEdited.value
     ? normaliseName(localInternalName.value)
-    : localInternalName.value
+    : normaliseName(localName.value)
   const finalInternalName = uniqueInternalName(rawName, [], 'new_group', props.editingGroupId, props.allGroups)
   emit('save', {
     id: props.editingGroupId,

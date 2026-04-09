@@ -233,7 +233,7 @@ const onTagInput = () => {
 const save = () => {
   const rawName = internalNameManuallyEdited.value
     ? normaliseName(localInternalName.value)
-    : localInternalName.value
+    : normaliseName(localTitle.value)
   const finalInternalName = uniqueInternalName(rawName, [], 'untitled_note', props.noteId, props.allNotes)
   emit('save', {
     title: localTitle.value,
