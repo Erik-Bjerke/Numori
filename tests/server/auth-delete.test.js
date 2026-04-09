@@ -47,13 +47,14 @@ describe('POST /api/auth/delete', () => {
     mockQuery
       .mockResolvedValueOnce({ rows: [{ password_hash: hash }] }) // SELECT password
       .mockResolvedValueOnce({ rows: [] }) // DELETE notes
+      .mockResolvedValueOnce({ rows: [] }) // DELETE groups
       .mockResolvedValueOnce({ rows: [] }) // DELETE deleted_notes
       .mockResolvedValueOnce({ rows: [] }) // DELETE shared_notes
       .mockResolvedValueOnce({ rows: [] }) // UPDATE welcome_created
 
     const result = await handler({})
     expect(result).toEqual({ deleted: 'data' })
-    expect(mockQuery).toHaveBeenCalledTimes(5)
+    expect(mockQuery).toHaveBeenCalledTimes(6)
     expect(mockNotifySync).toHaveBeenCalledWith(1, null)
   })
 
@@ -63,14 +64,16 @@ describe('POST /api/auth/delete', () => {
     readBody.mockResolvedValue({ type: 'account', authKey })
     mockQuery
       .mockResolvedValueOnce({ rows: [{ password_hash: hash }] }) // SELECT password
+      .mockResolvedValueOnce({ rows: [] }) // DELETE sessions
       .mockResolvedValueOnce({ rows: [] }) // DELETE shared_notes
       .mockResolvedValueOnce({ rows: [] }) // DELETE notes
+      .mockResolvedValueOnce({ rows: [] }) // DELETE groups
       .mockResolvedValueOnce({ rows: [] }) // DELETE deleted_notes
       .mockResolvedValueOnce({ rows: [] }) // DELETE users
 
     const result = await handler({})
     expect(result).toEqual({ deleted: 'account' })
-    expect(mockQuery).toHaveBeenCalledTimes(5)
+    expect(mockQuery).toHaveBeenCalledTimes(7)
   })
 
   it('rejects invalid type', async () => {

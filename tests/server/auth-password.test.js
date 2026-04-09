@@ -9,6 +9,7 @@ const mockRequireAuth = vi.fn()
 
 vi.mock('../../server/utils/db.js', () => ({ query: (...args) => mockQuery(...args) }))
 vi.mock('../../server/utils/auth.js', () => ({ requireAuth: (...args) => mockRequireAuth(...args) }))
+vi.mock('../../server/utils/session.js', () => ({ revokeAllSessions: vi.fn() }))
 
 globalThis.defineEventHandler = (handler) => handler
 globalThis.readBody = vi.fn()

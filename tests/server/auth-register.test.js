@@ -11,6 +11,8 @@ const mockSignJwt = vi.fn()
 
 vi.mock('../../server/utils/db.js', () => ({ query: (...args) => mockQuery(...args) }))
 vi.mock('../../server/utils/auth.js', () => ({ signJwt: (...args) => mockSignJwt(...args) }))
+vi.mock('../../server/utils/session.js', () => ({ createSession: vi.fn() }))
+vi.mock('../../server/utils/email.js', () => ({ generateOtp: () => '123456', sendVerificationEmail: vi.fn() }))
 
 // Nitro globals
 globalThis.defineEventHandler = (handler) => handler
