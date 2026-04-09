@@ -98,11 +98,11 @@ export const useGroups = () => {
   const deleteGroup = async (id) => {
     const idx = groups.value.findIndex(g => g.id === id)
     if (idx !== -1) groups.value.splice(idx, 1)
-    await db.groups.delete(id)
     if (!deletedGroupIds.value.includes(id)) {
       deletedGroupIds.value.push(id)
-      await db.appState.put({ key: 'deleted_group_ids', value: JSON.stringify(deletedGroupIds.value) })
     }
+    await db.groups.delete(id)
+    await db.appState.put({ key: 'deleted_group_ids', value: JSON.stringify(deletedGroupIds.value) })
     saveGroups()
   }
 

@@ -305,6 +305,21 @@ export async function migrate() {
     ON groups(user_id, client_id) WHERE client_id IS NOT NULL
   `)
 
+  // Lightweight tombstone table for multi-device group deletion sync
+  await query(`
+    CREATE TABLE IF NOT EXISTS deleted_groups (
+      id         SERIAL PRIMARY KEY,
+      user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      client_id  TEXT NOT NULL,
+      deleted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (user_id, client_id)
+    )
+  `)
+
+  await query(`
+    CREATE INDEX IF NOT EXISTS idx_deleted_groups_user_id ON deleted_groups(user_id)
+  `)
+
   // Email verification and password recovery
   await query(`
     DO $do$ BEGIN

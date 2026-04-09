@@ -49,12 +49,13 @@ describe('POST /api/auth/delete', () => {
       .mockResolvedValueOnce({ rows: [] }) // DELETE notes
       .mockResolvedValueOnce({ rows: [] }) // DELETE groups
       .mockResolvedValueOnce({ rows: [] }) // DELETE deleted_notes
+      .mockResolvedValueOnce({ rows: [] }) // DELETE deleted_groups
       .mockResolvedValueOnce({ rows: [] }) // DELETE shared_notes
       .mockResolvedValueOnce({ rows: [] }) // UPDATE welcome_created
 
     const result = await handler({})
     expect(result).toEqual({ deleted: 'data' })
-    expect(mockQuery).toHaveBeenCalledTimes(6)
+    expect(mockQuery).toHaveBeenCalledTimes(7)
     expect(mockNotifySync).toHaveBeenCalledWith(1, null)
   })
 
@@ -69,11 +70,12 @@ describe('POST /api/auth/delete', () => {
       .mockResolvedValueOnce({ rows: [] }) // DELETE notes
       .mockResolvedValueOnce({ rows: [] }) // DELETE groups
       .mockResolvedValueOnce({ rows: [] }) // DELETE deleted_notes
+      .mockResolvedValueOnce({ rows: [] }) // DELETE deleted_groups
       .mockResolvedValueOnce({ rows: [] }) // DELETE users
 
     const result = await handler({})
     expect(result).toEqual({ deleted: 'account' })
-    expect(mockQuery).toHaveBeenCalledTimes(7)
+    expect(mockQuery).toHaveBeenCalledTimes(8)
   })
 
   it('rejects invalid type', async () => {

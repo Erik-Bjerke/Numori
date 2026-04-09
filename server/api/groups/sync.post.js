@@ -17,19 +17,33 @@ export default defineEventHandler(async (event) => {
 
   const deletedSet = new Set(deletedClientIds)
 
-  // 1. Delete groups
+  // 1. Delete groups and record tombstones
   if (deletedClientIds.length > 0) {
     await query(
       'DELETE FROM groups WHERE user_id = $1 AND client_id = ANY($2)',
       [auth.userId, deletedClientIds]
     )
+    for (const clientId of deletedClientIds) {
+      await query(
+        `INSERT INTO deleted_groups (user_id, client_id)
+         VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+        [auth.userId, clientId]
+      )
+    }
   }
 
-  // 2. Upsert each client group
+  // 2. Upsert each client group — skip if deleted or tombstoned
   const pushed = []
 
   for (const group of clientGroups) {
     if (!group.clientId || deletedSet.has(group.clientId)) continue
+
+    // Check if this group was deleted (tombstone exists)
+    const tombstone = await query(
+      'SELECT 1 FROM deleted_groups WHERE user_id = $1 AND client_id = $2',
+      [auth.userId, group.clientId]
+    )
+    if (tombstone.rows.length > 0) continue
 
     const result = await query(`
       INSERT INTO groups (user_id, client_id, name, internal_name, sort_order, collapsed, created_at, updated_at)
@@ -68,7 +82,18 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // 3. Pull all groups from server
+  // 3. Tell the client which of its groups have been deleted by other devices
+  const allClientIds = clientGroups.map(g => g.clientId).filter(Boolean)
+  let serverDeletedIds = []
+  if (allClientIds.length > 0) {
+    const deletedResult = await query(
+      'SELECT client_id FROM deleted_groups WHERE user_id = $1 AND client_id = ANY($2)',
+      [auth.userId, allClientIds]
+    )
+    serverDeletedIds = deletedResult.rows.map(r => r.client_id)
+  }
+
+  // 4. Pull all groups from server
   const pullResult = await query(`
     SELECT id, client_id, name, internal_name, sort_order, collapsed, created_at, updated_at
     FROM groups WHERE user_id = $1
@@ -86,10 +111,16 @@ export default defineEventHandler(async (event) => {
     updatedAt: row.updated_at
   }))
 
+  // Purge old tombstones (30 days)
+  await query(
+    `DELETE FROM deleted_groups WHERE user_id = $1 AND deleted_at < NOW() - INTERVAL '30 days'`,
+    [auth.userId]
+  )
+
   return {
     pushed,
     pulled,
-    deletedClientIds: [],
+    deletedClientIds: serverDeletedIds,
     syncedAt: new Date().toISOString()
   }
 })

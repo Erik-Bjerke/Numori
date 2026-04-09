@@ -200,6 +200,7 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onD
           }))
 
           const deletedGroupClientIds = deletedGroupIds ? [...deletedGroupIds.value] : []
+          const deletedGroupSet = new Set(deletedGroupClientIds)
 
           const groupData = await apiFetch('/api/groups/sync', {
             method: 'POST',
@@ -207,9 +208,19 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onD
             body: { groups: clientGroups, deletedClientIds: deletedGroupClientIds }
           })
 
-          // Merge pulled groups
+          // Remove groups that were deleted by other devices
+          if (groupData.deletedClientIds?.length) {
+            for (const id of groupData.deletedClientIds) {
+              const idx = groups.value.findIndex(g => g.id === id)
+              if (idx !== -1) groups.value.splice(idx, 1)
+            }
+            await db.groups.bulkDelete(groupData.deletedClientIds)
+          }
+
+          // Merge pulled groups (skip any that we just asked the server to delete)
           for (const remote of (groupData.pulled || [])) {
             const localId = remote.clientId || remote.id.toString()
+            if (deletedGroupSet.has(localId)) continue
             const existing = groups.value.find(g => g.id === localId)
             if (existing) {
               if (new Date(remote.updatedAt) > new Date(existing.updatedAt)) {
