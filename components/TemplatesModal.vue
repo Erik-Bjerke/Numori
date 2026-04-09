@@ -126,7 +126,7 @@ const featureFilters = [
   { id: 'variables', name: 'Variables', pattern: /^\w+\s*=\s*.+/m },
   { id: 'dates', name: 'Dates & Time', pattern: /\b(today|tomorrow|yesterday|now|next\s+\w+|last\s+\w+|fromunix|timezone?|PST|EST|GMT|UTC|CET|HKT)\b/i },
   { id: 'functions', name: 'Functions', pattern: /\b(sqrt|cbrt|abs|log|ln|sin|cos|tan|arcsin|arccos|arctan|sinh|cosh|tanh|round|ceil|floor|fact|root|fromunix)\s*[\d(]/i },
-  { id: 'aggregation', name: 'Sum & Avg', pattern: /\b(sum|average|avg|prev)\b/i },
+  { id: 'aggregation', name: 'Sum & Avg', pattern: /\b(sum|sub|average|avg|prev)\b/i },
 ]
 
 const templateFeatureCache = computed(() => {

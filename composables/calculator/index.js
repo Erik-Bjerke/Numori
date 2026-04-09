@@ -4,7 +4,7 @@ import { evaluateMath, handleFunctions, formatResult } from './math'
 import { handleUnitExpression, findUnitCategory, convertFuelEconomy } from './units'
 import { handleCurrencyExpression, fetchExchangeRates } from './currency'
 import { handleTimezoneExpression, handleDateExpression } from './datetime'
-import { calculateSum, calculateAverage, detectSumCurrency, calculateSumWithCurrency } from './aggregation'
+import { calculateSum, calculateAverage, detectSumCurrency, calculateSumWithCurrency, calculateSub, calculateSubWithCurrency } from './aggregation'
 import { extractTrailingNumber } from './extract'
 
 // Auto-fetch rates once (non-blocking)
@@ -251,6 +251,37 @@ export const useCalculator = () => {
       return { value: result, display: formatResult(result) }
     }
 
+    // Sub (subtraction aggregation)
+    const isSubKeyword = cleanLower === 'sub' && !variables.value['sub']
+    if (isSubKeyword) {
+      const currency = detectSumCurrency(index, allResults)
+      if (currency) {
+        const sub = calculateSubWithCurrency(index, allResults, currency)
+        return { value: sub, display: `${formatResult(sub)} ${currency}`, currency }
+      }
+      const sub = calculateSub(index, allResults)
+      return { value: sub, display: formatResult(sub) }
+    }
+
+    const isSubWithOp = cleanLower.startsWith('sub ') && !variables.value['sub']
+    if (isSubWithOp) {
+      const subConvMatch = cleanInput.match(/^sub\s+(in|as)\s+([a-zA-Z€$£¥₹₽]+\d?|m\/s|km\/h|mi\/h|ft\/s)/i)
+      if (subConvMatch) {
+        const targetStr = subConvMatch[2].trim()
+        const targetCurrency = currencyMap[targetStr.toLowerCase()] || targetStr.toUpperCase()
+        if (exchangeRates.value[targetCurrency]) {
+          const sub = calculateSubWithCurrency(index, allResults, targetCurrency)
+          return { value: sub, display: `${formatResult(sub)} ${targetCurrency}`, currency: targetCurrency }
+        }
+        const sub = calculateSub(index, allResults)
+        return { value: sub, display: `${formatResult(sub)} ${targetStr}` }
+      }
+      const sub = calculateSub(index, allResults)
+      const expression = cleanInput.replace(/^sub\s+/i, `${sub} `)
+      const result = evaluateMath(expression)
+      return { value: result, display: formatResult(result) }
+    }
+
     // Average
     if (cleanLower === 'average' || cleanLower === 'avg') {
       const avg = calculateAverage(index, allResults)
@@ -360,13 +391,22 @@ export const useCalculator = () => {
     // (standalone cases are handled above; this catches e.g. "Salary - sum", "2 * avg")
     const hasSumToken = /\bsum\b/i.test(cleanInput) && !variables.value['sum']
     const hasTotalToken = /\btotal\b/i.test(cleanInput) && !variables.value['total']
-    if (hasSumToken || hasTotalToken) {
+    const hasSubToken = /\bsub\b/i.test(cleanInput) && !variables.value['sub']
+    if (hasSumToken || hasTotalToken || hasSubToken) {
       const sumCurrency = detectSumCurrency(index, allResults)
-      const sumValue = sumCurrency
-        ? calculateSumWithCurrency(index, allResults, sumCurrency)
-        : calculateSum(index, allResults)
-      if (hasSumToken) cleanInput = cleanInput.replace(/\bsum\b/gi, `(${sumValue})`)
-      if (hasTotalToken) cleanInput = cleanInput.replace(/\btotal\b/gi, `(${sumValue})`)
+      if (hasSumToken || hasTotalToken) {
+        const sumValue = sumCurrency
+          ? calculateSumWithCurrency(index, allResults, sumCurrency)
+          : calculateSum(index, allResults)
+        if (hasSumToken) cleanInput = cleanInput.replace(/\bsum\b/gi, `(${sumValue})`)
+        if (hasTotalToken) cleanInput = cleanInput.replace(/\btotal\b/gi, `(${sumValue})`)
+      }
+      if (hasSubToken) {
+        const subValue = sumCurrency
+          ? calculateSubWithCurrency(index, allResults, sumCurrency)
+          : calculateSub(index, allResults)
+        cleanInput = cleanInput.replace(/\bsub\b/gi, `(${subValue})`)
+      }
       if (sumCurrency) {
         const result = evaluateMath(handleFunctions(cleanInput))
         return { value: result, display: `${formatResult(result)} ${sumCurrency}`, currency: sumCurrency }

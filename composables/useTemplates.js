@@ -220,16 +220,16 @@ monthly = goal / months`
     {
       id: 'budget',
       name: 'Monthly Budget',
-      description: 'Track income and expenses with sum',
+      description: 'Track income and expenses with sub',
       category: 'finance',
       content: `# Monthly Budget
 Salary: €1457
-Food: -€200
-Fuel: -€100
-Car insurance: -€60
-Hobbies: -€30
-Fun: -€100
-sum`
+Food: €200
+Fuel: €100
+Car insurance: €60
+Hobbies: €30
+Fun: €100
+Remaining: sub`
     },
     {
       id: 'invoice',
@@ -572,8 +572,8 @@ tanh(1)
     },
     {
       id: 'sum-and-average',
-      name: 'Sum & Average',
-      description: 'Aggregate lines with sum and average',
+      name: 'Sum, Sub & Average',
+      description: 'Aggregate lines with sum, sub, and average',
       category: 'learning',
       content: `# Sum
 10
@@ -587,7 +587,20 @@ Item 2: 20
 Item 3: 30
 Total: sum
 
-// Average
+# Sub
+// First line minus all others
+2
+3
+4
+sub
+
+// Budget with Sub
+Salary: €1457
+Food: €200
+Fuel: €100
+Remaining: sub
+
+# Average
 85
 90
 78

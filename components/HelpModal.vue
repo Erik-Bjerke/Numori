@@ -204,6 +204,22 @@
                   </div>
                 </div>
                 <div>
+                  <p class="font-semibold text-gray-900 dark:text-gray-400 mb-2">sub — Subtract Lines Above</p>
+                  <p class="text-xs mb-2">Takes the first line as the starting value and subtracts all subsequent lines from it. Useful for tracking expenses against income.</p>
+                  <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded font-mono text-xs space-y-1">
+                    <div>2 <span class="text-primary-600 dark:text-primary-400">= 2</span></div>
+                    <div>3 <span class="text-primary-600 dark:text-primary-400">= 3</span></div>
+                    <div>4 <span class="text-primary-600 dark:text-primary-400">= 4</span></div>
+                    <div>sub <span class="text-primary-600 dark:text-primary-400">= -5</span> <span class="text-gray-500">// 2 - 3 - 4</span></div>
+                    <div class="mt-2 text-gray-500">// Budget tracking</div>
+                    <div>Salary: €1457 <span class="text-primary-600 dark:text-primary-400">= 1457 EUR</span></div>
+                    <div>Food: €200 <span class="text-primary-600 dark:text-primary-400">= 200 EUR</span></div>
+                    <div>Fuel: €100 <span class="text-primary-600 dark:text-primary-400">= 100 EUR</span></div>
+                    <div>Remaining: sub <span class="text-primary-600 dark:text-primary-400">= 1157 EUR</span></div>
+                  </div>
+                  <p class="text-xs italic mt-2">Unlike sum, expenses don't need a minus sign — sub automatically subtracts them from the first value.</p>
+                </div>
+                <div>
                   <p class="font-semibold text-gray-900 dark:text-gray-400 mb-2">average / avg — Average Lines Above</p>
                   <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded font-mono text-xs space-y-1">
                     <div>10 <span class="text-primary-600 dark:text-primary-400">= 10</span></div>
@@ -750,6 +766,13 @@
                         <kbd class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono text-gray-900 dark:text-gray-400">sum</kbd>
                       </div>
                     </div>
+                    <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800">
+                      <span class="text-sm text-gray-700 dark:text-gray-400">Subtract from first</span>
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs text-gray-500 dark:text-gray-400-muted">Type:</span>
+                        <kbd class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono text-gray-900 dark:text-gray-400">sub</kbd>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div>
@@ -848,7 +871,7 @@ const sections = [
   { id: 'operators', label: 'Operators', keywords: 'operators plus minus times divide multiply addition subtraction multiplication division exponent modulo' },
   { id: 'bitwise', label: 'Bitwise', keywords: 'bitwise and or xor shift left right' },
   { id: 'variables', label: 'Variables', keywords: 'variables assign store value names' },
-  { id: 'special', label: 'Special Keywords', keywords: 'special prev previous sum average avg aggregate' },
+  { id: 'special', label: 'Special Keywords', keywords: 'special prev previous sum sub subtract subtraction average avg aggregate' },
   { id: 'percentages', label: 'Percentages', keywords: 'percentages percent contextual literal reverse compound interest' },
   { id: 'scales', label: 'Scales', keywords: 'scales thousand million billion trillion k M shorthand large numbers' },
   { id: 'currency', label: 'Currency', keywords: 'currency dollar euro pound yen usd eur gbp conversion exchange rate money' },
