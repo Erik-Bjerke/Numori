@@ -13,11 +13,29 @@ export async function hashToken(token) {
 
 /**
  * Parse a user-agent string into a friendly device name.
+ * If `deviceInfo` is provided (from the X-Device-Info header sent by
+ * Capacitor apps), it takes priority and includes platform + model.
  */
-export function parseDeviceName(ua) {
+export function parseDeviceName(ua, deviceInfo) {
+  // Native Capacitor apps send "android; Pixel 8 Pro" or "ios; iPhone" etc.
+  if (deviceInfo) {
+    const parts = deviceInfo.split(';').map(s => s.trim())
+    const platform = (parts[0] || '').toLowerCase()
+    const model = parts[1] || ''
+
+    if (platform === 'android') {
+      return model ? `Android · ${model}` : 'Android App'
+    }
+    if (platform === 'ios') {
+      return model ? `iOS · ${model}` : 'iOS App'
+    }
+    // Unknown native platform
+    return model ? `Mobile · ${model}` : 'Mobile App'
+  }
+
   if (!ua) return 'Unknown device'
 
-  // Mobile apps
+  // Fallback: check for Capacitor token in UA (some builds include it)
   if (ua.includes('Capacitor')) {
     if (ua.includes('Android')) return 'Android App'
     if (ua.includes('iPhone') || ua.includes('iPad')) return 'iOS App'
@@ -52,7 +70,8 @@ export function parseDeviceName(ua) {
 export async function createSession(userId, token, event, expiresInSeconds = 7 * 24 * 3600) {
   const tokenHash = await hashToken(token)
   const ua = getHeader(event, 'user-agent') || ''
-  const deviceName = parseDeviceName(ua)
+  const deviceInfo = getHeader(event, 'x-device-info') || ''
+  const deviceName = parseDeviceName(ua, deviceInfo)
 
   const ip = getHeader(event, 'x-forwarded-for')?.split(',')[0]?.trim()
     || getHeader(event, 'x-real-ip')
