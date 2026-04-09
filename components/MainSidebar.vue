@@ -500,7 +500,7 @@ const getGroupNotes = (groupId) => {
 const sidebarItems = computed(() => {
   const items = []
   for (const n of filteredNotes.value) {
-    if (!n.groupId) {
+    if (!n.groupId || showArchive.value) {
       items.push({ id: n.id, kind: 'note', sortOrder: n.sortOrder ?? 0, data: n })
     }
   }
