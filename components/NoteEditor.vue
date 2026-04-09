@@ -856,8 +856,8 @@ const cmExtensions = computed(() => [
         }
         return true
       }
-      // Ctrl+click on checkbox (macOS contextmenu path)
-      if (event.ctrlKey) {
+      // Alt+click on checkbox (macOS contextmenu path)
+      if (event.altKey) {
         const pos = view.posAtCoords({ x: event.clientX, y: event.clientY })
         if (pos != null) {
           const line = view.state.doc.lineAt(pos)
@@ -969,6 +969,24 @@ const triggerLinkPopup = (linkEl, view, x, y) => {
 }
 
 const handleMdClick = (event, view) => {
+  // Alt+click on raw checklist text (works in all modes, including edit-only)
+  if (event.altKey && props.editable) {
+    const pos = view.posAtCoords({ x: event.clientX, y: event.clientY })
+    if (pos != null) {
+      const line = view.state.doc.lineAt(pos)
+      const checkMatch = line.text.match(/^(\s*)- \[([ x])\]\s/)
+      if (checkMatch) {
+        event.preventDefault()
+        const bracketOffset = checkMatch[1].length + 3
+        const from = line.from + bracketOffset
+        const to = from + 1
+        const newChar = checkMatch[2] === 'x' ? ' ' : 'x'
+        view.dispatch({ changes: { from, to, insert: newChar } })
+        return true
+      }
+    }
+  }
+
   if (props.markdownMode === 'off') return false
   const el = event.target
 
@@ -982,10 +1000,17 @@ const handleMdClick = (event, view) => {
     }
   }
 
-  // Checkbox click
-  if (el?.classList?.contains('numori-md-check-icon') || el?.classList?.contains('numori-md-check-icon-nested')) {
-    if (!props.editable) return false
-    const lineNum = parseInt(el.dataset?.line, 10)
+  // Checkbox click (icon, or anywhere on the checkbox line in view-only mode)
+  const isCheckIcon = el?.classList?.contains('numori-md-check-icon') || el?.classList?.contains('numori-md-check-icon-nested')
+  const isViewOnly = !props.editable
+  if (isCheckIcon || isViewOnly) {
+    const lineNum = isCheckIcon
+      ? parseInt(el.dataset?.line, 10)
+      : (() => {
+          const pos = view.posAtCoords({ x: event.clientX, y: event.clientY })
+          if (pos == null) return null
+          return view.state.doc.lineAt(pos).number
+        })()
     if (!lineNum || lineNum < 1) return false
     const doc = view.state.doc
     if (lineNum > doc.lines) return false
@@ -1000,24 +1025,6 @@ const handleMdClick = (event, view) => {
       const newChar = checkMatch[2] === 'x' ? ' ' : 'x'
       view.dispatch({ changes: { from, to, insert: newChar } })
       return true
-    }
-  }
-
-  // Ctrl+click on raw checklist text (edit mode, cursor line shows raw syntax)
-  if (event.ctrlKey && props.editable) {
-    const pos = view.posAtCoords({ x: event.clientX, y: event.clientY })
-    if (pos != null) {
-      const line = view.state.doc.lineAt(pos)
-      const checkMatch = line.text.match(/^(\s*)- \[([ x])\]\s/)
-      if (checkMatch) {
-        event.preventDefault()
-        const bracketOffset = checkMatch[1].length + 3
-        const from = line.from + bracketOffset
-        const to = from + 1
-        const newChar = checkMatch[2] === 'x' ? ' ' : 'x'
-        view.dispatch({ changes: { from, to, insert: newChar } })
-        return true
-      }
     }
   }
 
