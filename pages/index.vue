@@ -568,6 +568,20 @@ if (import.meta.client && platform === 'web') {
   })
 }
 
+// Native: hide status bar in focus mode for true fullscreen
+if (import.meta.client && isNativeApp) {
+  watch(focusMode, async (on) => {
+    try {
+      const { StatusBar } = await import('@capacitor/status-bar')
+      if (on) {
+        await StatusBar.hide()
+      } else {
+        await StatusBar.show()
+      }
+    } catch { /* status bar plugin not available */ }
+  })
+}
+
 // Set up native keyboard toolbar on iOS / Android
 if (import.meta.client && isNativeApp) {
   useNativeKeyboardToolbar({
