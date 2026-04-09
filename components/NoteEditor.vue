@@ -843,17 +843,26 @@ const cmExtensions = computed(() => [
       return handleResultTouch(event, view)
     },
     contextmenu: (event, view) => {
+      // Alt+click on link (works in all modes: try rendered element, fall back to raw text)
+      if (event.altKey) {
+        const el = event.target
+        const linkEl = findLinkEl(el)
+        if (linkEl) {
+          event.preventDefault()
+          triggerLinkPopup(linkEl, view, event.clientX, event.clientY)
+          return true
+        }
+        // Fallback: parse raw markdown link from text at cursor position
+        if (triggerRawLinkPopup(view, event.clientX, event.clientY)) {
+          event.preventDefault()
+          return true
+        }
+      }
       if (props.markdownMode === 'off') return false
       const el = event.target
       const linkEl = findLinkEl(el)
       if (linkEl) {
         event.preventDefault()
-        if (event.ctrlKey) {
-          const rect = view.dom.getBoundingClientRect()
-          const url = linkEl.getAttribute('data-href')
-          const text = linkEl.textContent
-          if (url) showLinkPopup(url, text, event.clientX - rect.left, event.clientY - rect.top)
-        }
         return true
       }
       // Alt+click on checkbox (macOS contextmenu path)
@@ -960,12 +969,37 @@ let longPressTriggered = false
 
 const findLinkEl = (el) => el?.closest?.('.numori-md-link') || (el?.classList?.contains('numori-md-link') ? el : null)
 
+// Find a markdown link from raw text at a given cursor position within the line
+const findRawLinkAt = (lineText, charOffset) => {
+  const linkRe = /\[([^\]]+)\]\(([^)]+)\)/g
+  let m
+  while ((m = linkRe.exec(lineText)) !== null) {
+    if (charOffset >= m.index && charOffset < m.index + m[0].length) {
+      return { text: m[1], url: m[2] }
+    }
+  }
+  return null
+}
+
 const triggerLinkPopup = (linkEl, view, x, y) => {
   const url = linkEl.getAttribute('data-href')
   const text = linkEl.textContent
   if (!url) return
   const rect = view.dom.getBoundingClientRect()
   showLinkPopup(url, text, x - rect.left, y - rect.top)
+}
+
+// Show link popup from raw text at a screen position
+const triggerRawLinkPopup = (view, x, y) => {
+  const pos = view.posAtCoords({ x, y })
+  if (pos == null) return false
+  const line = view.state.doc.lineAt(pos)
+  const charOffset = pos - line.from
+  const link = findRawLinkAt(line.text, charOffset)
+  if (!link) return false
+  const rect = view.dom.getBoundingClientRect()
+  showLinkPopup(link.url, link.text, x - rect.left, y - rect.top)
+  return true
 }
 
 const handleMdClick = (event, view) => {
@@ -987,18 +1021,22 @@ const handleMdClick = (event, view) => {
     }
   }
 
-  if (props.markdownMode === 'off') return false
-  const el = event.target
-
-  // Link: require Ctrl+click
-  const linkEl = findLinkEl(el)
-  if (linkEl) {
-    if (event.ctrlKey) {
+  // Alt+click on link (works in all modes: try rendered element first, fall back to raw text)
+  if (event.altKey) {
+    const el = event.target
+    const linkEl = findLinkEl(el)
+    if (linkEl) {
       event.preventDefault()
       triggerLinkPopup(linkEl, view, event.clientX, event.clientY)
       return true
     }
+    // Fallback: parse raw markdown link from text at cursor position
+    event.preventDefault()
+    if (triggerRawLinkPopup(view, event.clientX, event.clientY)) return true
   }
+
+  if (props.markdownMode === 'off') return false
+  const el = event.target
 
   // Checkbox click (icon, or anywhere on the checkbox line in view-only mode)
   const isCheckIcon = el?.classList?.contains('numori-md-check-icon') || el?.classList?.contains('numori-md-check-icon-nested')
