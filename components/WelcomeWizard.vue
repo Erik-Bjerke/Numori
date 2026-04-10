@@ -76,8 +76,70 @@
                 </div>
               </div>
 
-              <!-- Step 3: Region & Language -->
+              <!-- Step 3: Precision -->
               <div v-if="step === 3" class="flex-1 flex flex-col items-center text-center">
+                <div class="w-16 h-16 rounded-2xl bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center mb-4">
+                  <Icon name="mdi:decimal" class="w-9 h-9 text-primary-600 dark:text-primary-400" />
+                </div>
+                <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">Precision</h2>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-5">How should results be formatted?</p>
+
+                <div class="w-full space-y-4 text-left">
+                  <!-- Precision mode -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">Precision Mode</label>
+                    <div class="grid grid-cols-3 gap-2">
+                      <button v-for="(label, key) in precisionModeLabels" :key="key"
+                        @click="setPrecisionMode(key)"
+                        class="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 border-2"
+                        :class="preferences.precisionMode === key
+                          ? 'bg-primary-50 dark:bg-gray-800 border-primary-500 dark:border-primary-400 text-primary-700 dark:text-primary-400'
+                          : 'bg-gray-50 dark:bg-gray-925 border-transparent hover:border-gray-300 dark:hover:border-gray-700 text-gray-700 dark:text-gray-400'">
+                        {{ label }}
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Decimal places / sig figs slider -->
+                  <div v-if="preferences.precisionMode === 'decimals'">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Decimal Places: {{ preferences.decimalPlaces }}</label>
+                    <input type="range" min="0" max="15" step="1" v-model.number="preferences.decimalPlaces" @input="onPrecisionChange" class="w-full accent-primary-500" />
+                    <div class="flex justify-between text-xs text-gray-400 mt-1"><span>0</span><span>15</span></div>
+                  </div>
+                  <div v-if="preferences.precisionMode === 'significant'">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Significant Figures: {{ preferences.significantFigures }}</label>
+                    <input type="range" min="1" max="15" step="1" v-model.number="preferences.significantFigures" @input="onPrecisionChange" class="w-full accent-primary-500" />
+                    <div class="flex justify-between text-xs text-gray-400 mt-1"><span>1</span><span>15</span></div>
+                  </div>
+
+                  <!-- Rounding mode -->
+                  <div v-if="preferences.precisionMode !== 'auto'">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">Rounding</label>
+                    <div class="grid grid-cols-2 gap-2">
+                      <button v-for="(label, key) in roundingModeLabels" :key="key"
+                        @click="setRoundingMode(key)"
+                        class="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 border-2"
+                        :class="preferences.roundingMode === key
+                          ? 'bg-primary-50 dark:bg-gray-800 border-primary-500 dark:border-primary-400 text-primary-700 dark:text-primary-400'
+                          : 'bg-gray-50 dark:bg-gray-925 border-transparent hover:border-gray-300 dark:hover:border-gray-700 text-gray-700 dark:text-gray-400'">
+                        {{ label }}
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Live preview -->
+                  <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 text-sm font-mono space-y-1.5">
+                    <div class="text-xs font-sans font-medium text-gray-500 dark:text-gray-500 mb-2">Preview</div>
+                    <div v-for="sample in precisionSamples" :key="sample.label" class="flex justify-between">
+                      <span class="text-gray-600 dark:text-gray-400">{{ sample.label }}</span>
+                      <span class="calc-result">{{ sample.formatted }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 4: Region & Language -->
+              <div v-if="step === 4" class="flex-1 flex flex-col items-center text-center">
                 <div class="w-16 h-16 rounded-2xl bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center mb-4">
                   <Icon name="mdi:earth" class="w-9 h-9 text-primary-600 dark:text-primary-400" />
                 </div>
@@ -140,6 +202,7 @@
 
 <script setup>
 import { LOCALE_PRESETS } from '~/composables/useLocalePreferences'
+import { formatDisplay } from '~/composables/useDisplayFormatter'
 
 const props = defineProps({
   isOpen: { type: Boolean, default: false },
@@ -151,7 +214,7 @@ const props = defineProps({
 const emit = defineEmits(['complete'])
 
 const step = ref(1)
-const totalSteps = 3
+const totalSteps = 4
 
 // Theme
 const colorMode = useColorMode()
@@ -189,6 +252,37 @@ onMounted(() => {
     const matches = Object.keys(preset).every(key => props.preferences[key] === preset[key])
     if (matches) { selectedPreset.value = name; break }
   }
+})
+
+// Precision
+const precisionModeLabels = { auto: 'Auto', decimals: 'Decimals', significant: 'Sig. Figs' }
+const roundingModeLabels = { round: 'Round', truncate: 'Truncate' }
+
+const setPrecisionMode = (mode) => {
+  props.preferences.precisionMode = mode
+  props.savePreferences()
+}
+
+const setRoundingMode = (mode) => {
+  props.preferences.roundingMode = mode
+  props.savePreferences()
+}
+
+const onPrecisionChange = () => {
+  props.savePreferences()
+}
+
+const SAMPLE_VALUES = [
+  { raw: '3.14159265', label: 'pi ≈' },
+  { raw: '1234.5678', label: '1234.5678 →' },
+  { raw: '0.00456789', label: '0.00456789 →' },
+]
+
+const precisionSamples = computed(() => {
+  return SAMPLE_VALUES.map(s => ({
+    label: s.label,
+    formatted: formatDisplay(s.raw, null, props.preferences),
+  }))
 })
 
 // Navigation

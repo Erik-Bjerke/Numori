@@ -326,6 +326,13 @@
                             <option value="significant">Significant figures</option>
                           </select>
                         </div>
+                        <div v-if="preferences.precisionMode !== 'auto'">
+                          <label :class="labelClass">Rounding Mode</label>
+                          <select v-model="preferences.roundingMode" @change="onSettingChange" :class="selectClass">
+                            <option value="round">Round</option>
+                            <option value="truncate">Truncate</option>
+                          </select>
+                        </div>
                         <div v-if="preferences.precisionMode === 'decimals'">
                           <label :class="labelClass">Decimal Places: {{ preferences.decimalPlaces }}</label>
                           <input type="range" min="0" max="15" step="1" v-model.number="preferences.decimalPlaces" @input="onSettingChange" class="w-full accent-primary-500" />

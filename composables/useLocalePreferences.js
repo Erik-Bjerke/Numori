@@ -93,6 +93,7 @@ const DEFAULT_PREFERENCES = {
   inlineMode: 'left',
   // Customisation
   precisionMode: 'auto',
+  roundingMode: 'round',
   decimalPlaces: 6,
   significantFigures: 6,
   autoCopyResult: true,

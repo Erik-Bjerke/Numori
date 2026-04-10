@@ -29,13 +29,38 @@ const formatNumberString = (numStr, numberFormat) => {
 }
 
 /**
+ * Truncate a number to a given number of decimal places (toward zero).
+ * @param {number} num
+ * @param {number} places
+ * @returns {number}
+ */
+const truncateToDecimals = (num, places) => {
+  const factor = Math.pow(10, places)
+  return Math.trunc(num * factor) / factor
+}
+
+/**
+ * Truncate a number to a given number of significant figures (toward zero).
+ * @param {number} num
+ * @param {number} sigFigs
+ * @returns {number}
+ */
+const truncateToSigFigs = (num, sigFigs) => {
+  if (num === 0) return 0
+  const d = Math.ceil(Math.log10(Math.abs(num)))
+  const places = sigFigs - d
+  const factor = Math.pow(10, places)
+  return Math.trunc(num * factor) / factor
+}
+
+/**
  * Apply precision to a raw numeric value.
  * @param {string} numStr - The numeric string from formatResult
- * @param {object} prefs - { precisionMode, decimalPlaces, significantFigures }
+ * @param {object} prefs - { precisionMode, roundingMode, decimalPlaces, significantFigures }
  * @returns {string}
  */
 const applyPrecision = (numStr, prefs) => {
-  const { precisionMode, decimalPlaces, significantFigures } = prefs
+  const { precisionMode, roundingMode = 'round', decimalPlaces, significantFigures } = prefs
   if (precisionMode === 'auto') return numStr
 
   const num = parseFloat(numStr)
@@ -43,10 +68,16 @@ const applyPrecision = (numStr, prefs) => {
 
   if (precisionMode === 'decimals') {
     if (Number.isInteger(num)) return num.toString()
+    if (roundingMode === 'truncate') {
+      return truncateToDecimals(num, decimalPlaces).toString().replace(/\.?0+$/, '')
+    }
     return num.toFixed(decimalPlaces).replace(/0+$/, '').replace(/\.$/, '')
   }
 
   if (precisionMode === 'significant') {
+    if (roundingMode === 'truncate') {
+      return truncateToSigFigs(num, significantFigures).toString()
+    }
     return Number(num.toPrecision(significantFigures)).toString()
   }
 
