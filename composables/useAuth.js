@@ -77,16 +77,23 @@ export const useAuth = () => {
       })
       // Restore encKey from IndexedDB (survives refresh)
       encKey.value = await _restoreEncKey()
-    } catch {
-      // Session invalid or revoked — clear all auth AND local data
-      token.value = null
-      encKey.value = null
-      await _clearEncKey()
-      await db.appState.delete('auth_token')
-      // Clear notes so revoked sessions don't leave data behind
-      await db.notes.clear()
-      await db.appState.bulkDelete(['deleted_note_ids', 'deleted_group_ids', 'last_synced_at'])
-      wasSessionInvalid.value = true
+    } catch (err) {
+      const status = err.status || err.statusCode || err.data?.statusCode
+      if (status === 401) {
+        // Session genuinely invalid or revoked — clear all auth AND local data
+        token.value = null
+        encKey.value = null
+        await _clearEncKey()
+        await db.appState.delete('auth_token')
+        // Clear notes so revoked sessions don't leave data behind
+        await db.notes.clear()
+        await db.appState.bulkDelete(['deleted_note_ids', 'deleted_group_ids', 'last_synced_at'])
+        wasSessionInvalid.value = true
+      } else {
+        // Network/transient error — keep the token and let sync retry later.
+        // The user stays "logged in" with cached data until connectivity returns.
+        console.warn('Session restore: transient error, keeping token', err.message || err)
+      }
     }
   }
 

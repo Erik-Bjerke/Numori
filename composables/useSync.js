@@ -348,9 +348,13 @@ export const useSync = (auth, notes, saveNotes, deletedIds, clearDeletedIds, onD
     try {
       await apiFetch('/api/auth/me', { headers: auth.authHeaders.value })
       // Session still valid — ignore
-    } catch {
-      // Session revoked — clear everything
-      handleSessionRevoked()
+    } catch (err) {
+      const status = err.status || err.statusCode || err.data?.statusCode
+      if (status === 401) {
+        // Session genuinely revoked — clear everything
+        handleSessionRevoked()
+      }
+      // Network/transient errors are ignored — we'll retry on the next interval
     }
   }
 
