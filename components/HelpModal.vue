@@ -387,6 +387,7 @@
                     <div>1 cup in ml <span class="text-primary-600 dark:text-primary-400">= 237 ml</span></div>
                     <div>1 tablespoon in ml <span class="text-primary-600 dark:text-primary-400">= 14.79 ml</span></div>
                     <div>1 teaspoon in ml <span class="text-primary-600 dark:text-primary-400">= 4.93 ml</span></div>
+                    <div>25 ml in tea spoons <span class="text-primary-600 dark:text-primary-400">= 5.07 tea spoons</span></div>
                     <div>1 pint in ml <span class="text-primary-600 dark:text-primary-400">= 473 ml</span></div>
                     <div>1 cbm in liters <span class="text-primary-600 dark:text-primary-400">= 1000 liters</span></div>
                   </div>

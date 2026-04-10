@@ -414,7 +414,7 @@ export const useCalculator = () => {
       // Hide when it's just a simple currency value with no operation (e.g., "$30", "100 EUR", "-£300")
       // Show when there's a conversion or arithmetic (e.g., "$30 in EUR", "$30 + €20", "price * 2")
       // Use lookbehind to only match infix operators (after a digit/letter/symbol), not prefix negation
-      const isCurrencyOperation = currencyResult.isConverted || /(?<=[\d\w€$£¥₹₽)])\s*[+\-*/]/.test(cleanInput)
+      const isCurrencyOperation = currencyResult.isConverted || /(?<=[\d\w€$£¥₹₽)])\s*[+\-*/]/.test(cleanInput) || /\b(times|multiplied\s+by|mul|plus|minus|subtract|without|divide|divide\s+by|and|with)\b/i.test(cleanInput)
       return {
         value: currencyResult.value,
         display: currencyResult.currency ? `${formatResult(currencyResult.value)} ${currencyResult.currency}` : formatResult(currencyResult.value),

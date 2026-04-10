@@ -102,7 +102,7 @@ export const unitConversions = {
     cup: 0.236588, cups: 0.236588,
     floz: 0.0295735,
     tbsp: 0.0147868, tablespoon: 0.0147868,
-    tsp: 0.00492892, teaspoon: 0.00492892,
+    tsp: 0.00492892, teaspoon: 0.00492892, teaspoons: 0.00492892, 'tea spoon': 0.00492892, 'tea spoons': 0.00492892,
     'cu cm': 0.001, 'cu m': 1000, 'cbm': 1000,
     'cubic inch': 0.0163871, 'cubic inches': 0.0163871,
     'cubic meter': 1000, 'cubic meters': 1000,

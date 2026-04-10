@@ -226,6 +226,37 @@ export const parseUnitExpression = (expr, category) => {
     }
   }
 
+  // Try extracting a unit from expressions with multiplication, division, or parentheses.
+  // Handles cases like "(20 cm * 4 + 5%)", "20 cm * 4", "(10 kg * 3)"
+  if (/[*\/()]/.test(normalized) || (/[+-]/.test(normalized) && /[()]/.test(normalized))) {
+    const unitCandidatePattern = /\b([a-zA-Z][a-zA-Z\s]*[a-zA-Z]|[a-zA-Z])\b/g
+    let unitMatch
+    let foundUnit = null
+    let foundInfo = null
+    while ((unitMatch = unitCandidatePattern.exec(normalized)) !== null) {
+      const candidate = unitMatch[1].trim()
+      const info = findUnitCategory(candidate)
+      if (info && info.category === category) {
+        if (!foundUnit || candidate.length > foundUnit.length) {
+          foundUnit = candidate
+          foundInfo = info
+        }
+      }
+    }
+    if (foundUnit && foundInfo) {
+      const escaped = foundUnit.split('').map(ch => {
+        if ('.+*?^[]{}()|\\'.indexOf(ch) >= 0) return '\\' + ch
+        return ch
+      }).join('')
+      const unitRe = new RegExp('\\b' + escaped + '\\b', 'gi')
+      const stripped = normalized.replace(unitRe, '').trim()
+      try {
+        const value = evaluateMath(stripped)
+        return value * foundInfo.factor
+      } catch (e) { /* fall through */ }
+    }
+  }
+
   // Try arithmetic: "1 km + 500 m", "2 ft - 3 inches"
   const parts = normalized.split(/\s*([+-])\s*/)
   if (parts.length >= 3) {
@@ -257,7 +288,7 @@ export const parseUnitExpression = (expr, category) => {
     return total
   }
 
-  // Try evaluating as pure math
+  // Try evaluating as pure math  // Try evaluating as pure math
   try {
     return evaluateMath(expr)
   } catch (e) { return null }
@@ -443,6 +474,41 @@ export const handleUnitExpression = (input) => {
     const unitInfo = findUnitCategory(unitStr)
     if (unitInfo) {
       return { value, unit: unitStr, category: unitInfo.category, hasUnit: true, isConverted: false }
+    }
+  }
+
+  // Standalone expression with embedded unit and arithmetic (no conversion target).
+  // Handles: "(25 cm * 6 + 5%)", "25 cm * 6 + 5%", "20% of what is 30 cm"
+  // Strategy: find a unit in the expression, strip it, evaluate the remaining math,
+  // and return the result tagged with that unit.
+  {
+    const unitCandidateRe = /\b([a-zA-Z][a-zA-Z\s]*[a-zA-Z]|[a-zA-Z])\b/g
+    let um
+    let bestUnit = null
+    let bestInfo = null
+    while ((um = unitCandidateRe.exec(normalized)) !== null) {
+      const candidate = um[1].trim()
+      // Skip words that are math keywords, not units
+      if (/^(of|what|is|on|off|as|a|in|to|and|plus|minus|times|with|without|mod|xor|divide|multiplied|by|subtract)$/i.test(candidate)) continue
+      const info = findUnitCategory(candidate)
+      if (info) {
+        if (!bestUnit || candidate.length > bestUnit.length) {
+          bestUnit = candidate
+          bestInfo = info
+        }
+      }
+    }
+    if (bestUnit && bestInfo) {
+      const escaped = bestUnit.split('').map(ch => {
+        if ('.+*?^[]{}()|\\'.indexOf(ch) >= 0) return '\\' + ch
+        return ch
+      }).join('')
+      const unitRe = new RegExp('\\b' + escaped + '\\b', 'gi')
+      const stripped = normalized.replace(unitRe, '').trim()
+      try {
+        const value = evaluateMath(stripped)
+        return { value, unit: bestUnit, category: bestInfo.category, hasUnit: true, isConverted: true }
+      } catch (e) { /* fall through */ }
     }
   }
 

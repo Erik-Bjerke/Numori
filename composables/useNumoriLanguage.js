@@ -106,7 +106,7 @@ export const numoriStreamParser = {
     if (stream.match(/\b(thousand|thousands|million|millions|billion|billions|trillion|trillions)\b/)) return 'string'
 
     // ── Numbers with units (spaceless: 100km, 5kg, 30mpg) ───────
-    if (stream.match(/\d+\.?\d*\s*(km|m|cm|mm|ft|feet|foot|inch|inches|yd|yard|yards|mi|mile|miles|nm|kg|g|mg|lb|lbs|oz|tonne|tonnes|stone|l|ml|gal|gallon|gallons|qt|quart|pint|cup|tablespoon|teaspoon|cbm|sec|second|seconds|min|minute|minutes|hour|hours|day|days|week|weeks|month|months|year|years|KB|MB|GB|TB|KiB|MiB|GiB|TiB|byte|bytes|bit|bits|px|pt|em|rem|kph|mph|knot|knots|mpg|mpg_uk|kpl|mpl|kpg|kpg_uk|celsius|fahrenheit|kelvin|acre|acres|hectare|hectares|sqm|sqft|degree|degrees|radian|radians)\b/)) return 'number'
+    if (stream.match(/\d+\.?\d*\s*(km|m|cm|mm|ft|feet|foot|inch|inches|yd|yard|yards|mi|mile|miles|nm|kg|g|mg|lb|lbs|oz|tonne|tonnes|stone|l|ml|gal|gallon|gallons|qt|quart|pint|cup|tablespoon|tablespoons|teaspoon|teaspoons|cbm|sec|second|seconds|min|minute|minutes|hour|hours|day|days|week|weeks|month|months|year|years|KB|MB|GB|TB|KiB|MiB|GiB|TiB|byte|bytes|bit|bits|px|pt|em|rem|kph|mph|knot|knots|mpg|mpg_uk|kpl|mpl|kpg|kpg_uk|celsius|fahrenheit|kelvin|acre|acres|hectare|hectares|sqm|sqft|degree|degrees|radian|radians)\b/)) return 'number'
 
     // ── Hex, binary, octal literals ──────────────────────────────
     if (stream.match(/0[xX][0-9a-fA-F]+/)) return 'number'
@@ -133,7 +133,7 @@ export const numoriStreamParser = {
     if (stream.match(/°/)) return 'unit'
 
     // ── Unit words (standalone, not attached to numbers) ─────────
-    if (stream.match(/\b(km|m|cm|mm|ft|feet|foot|inch|inches|yd|yard|yards|mi|mile|miles|nm|kg|g|mg|lb|lbs|oz|tonne|tonnes|stone|l|ml|gal|gallon|gallons|qt|quart|pint|cup|tablespoon|teaspoon|cbm|sec|second|seconds|min|minute|minutes|hour|hours|day|days|week|weeks|month|months|year|years|KB|MB|GB|TB|KiB|MiB|GiB|TiB|byte|bytes|bit|bits|px|pt|em|rem|kph|mph|knot|knots|mpg|mpg_uk|kpl|mpl|kpg|kpg_uk|celsius|fahrenheit|kelvin|acre|acres|hectare|hectares|sqm|sqft|sq|square|cu|cubic|degree|degrees|radian|radians|hex|bin|oct|sci|scientific|per|uk)\b/)) return 'unit'
+    if (stream.match(/\b(km|m|cm|mm|ft|feet|foot|inch|inches|yd|yard|yards|mi|mile|miles|nm|kg|g|mg|lb|lbs|oz|tonne|tonnes|stone|l|ml|gal|gallon|gallons|qt|quart|pint|cup|tablespoon|tablespoons|teaspoon|teaspoons|tea\s+spoon|tea\s+spoons|cbm|sec|second|seconds|min|minute|minutes|hour|hours|day|days|week|weeks|month|months|year|years|KB|MB|GB|TB|KiB|MiB|GiB|TiB|byte|bytes|bit|bits|px|pt|em|rem|kph|mph|knot|knots|mpg|mpg_uk|kpl|mpl|kpg|kpg_uk|celsius|fahrenheit|kelvin|acre|acres|hectare|hectares|sqm|sqft|sq|square|cu|cubic|degree|degrees|radian|radians|hex|bin|oct|sci|scientific|per|uk)\b/)) return 'unit'
 
     // ── Identifiers (variables) ──────────────────────────────────
     if (stream.match(/\b[a-zA-Z_]\w*\b/)) return 'variableName'

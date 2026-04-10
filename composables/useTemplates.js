@@ -349,6 +349,7 @@ sugar * scale`
 1 cup in ml
 1 tablespoon in ml
 1 teaspoon in ml
+25 ml in tea spoons
 1 pint in ml
 1 quart in liters
 1 gallon in liters
