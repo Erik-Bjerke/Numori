@@ -3,305 +3,264 @@
     :show="isOpen"
     max-width="md"
     padding="p-2 sm:p-4"
-    panel-class="max-h-[80vh]"
+    panel-class="max-h-[85vh]"
     @close="$emit('close')"
   >
     <!-- Header -->
     <div
       class="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-gray-200 dark:border-gray-800 flex-shrink-0"
     >
-      <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">
-        About Numori Notes
-      </h2>
+      <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">About</h2>
       <UiButton variant="ghost" color="gray" icon-only size="sm" @click="$emit('close')">
         <Icon name="mdi:close" class="block w-5 h-5" />
       </UiButton>
     </div>
 
     <!-- Body -->
-    <div
-      class="flex-1 overflow-y-auto overflow-x-hidden px-4 sm:px-5 py-4 space-y-5 text-sm text-gray-700 dark:text-gray-400 break-words"
-    >
-      <!-- App info -->
-      <div class="text-center space-y-2">
-        <p class="text-lg font-semibold text-gray-900 dark:text-gray-200">Numori Notes</p>
-        <p class="text-xs text-gray-500 dark:text-gray-500">v{{ appVersion }}</p>
-        <p class="text-xs text-gray-500 dark:text-gray-500">
-          Made with ❤️ and code from Manchester, England
-        </p>
-        <a
-          href="https://github.com/Numori-Ecosystem/Numori-Notes"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="inline-flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400 hover:underline"
+    <div class="flex-1 overflow-y-auto overflow-x-hidden px-4 sm:px-5 py-5 space-y-5">
+      <!-- Hero -->
+      <div class="flex flex-col items-center text-center space-y-3">
+        <div
+          class="w-16 h-16 rounded-2xl bg-gray-900 dark:bg-gray-800 flex items-center justify-center shadow-lg ring-1 ring-gray-200 dark:ring-gray-700"
         >
-          <Icon name="mdi:github" class="w-3.5 h-3.5 block" />
-          GitHub
-        </a>
-        <div class="pt-1">
-          <UiButton
-            variant="outline"
-            color="gray"
-            size="sm"
-            :disabled="checking"
-            :loading="checking"
-            @click="handleCheckUpdate"
-          >
-            <Icon v-if="!checking" name="mdi:update" class="w-3.5 h-3.5 block" />
-            {{ checking ? 'Checking...' : 'Check for updates' }}
-          </UiButton>
-          <p v-if="checkResult" class="mt-1.5 text-xs" :class="checkResultClass">
-            {{ checkResult }}
+          <img src="/favicon.svg" alt="Numori Notes" class="w-10 h-10" >
+        </div>
+        <div>
+          <p class="text-lg font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+            Numori Notes
           </p>
+          <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5 font-mono">v{{ appVersion }}</p>
+        </div>
+        <p class="text-xs text-gray-500 dark:text-gray-500">
+          Made with <span class="text-red-500">❤</span> and code from Manchester, England
+        </p>
+
+        <!-- Links -->
+        <div class="flex items-center justify-center gap-3 pt-1">
+          <a
+            href="https://numori.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="group flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800/50 hover:border-primary-300 dark:hover:border-primary-700 transition-colors"
+          >
+            <Icon name="mdi:web" class="w-4 h-4 text-primary-500 group-hover:text-primary-600 dark:group-hover:text-primary-300 transition-colors" />
+            <span class="text-xs font-semibold text-primary-700 dark:text-primary-300">numori.app</span>
+          </a>
+          <a
+            href="https://github.com/Numori-Ecosystem/Numori-Notes"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="group flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 hover:border-gray-400 dark:hover:border-gray-600 transition-colors"
+          >
+            <Icon name="mdi:github" class="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200 transition-colors" />
+            <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">GitHub</span>
+          </a>
         </div>
       </div>
 
-      <!-- Author -->
-      <div class="space-y-1">
-        <p class="font-semibold text-gray-900 dark:text-gray-300">Author</p>
-        <p>Erik Bjerke — TheProcedural Software Ltd</p>
-        <a
-          href="https://erikbjerke.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="text-primary-600 dark:text-primary-400 hover:underline text-xs"
-          >erikbjerke.com</a
+      <!-- Check for updates -->
+      <div class="flex flex-col items-center gap-1.5">
+        <UiButton
+          v-slot="{ spinning }"
+          variant="outline"
+          color="gray"
+          size="sm"
+          :loading="checking"
+          loading-style="icon"
+          @click="handleCheckUpdate"
         >
-        <span class="text-xs text-gray-400 dark:text-gray-600 mx-1">·</span>
-        <a
-          href="https://theprocedural.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="text-primary-600 dark:text-primary-400 hover:underline text-xs"
-          >theprocedural.com</a
-        >
-        <br >
-        <a
-          href="mailto:contact@erikbjerke.com"
-          class="text-primary-600 dark:text-primary-400 hover:underline text-xs"
-          >contact@erikbjerke.com</a
-        >
-        <span class="text-xs text-gray-400 dark:text-gray-600 mx-1">·</span>
-        <a
-          href="mailto:contact@theprocedural.com"
-          class="text-primary-600 dark:text-primary-400 hover:underline text-xs"
-          >contact@theprocedural.com</a
-        >
+          <Icon name="mdi:update" class="w-3.5 h-3.5" :class="{ 'animate-spin': spinning }" />
+          Check for updates
+        </UiButton>
       </div>
 
-      <!-- License -->
-      <div class="space-y-1">
-        <p class="font-semibold text-gray-900 dark:text-gray-300">License</p>
-        <p>GNU Affero General Public License v3.0 (AGPL-3.0)</p>
-      </div>
-
-      <!-- Third-party licenses -->
-      <div class="space-y-2">
-        <p class="font-semibold text-gray-900 dark:text-gray-300">Third-Party Licenses</p>
-        <p class="text-xs text-gray-500 dark:text-gray-500">
-          This application uses the following open-source packages:
+      <!-- Author card -->
+      <div
+        class="rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-4 space-y-2"
+      >
+        <div class="flex items-center gap-2">
+          <Icon name="mdi:account-outline" class="w-4 h-4 text-gray-400" />
+          <p class="text-xs font-semibold text-gray-900 dark:text-gray-300 uppercase tracking-wider">
+            Author
+          </p>
+        </div>
+        <p class="text-sm text-gray-700 dark:text-gray-400">
+          Erik Bjerke — TheProcedural Software Ltd
         </p>
-        <ul class="text-xs space-y-0.5 list-disc list-inside text-gray-600 dark:text-gray-400">
-          <li>
-            <a
-              href="https://nuxt.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-primary-600 dark:text-primary-400 hover:underline"
-              >Nuxt</a
-            >
-          </li>
-          <li>
-            <a
-              href="https://vuejs.org"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-primary-600 dark:text-primary-400 hover:underline"
-              >Vue</a
-            >
-          </li>
-          <li>
-            <a
-              href="https://router.vuejs.org"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-primary-600 dark:text-primary-400 hover:underline"
-              >Vue Router</a
-            >
-          </li>
-          <li>
-            <a
-              href="https://fonts.nuxt.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-primary-600 dark:text-primary-400 hover:underline"
-              >@nuxt/fonts</a
-            >
-          </li>
-          <li>
-            <a
-              href="https://nuxt.com/modules/icon"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-primary-600 dark:text-primary-400 hover:underline"
-              >@nuxt/icon</a
-            >
-          </li>
-          <li>
-            <a
-              href="https://color-mode.nuxtjs.org"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-primary-600 dark:text-primary-400 hover:underline"
-              >@nuxtjs/color-mode</a
-            >
-          </li>
-          <li>
-            <a
-              href="https://tailwindcss.nuxtjs.org"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-primary-600 dark:text-primary-400 hover:underline"
-              >@nuxtjs/tailwindcss</a
-            >
-          </li>
-          <li>
-            <a
-              href="https://tailwindcss.com/docs/typography-plugin"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-primary-600 dark:text-primary-400 hover:underline"
-              >@tailwindcss/typography</a
-            >
-          </li>
-          <li>
-            <a
-              href="https://vueuse.org"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-primary-600 dark:text-primary-400 hover:underline"
-              >@vueuse/core &amp; @vueuse/nuxt</a
-            >
-          </li>
-          <li>
-            <a
-              href="https://i18n.nuxtjs.org"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-primary-600 dark:text-primary-400 hover:underline"
-              >@nuxtjs/i18n</a
-            >
-          </li>
-          <li>
-            <a
-              href="https://nuxt.com/modules/nuxt-codemirror"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-primary-600 dark:text-primary-400 hover:underline"
-              >nuxt-codemirror</a
-            >
-          </li>
-          <li>
-            <a
-              href="https://codemirror.net"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-primary-600 dark:text-primary-400 hover:underline"
-              >CodeMirror</a
-            >
-            (commands, language, state, view)
-          </li>
-          <li>
-            <a
-              href="https://capacitorjs.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-primary-600 dark:text-primary-400 hover:underline"
-              >Capacitor</a
-            >
-            (core, app, android, ios, filesystem, share, status-bar)
-          </li>
-          <li>
-            <a
-              href="https://dexie.org"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-primary-600 dark:text-primary-400 hover:underline"
-              >Dexie.js</a
-            >
-          </li>
-          <li>
-            <a
-              href="https://highlightjs.org"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-primary-600 dark:text-primary-400 hover:underline"
-              >highlight.js</a
-            >
-          </li>
-          <li>
-            <a
-              href="https://github.com/dcodeIO/bcrypt.js"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-primary-600 dark:text-primary-400 hover:underline"
-              >bcryptjs</a
-            >
-          </li>
-          <li>
-            <a
-              href="https://node-postgres.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-primary-600 dark:text-primary-400 hover:underline"
-              >pg (node-postgres)</a
-            >
-          </li>
-          <li>
-            <a
-              href="https://vitest.dev"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-primary-600 dark:text-primary-400 hover:underline"
-              >Vitest</a
-            >
-          </li>
-          <li>
-            <a
-              href="https://eslint.nuxt.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-primary-600 dark:text-primary-400 hover:underline"
-              >@nuxt/eslint</a
-            >
-          </li>
-          <li>
-            <a
-              href="https://github.com/dcastil/tailwind-merge"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-primary-600 dark:text-primary-400 hover:underline"
-              >tailwind-merge</a
-            >
-          </li>
-          <li>
-            <a
-              href="https://nodemailer.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-primary-600 dark:text-primary-400 hover:underline"
-              >Nodemailer</a
-            >
-          </li>
-        </ul>
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <a
+            v-for="link in authorLinks"
+            :key="link.href"
+            :href="link.href"
+            :target="link.external ? '_blank' : undefined"
+            :rel="link.external ? 'noopener noreferrer' : undefined"
+            class="inline-flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400 hover:underline"
+          >
+            <Icon :name="link.icon" class="w-3 h-3" />
+            {{ link.label }}
+          </a>
+        </div>
       </div>
-    </div>
 
-    <!-- Footer -->
-    <div
-      class="px-4 sm:px-5 py-3 border-t border-gray-200 dark:border-gray-800 flex-shrink-0 text-center"
-    >
-      <UiButton variant="solid" color="gray" size="sm" @click="$emit('close')"> Close </UiButton>
+      <!-- Donate / Support -->
+      <div
+        class="rounded-xl bg-gradient-to-br from-pink-50 to-amber-50 dark:from-pink-900/10 dark:to-amber-900/10 border border-pink-100 dark:border-pink-900/30 overflow-hidden"
+      >
+        <button
+          class="w-full flex items-center justify-between p-4 text-left hover:bg-pink-100/40 dark:hover:bg-pink-900/20 transition-colors"
+          @click="showDonate = !showDonate"
+        >
+          <div class="flex items-center gap-2">
+            <Icon name="mdi:heart-outline" class="w-4 h-4 text-pink-500 dark:text-pink-400" />
+            <div>
+              <p class="text-xs font-semibold text-gray-900 dark:text-gray-300 uppercase tracking-wider">
+                Support the Project
+              </p>
+              <p class="text-[11px] text-gray-500 dark:text-gray-500 mt-0.5">
+                Help keep Numori free and open-source
+              </p>
+            </div>
+          </div>
+          <Icon
+            name="mdi:chevron-down"
+            class="w-4 h-4 text-gray-400 transition-transform duration-200"
+            :class="{ 'rotate-180': showDonate }"
+          />
+        </button>
+        <Transition
+          enter-active-class="transition-all duration-200 ease-out"
+          enter-from-class="max-h-0 opacity-0"
+          enter-to-class="max-h-[300px] opacity-100"
+          leave-active-class="transition-all duration-150 ease-in"
+          leave-from-class="max-h-[300px] opacity-100"
+          leave-to-class="max-h-0 opacity-0"
+        >
+          <div v-if="showDonate" class="overflow-hidden">
+            <div
+              class="px-4 pb-4 grid grid-cols-2 gap-2 border-t border-pink-100 dark:border-pink-900/30 pt-3"
+            >
+              <a
+                v-for="d in donateLinks"
+                :key="d.label"
+                :href="d.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="flex items-center gap-2 px-3 py-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 hover:border-pink-300 dark:hover:border-pink-700 transition-colors"
+              >
+                <Icon :name="d.icon" class="w-4 h-4 flex-shrink-0" :class="d.color" />
+                <span class="text-xs font-medium text-gray-700 dark:text-gray-300">{{ d.label }}</span>
+              </a>
+            </div>
+          </div>
+        </Transition>
+      </div>
+
+      <!-- Download for other platforms (web only) -->
+      <div
+        v-if="!isNative"
+        class="rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-4 space-y-3"
+      >
+        <div class="flex items-center gap-2">
+          <Icon name="mdi:download-outline" class="w-4 h-4 text-gray-400" />
+          <p class="text-xs font-semibold text-gray-900 dark:text-gray-300 uppercase tracking-wider">
+            Get the App
+          </p>
+        </div>
+        <div class="flex flex-wrap justify-center gap-2">
+          <a
+            v-for="dl in downloadLinks"
+            :key="dl.label"
+            :href="dl.url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="group flex flex-col items-center gap-1.5 w-[5.5rem] px-2 py-2.5 rounded-lg border border-transparent hover:border-primary-300 dark:hover:border-primary-700 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
+          >
+            <Icon
+              :name="dl.icon"
+              class="w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors"
+            />
+            <span class="text-[11px] font-medium text-gray-600 dark:text-gray-400 group-hover:text-primary-700 dark:group-hover:text-primary-300 transition-colors">
+              {{ dl.label }}
+            </span>
+          </a>
+        </div>
+      </div>
+
+      <!-- License card -->
+      <div
+        class="rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-4 space-y-2"
+      >
+        <div class="flex items-center gap-2">
+          <Icon name="mdi:license" class="w-4 h-4 text-gray-400" />
+          <p class="text-xs font-semibold text-gray-900 dark:text-gray-300 uppercase tracking-wider">
+            License
+          </p>
+        </div>
+        <p class="text-sm text-gray-700 dark:text-gray-400">
+          GNU Affero General Public License v3.0 (AGPL-3.0)
+        </p>
+      </div>
+
+      <!-- Third-party licenses (collapsible) -->
+      <div
+        class="rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 overflow-hidden"
+      >
+        <button
+          class="w-full flex items-center justify-between p-4 text-left hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors"
+          @click="showDeps = !showDeps"
+        >
+          <div class="flex items-center gap-2">
+            <Icon name="mdi:package-variant-closed" class="w-4 h-4 text-gray-400" />
+            <div>
+              <p class="text-xs font-semibold text-gray-900 dark:text-gray-300 uppercase tracking-wider">
+                Open-Source Libraries
+              </p>
+              <p class="text-[11px] text-gray-500 dark:text-gray-500 mt-0.5">
+                {{ dependencies.length }} packages used in this project
+              </p>
+            </div>
+          </div>
+          <Icon
+            name="mdi:chevron-down"
+            class="w-4 h-4 text-gray-400 transition-transform duration-200 flex-shrink-0"
+            :class="{ 'rotate-180': showDeps }"
+          />
+        </button>
+        <div v-if="showDeps" class="border-t border-gray-100 dark:border-gray-800">
+          <div class="divide-y divide-gray-100 dark:divide-gray-800">
+            <a
+              v-for="dep in dependencies"
+              :key="dep.name"
+              :href="dep.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="flex items-start gap-3 px-4 py-2.5 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors group"
+            >
+              <Icon
+                name="mdi:package-variant"
+                class="w-3.5 h-3.5 text-gray-300 dark:text-gray-600 mt-0.5 flex-shrink-0 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors"
+              />
+              <div class="flex-1 min-w-0">
+                <div class="flex items-baseline gap-2">
+                  <span class="text-xs font-medium text-gray-900 dark:text-gray-200 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors truncate">
+                    {{ dep.name }}
+                  </span>
+                  <span class="text-[10px] text-gray-400 dark:text-gray-600 flex-shrink-0">
+                    {{ dep.license }}
+                  </span>
+                </div>
+                <p class="text-[11px] text-gray-500 dark:text-gray-500 leading-snug mt-0.5">
+                  {{ dep.description }}
+                </p>
+              </div>
+              <Icon
+                name="mdi:open-in-new"
+                class="w-3 h-3 text-gray-300 dark:text-gray-600 mt-0.5 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+              />
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
   </UiModal>
 </template>
@@ -314,31 +273,93 @@ const props = defineProps({
 
 defineEmits(['close'])
 
+const { isNative } = usePlatform()
+const toast = useToast()
 const appVersion = __APP_VERSION__
 const checking = ref(false)
-const checkResult = ref('')
+const showDeps = ref(false)
+const showDonate = ref(false)
 
-const checkResultClass = computed(() => {
-  if (checkResult.value.startsWith('You')) return 'text-green-600 dark:text-green-400'
-  if (checkResult.value.startsWith('Could')) return 'text-red-500 dark:text-red-400'
-  return 'text-primary-600 dark:text-primary-400'
-})
+const downloadLinks = [
+  { label: 'Linux', icon: 'mdi:linux', url: 'https://numori.app/download/linux' },
+  { label: 'macOS', icon: 'mdi:apple', url: 'https://numori.app/download/macos' },
+  { label: 'Windows', icon: 'mdi:microsoft-windows', url: 'https://numori.app/download/windows' },
+  { label: 'Android', icon: 'mdi:android', url: 'https://numori.app/download/android' },
+  { label: 'iOS', icon: 'mdi:apple-ios', url: 'https://numori.app/download/ios' },
+]
+
+const donateLinks = [
+  { label: 'Ko-fi', icon: 'mdi:coffee-outline', url: 'https://ko-fi.com/numori', color: 'text-sky-500' },
+  { label: 'Patreon', icon: 'mdi:patreon', url: 'https://patreon.com/numori', color: 'text-orange-500' },
+  { label: 'PayPal', icon: 'mdi:hand-coin-outline', url: 'https://paypal.me/numori', color: 'text-blue-600' },
+  { label: 'GitHub Sponsors', icon: 'mdi:github', url: 'https://github.com/sponsors/numori', color: 'text-pink-500' },
+  { label: 'Donorbox', icon: 'mdi:gift-outline', url: 'https://donorbox.org/numori', color: 'text-teal-500' },
+  { label: 'Liberapay', icon: 'mdi:currency-eur', url: 'https://liberapay.com/numori', color: 'text-yellow-500' },
+]
+
+const authorLinks = [
+  { href: 'https://erikbjerke.com', label: 'erikbjerke.com', icon: 'mdi:web', external: true },
+  {
+    href: 'https://theprocedural.com',
+    label: 'theprocedural.com',
+    icon: 'mdi:web',
+    external: true,
+  },
+  {
+    href: 'mailto:contact@erikbjerke.com',
+    label: 'contact@erikbjerke.com',
+    icon: 'mdi:email-outline',
+    external: false,
+  },
+  {
+    href: 'mailto:contact@theprocedural.com',
+    label: 'contact@theprocedural.com',
+    icon: 'mdi:email-outline',
+    external: false,
+  },
+]
+
+const dependencies = [
+  { name: 'Nuxt', url: 'https://nuxt.com', license: 'MIT', description: 'Full-stack Vue framework with SSR, routing, and modules' },
+  { name: 'Vue', url: 'https://vuejs.org', license: 'MIT', description: 'Progressive JavaScript framework for building user interfaces' },
+  { name: 'Vue Router', url: 'https://router.vuejs.org', license: 'MIT', description: 'Official client-side router for Vue.js applications' },
+  { name: '@nuxt/fonts', url: 'https://fonts.nuxt.com', license: 'MIT', description: 'Automatic font optimization and loading for Nuxt' },
+  { name: '@nuxt/icon', url: 'https://nuxt.com/modules/icon', license: 'MIT', description: 'Icon component powered by Iconify with 200k+ icons' },
+  { name: '@nuxtjs/color-mode', url: 'https://color-mode.nuxtjs.org', license: 'MIT', description: 'Dark and light mode with auto-detection' },
+  { name: '@nuxtjs/tailwindcss', url: 'https://tailwindcss.nuxtjs.org', license: 'MIT', description: 'Tailwind CSS integration for Nuxt' },
+  { name: '@tailwindcss/typography', url: 'https://tailwindcss.com/docs/typography-plugin', license: 'MIT', description: 'Beautiful typographic defaults for HTML content' },
+  { name: '@vueuse/core', url: 'https://vueuse.org', license: 'MIT', description: 'Collection of essential Vue composition utilities' },
+  { name: '@nuxtjs/i18n', url: 'https://i18n.nuxtjs.org', license: 'MIT', description: 'Internationalization and localization module for Nuxt' },
+  { name: 'nuxt-codemirror', url: 'https://nuxt.com/modules/nuxt-codemirror', license: 'MIT', description: 'CodeMirror editor integration for Nuxt' },
+  { name: 'CodeMirror', url: 'https://codemirror.net', license: 'MIT', description: 'Extensible code editor component for the web' },
+  { name: 'Capacitor', url: 'https://capacitorjs.com', license: 'MIT', description: 'Cross-platform native runtime for web apps on iOS, Android, and desktop' },
+  { name: 'Dexie.js', url: 'https://dexie.org', license: 'Apache-2.0', description: 'Minimalistic IndexedDB wrapper with a friendly API' },
+  { name: 'highlight.js', url: 'https://highlightjs.org', license: 'BSD-3', description: 'Syntax highlighting for the web' },
+  { name: 'bcryptjs', url: 'https://github.com/dcodeIO/bcrypt.js', license: 'MIT', description: 'Pure JavaScript bcrypt password hashing' },
+  { name: 'pg (node-postgres)', url: 'https://node-postgres.com', license: 'MIT', description: 'Non-blocking PostgreSQL client for Node.js' },
+  { name: 'Vitest', url: 'https://vitest.dev', license: 'MIT', description: 'Blazing fast unit test framework powered by Vite' },
+  { name: '@nuxt/eslint', url: 'https://eslint.nuxt.com', license: 'MIT', description: 'ESLint integration with Nuxt-specific rules' },
+  { name: 'tailwind-merge', url: 'https://github.com/dcastil/tailwind-merge', license: 'MIT', description: 'Merge Tailwind CSS classes without style conflicts' },
+  { name: 'Nodemailer', url: 'https://nodemailer.com', license: 'MIT', description: 'Send emails from Node.js with SMTP and other transports' },
+]
 
 const handleCheckUpdate = async () => {
   if (!props.checkForUpdate || checking.value) return
   checking.value = true
-  checkResult.value = ''
   const result = await props.checkForUpdate(true)
   checking.value = false
-  if (result === 'available') checkResult.value = 'A new version is available.'
-  else if (result === 'up-to-date') checkResult.value = "You're up to date."
-  else checkResult.value = 'Could not check for updates.'
+  if (result === 'available') toast.show('A new version is available!', { type: 'info', icon: 'mdi:download-outline' })
+  else if (result === 'up-to-date') toast.show("You're up to date", { type: 'success', icon: 'mdi:check-circle-outline' })
+  else toast.show('Could not check for updates', { type: 'error', icon: 'mdi:alert-circle-outline' })
 }
 
 watch(
   () => props.isOpen,
   (open) => {
-    if (!open) checkResult.value = ''
+    if (!open) {
+      showDeps.value = false
+      showDonate.value = false
+    }
   },
 )
 </script>

@@ -13,10 +13,12 @@
     :tabindex="tabindex"
     v-bind="restAttrs"
   >
-    <!-- Loading state: animated spinner replaces slot content -->
-    <Icon v-if="loading" :name="spinnerIcon" class="animate-spin" :class="spinnerSizeClass" />
+    <!-- Loading state: spinner replaces slot content (default) -->
+    <template v-if="loading && loadingStyle === 'spinner'">
+      <Icon :name="spinnerIcon" class="animate-spin" :class="spinnerSizeClass" />
+    </template>
     <!-- Default slot: button label, icons, or any child content -->
-    <slot v-else />
+    <slot v-else :spinning="loading && loadingStyle === 'icon'" />
   </component>
 </template>
 
@@ -121,6 +123,15 @@ const props = defineProps({
    * @default false
    */
   loading: { type: Boolean, default: false },
+
+  /**
+   * Loading visual style.
+   * - 'spinner': replaces slot content with a spinner icon (default)
+   * - 'icon': keeps slot content visible, exposes `spinning` slot prop for the icon
+   * @type {string}
+   * @default 'spinner'
+   */
+  loadingStyle: { type: String, default: 'spinner' },
 
   /**
    * MDI icon name for the loading spinner.

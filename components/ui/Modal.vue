@@ -12,7 +12,7 @@
     >
       <div
         v-if="show"
-        class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
+        class="fixed inset-0 flex items-center justify-center bg-transparent md:bg-black md:bg-opacity-50"
         :class="[zClass, paddingClass]"
         @click.self="!persistent && $emit('close')"
       >
@@ -27,7 +27,7 @@
         >
           <div
             v-if="show"
-            class="bg-white dark:bg-gray-925 overflow-hidden flex flex-col"
+            class="modal-panel bg-white dark:bg-gray-925 overflow-hidden flex flex-col fixed inset-0 md:static md:inset-auto"
             :class="[panelClass, maxWidthClass, roundedClass]"
             @click.stop
           >
@@ -107,9 +107,9 @@ const props = defineProps({
   /**
    * Padding class around the modal panel (applied to the backdrop container).
    * @type {string}
-   * @default 'p-4'
+   * @default 'md:p-4'
    */
-  padding: { type: String, default: 'p-4' },
+  padding: { type: String, default: 'md:p-4' },
 })
 
 defineEmits(['close'])
@@ -118,23 +118,33 @@ const zClass = computed(() => props.z)
 const paddingClass = computed(() => props.padding)
 
 const maxWidthClass = computed(() => {
+  if (props.maxWidth === 'full') return 'w-full h-full'
+
   const map = {
-    xs: 'max-w-xs w-full',
-    sm: 'max-w-sm w-full',
-    md: 'max-w-md w-full',
-    lg: 'max-w-lg w-full',
-    xl: 'max-w-xl w-full',
-    '2xl': 'max-w-2xl w-full',
-    '3xl': 'max-w-3xl w-full',
-    '4xl': 'max-w-4xl w-full',
-    '5xl': 'max-w-5xl w-full',
-    full: 'w-full h-full',
+    xs: 'md:max-w-xs',
+    sm: 'md:max-w-sm',
+    md: 'md:max-w-md',
+    lg: 'md:max-w-lg',
+    xl: 'md:max-w-xl',
+    '2xl': 'md:max-w-2xl',
+    '3xl': 'md:max-w-3xl',
+    '4xl': 'md:max-w-4xl',
+    '5xl': 'md:max-w-5xl',
   }
-  return map[props.maxWidth] || map.sm
+  return `md:w-full ${map[props.maxWidth] || map.sm}`
 })
 
-// Full-screen mode uses no rounding; all other sizes get rounded-lg
+// Full-screen on mobile (no rounding), rounded on md+ (except explicit full mode)
 const roundedClass = computed(() =>
-  props.maxWidth === 'full' ? 'rounded-none md:rounded-lg' : 'rounded-lg',
+  props.maxWidth === 'full' ? 'rounded-none' : 'rounded-none md:rounded-lg',
 )
 </script>
+
+
+<style scoped>
+@media (max-width: 767px) {
+  .modal-panel {
+    max-height: 100% !important;
+  }
+}
+</style>
