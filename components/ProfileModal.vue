@@ -299,30 +299,6 @@
       <div v-else-if="activeSection === 'security'" class="space-y-4">
         <p class="text-xs text-gray-500 dark:text-gray-500">Manage security settings for your account.</p>
 
-        <!-- Password recovery toggle -->
-        <div class="px-3 py-3 rounded-lg bg-gray-50 dark:bg-gray-900 space-y-2">
-          <UiButton
-            variant="ghost"
-            block
-            :disabled="savingSecurity"
-            class="px-0 py-0 justify-between"
-            @click="togglePasswordRecovery"
-          >
-            <div class="flex items-center gap-2 min-w-0">
-              <Icon name="mdi:email-lock-outline" class="w-4 h-4 text-gray-500 flex-shrink-0" />
-              <span class="text-sm text-gray-700 dark:text-gray-300 truncate">Password recovery by email</span>
-            </div>
-            <UiToggle :model-value="passwordRecoveryEnabled" :disabled="savingSecurity" size="sm" readonly />
-          </UiButton>
-          <p class="text-xs text-gray-500 dark:text-gray-500">
-            {{
-              passwordRecoveryEnabled
-                ? 'You can recover your account via email if you forget your password.'
-                : 'Password recovery is disabled. If you forget your password, your account and notes cannot be recovered.'
-            }}
-          </p>
-        </div>
-
         <!-- Session duration selector -->
         <div class="px-3 py-3 rounded-lg bg-gray-50 dark:bg-gray-900 space-y-2">
           <div class="flex items-center justify-between gap-2">
@@ -374,13 +350,27 @@
             <div class="flex items-center justify-between gap-2">
               <span class="text-xs text-gray-600 dark:text-gray-400">Lock method</span>
               <UiSelect
-                v-model="draft.method"
+                :model-value="draft.method"
                 :block="false"
                 size="sm"
                 aria-label="Lock method"
                 :options="appLockMethodOptions"
+                @update:model-value="onDraftMethodChange"
               />
             </div>
+
+            <!-- Warning when switching away from biometrics on a non-biometric device -->
+            <UiAlert
+              v-if="showBiometricsChangeWarning"
+              color="amber"
+              icon="mdi:cellphone-remove"
+              bordered
+              size="md"
+            >
+              <p class="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
+                The current lock method is set to biometrics on another device. Changing it to {{ draft.method === 'pin' ? 'PIN' : 'Password' }} will disable biometric unlock on all your devices. Use the fallback selector below instead to switch between PIN and password without affecting biometrics.
+              </p>
+            </UiAlert>
 
             <!-- Available biometric types (shown when method is biometrics) -->
             <div v-if="draft.method === 'biometrics' && appLockAvailableBiometrics.length > 1" class="space-y-1.5">
@@ -415,7 +405,7 @@
                 :model-value="draft.pin"
                 type="password"
                 placeholder="Enter 4-digit PIN"
-                maxlength="4"
+                :maxlength="4"
                 inputmode="numeric"
                 :validate="false"
                 @update:model-value="draft.pin = $event.replace(/\D/g, '').slice(0, 4)"
@@ -424,7 +414,7 @@
                 :model-value="draft.pinConfirm"
                 type="password"
                 placeholder="Confirm PIN"
-                maxlength="4"
+                :maxlength="4"
                 inputmode="numeric"
                 :validate="false"
                 @update:model-value="draft.pinConfirm = $event.replace(/\D/g, '').slice(0, 4)"
@@ -502,22 +492,79 @@
               />
             </div>
 
-            <!-- Save button -->
-            <UiButton
-              variant="solid"
-              color="primary"
-              block
-              size="sm"
-              :disabled="!canSaveAppLock"
-              @click="saveAppLock"
-            >
-              Save
-            </UiButton>
+            <!-- Save / Cancel buttons -->
+            <div class="flex gap-2">
+              <UiButton
+                variant="outline"
+                color="gray"
+                class="flex-1"
+                size="sm"
+                :disabled="!draftHasChanges"
+                @click="resetDraft"
+              >
+                Cancel
+              </UiButton>
+              <UiButton
+                variant="solid"
+                color="primary"
+                class="flex-1"
+                size="sm"
+                :disabled="!canSaveAppLock"
+                @click="saveAppLock"
+              >
+                Save
+              </UiButton>
+            </div>
           </template>
         </div>
 
-        <!-- Warning about recovery -->
-        <div class="space-y-2">
+        <!-- Password recovery toggle -->
+        <div class="px-3 py-3 rounded-lg bg-gray-50 dark:bg-gray-900 space-y-2">
+          <UiButton
+            variant="ghost"
+            block
+            :disabled="savingSecurity"
+            class="px-0 py-0 justify-between"
+            @click="onPasswordRecoveryToggle"
+          >
+            <div class="flex items-center gap-2 min-w-0">
+              <Icon name="mdi:email-lock-outline" class="w-4 h-4 text-gray-500 flex-shrink-0" />
+              <span class="text-sm text-gray-700 dark:text-gray-300 truncate">Password recovery by email</span>
+            </div>
+            <UiToggle :model-value="passwordRecoveryEnabled" :disabled="savingSecurity" size="sm" readonly />
+          </UiButton>
+          <p class="text-xs text-gray-500 dark:text-gray-500">
+            {{
+              passwordRecoveryEnabled
+                ? 'You can recover your account via email if you forget your password.'
+                : 'Password recovery is disabled. If you forget your password, your account and notes cannot be recovered.'
+            }}
+          </p>
+
+          <!-- Inline confirmation when enabling -->
+          <div
+            v-if="confirmingRecoveryEnable"
+            class="rounded-lg border p-3 space-y-2 bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-800"
+          >
+            <div class="flex gap-2">
+              <Icon name="mdi:shield-alert-outline" class="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+              <p class="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
+                Enabling password recovery makes your account recoverable via email, but also means anyone with access to your email could reset your password and delete your notes.
+              </p>
+            </div>
+            <div class="flex gap-2">
+              <UiButton variant="outline" color="gray" size="xs" class="flex-1" @click="confirmingRecoveryEnable = false">
+                Cancel
+              </UiButton>
+              <UiButton variant="solid" color="amber" size="xs" class="flex-1" :loading="savingSecurity" @click="confirmPasswordRecovery">
+                Enable
+              </UiButton>
+            </div>
+          </div>
+        </div>
+
+        <!-- Warning about recovery (only shown when recovery is enabled) -->
+        <div v-if="passwordRecoveryEnabled" class="space-y-2">
           <!-- Account access risk -->
           <UiAlert color="amber" icon="mdi:shield-alert-outline" bordered size="md">
             <p class="font-semibold text-amber-800 dark:text-amber-200">Account access risk</p>
@@ -879,6 +926,7 @@ const savingPrivacy = ref(false)
 // Security
 const passwordRecoveryEnabled = ref(false)
 const savingSecurity = ref(false)
+const confirmingRecoveryEnable = ref(false)
 const sessionDuration = ref(604800)
 const savingSessionDuration = ref(false)
 
@@ -946,6 +994,17 @@ const draftShowPassword = computed(() => {
   return false
 })
 
+/**
+ * Show a warning when the saved method is biometrics but the user is switching
+ * to pin/password on a device that doesn't have biometrics (e.g. browser).
+ * This tells them they'll disable biometric unlock on their phone.
+ */
+const showBiometricsChangeWarning = computed(() => {
+  return appLockSettings.method === 'biometrics'
+    && draft.method !== 'biometrics'
+    && appLockAvailableBiometrics.value.length === 0
+})
+
 /** Whether the draft has any change compared to persisted settings */
 const draftHasChanges = computed(() => {
   if (draft.enabled !== appLockSettings.enabled) return true
@@ -965,17 +1024,25 @@ const canSaveAppLock = computed(() => {
   if (!draftHasChanges.value) return false
   // Disabling — always valid
   if (!draft.enabled) return true
-  // PIN method: need valid confirmed PIN (either new or already saved)
+  // PIN method: if user started typing a new PIN, it must be complete and confirmed
   if (draftShowPin.value) {
     const hasExistingPin = appLockSettings.pin?.length === 4
-    const hasNewPin = draft.pin.length === 4 && draft.pin === draft.pinConfirm
-    if (!hasExistingPin && !hasNewPin) return false
+    const startedNewPin = draft.pin.length > 0 || draft.pinConfirm.length > 0
+    if (startedNewPin) {
+      if (draft.pin.length !== 4 || draft.pin !== draft.pinConfirm) return false
+    } else if (!hasExistingPin) {
+      return false
+    }
   }
-  // Password method: need valid confirmed password (either new or already saved)
+  // Password method: if user started typing a new password, it must be confirmed
   if (draftShowPassword.value) {
     const hasExistingPassword = appLockSettings.password?.length >= 1
-    const hasNewPassword = draft.password.length >= 1 && draft.password === draft.passwordConfirm
-    if (!hasExistingPassword && !hasNewPassword) return false
+    const startedNewPassword = draft.password.length > 0 || draft.passwordConfirm.length > 0
+    if (startedNewPassword) {
+      if (draft.password.length < 1 || draft.password !== draft.passwordConfirm) return false
+    } else if (!hasExistingPassword) {
+      return false
+    }
   }
   return true
 })
@@ -990,20 +1057,29 @@ const toggleDraftBiometric = (id) => {
   }
 }
 
-// When method changes in draft, auto-select all biometrics
-watch(() => draft.method, (method) => {
+const onDraftMethodChange = (method) => {
+  draft.method = method
   if (method === 'biometrics') {
     draft.selectedBiometrics = appLockAvailableBiometrics.value.map((b) => b.id)
   }
-  // Clear credential fields on method change
   draft.pin = ''
   draft.pinConfirm = ''
   draft.password = ''
   draft.passwordConfirm = ''
-})
+}
 
 const saveAppLock = async () => {
   if (!canSaveAppLock.value) return
+
+  // Safety net: reject mismatched credentials even if button was somehow enabled
+  if (draftShowPin.value && draft.pin.length > 0 && draft.pin !== draft.pinConfirm) {
+    showFeedback('PINs do not match', 'error')
+    return
+  }
+  if (draftShowPassword.value && draft.password.length > 0 && draft.password !== draft.passwordConfirm) {
+    showFeedback('Passwords do not match', 'error')
+    return
+  }
 
   try {
     if (!draft.enabled) {
@@ -1102,6 +1178,7 @@ const goBack = () => {
   activeSection.value = 'main'
   feedback.value = null
   confirmingAction.value = null
+  confirmingRecoveryEnable.value = false
 }
 
 const showFeedback = (msg, type = 'success') => {
@@ -1339,23 +1416,41 @@ const togglePrivacy = async () => {
 
 const togglePasswordRecovery = async () => {
   const newVal = !passwordRecoveryEnabled.value
-  if (
-    newVal &&
-    !confirm(
-      'Enabling password recovery makes your account recoverable via email, but also means anyone with access to your email could reset your password and delete your notes. Continue?',
-    )
-  ) {
+  if (newVal) {
+    // Show inline confirmation instead of native confirm()
+    confirmingRecoveryEnable.value = true
     return
   }
+  // Disabling — no confirmation needed
   savingSecurity.value = true
   try {
     await apiFetch('/api/auth/security', {
       method: 'PUT',
       headers: props.authHeaders,
-      body: { passwordRecoveryEnabled: newVal },
+      body: { passwordRecoveryEnabled: false },
     })
-    passwordRecoveryEnabled.value = newVal
-    showFeedback(newVal ? 'Password recovery enabled' : 'Password recovery disabled')
+    passwordRecoveryEnabled.value = false
+    showFeedback('Password recovery disabled')
+  } catch (err) {
+    showFeedback(err?.data?.statusMessage || 'Failed to update security setting', 'error')
+  } finally {
+    savingSecurity.value = false
+  }
+}
+
+const onPasswordRecoveryToggle = () => togglePasswordRecovery()
+
+const confirmPasswordRecovery = async () => {
+  confirmingRecoveryEnable.value = false
+  savingSecurity.value = true
+  try {
+    await apiFetch('/api/auth/security', {
+      method: 'PUT',
+      headers: props.authHeaders,
+      body: { passwordRecoveryEnabled: true },
+    })
+    passwordRecoveryEnabled.value = true
+    showFeedback('Password recovery enabled')
   } catch (err) {
     showFeedback(err?.data?.statusMessage || 'Failed to update security setting', 'error')
   } finally {

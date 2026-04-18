@@ -154,6 +154,17 @@
               {{ error }}
             </p>
           </Transition>
+
+          <!-- Logout -->
+          <UiButton
+            variant="ghost"
+            color="red"
+            size="sm"
+            @click="$emit('logout')"
+          >
+            <Icon name="mdi:logout-variant" class="w-4 h-4" />
+            Sign out
+          </UiButton>
         </div>
       </div>
     </Transition>
@@ -164,6 +175,8 @@
 const props = defineProps({
   show: { type: Boolean, default: false },
 })
+
+defineEmits(['logout'])
 
 const { settings, biometricsEnrolled, unlock, unlockWithBiometrics } = useAppLock()
 

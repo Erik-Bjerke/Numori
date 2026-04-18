@@ -255,7 +255,7 @@
       <Icon name="mdi:fullscreen-exit" class="w-4 h-4 block" />
     </UiButton>
 
-    <AppLockScreen :show="appLock.isLocked.value" />
+    <AppLockScreen :show="appLock.isLocked.value" @logout="authHandlers.handleLogout" />
   </div>
 </template>
 
