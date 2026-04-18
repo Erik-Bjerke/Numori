@@ -1,5 +1,5 @@
 {
-  "name": "numori",
+  "name": "numori-notes",
   "type": "module",
   "private": true,
   "version": "0.11.0",
@@ -17,10 +17,10 @@
     }
   ],
   "license": "AGPL-3.0",
-  "homepage": "https://github.com/Erik-Bjerke/Numori",
+  "homepage": "https://github.com/Numori-Ecosystem/Numori-Notes",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Erik-Bjerke/Numori.git"
+    "url": "git@github.com:Numori-Ecosystem/Numori-Notes.git"
   },
   "keywords": [
     "calculator",

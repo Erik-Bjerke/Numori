@@ -3,7 +3,7 @@ import { Capacitor } from '@capacitor/core'
 /**
  * Wrapper around $fetch that prepends the API base URL.
  * On web (same-origin), apiBase is '' so paths stay relative.
- * On native Capacitor, apiBase is the server URL (e.g. https://app.numori.app).
+ * On native Capacitor, apiBase is the server URL (e.g. https://notes.numori.app).
  *
  * On native platforms, injects an X-Device-Info header so the server can
  * identify the device as "Android" / "iOS" + model instead of "Chrome" / "Safari".
@@ -32,7 +32,9 @@ function resolveDeviceInfo() {
       if (m) model = m[1]
     }
     _deviceInfoHeader = model ? `${platform}; ${model}` : platform
-  } catch { /* not on a native platform */ }
+  } catch {
+    /* not on a native platform */
+  }
 }
 
 export const useApi = () => {
@@ -46,7 +48,7 @@ export const useApi = () => {
     if (_deviceInfoHeader) {
       opts = {
         ...opts,
-        headers: { 'X-Device-Info': _deviceInfoHeader, ...opts.headers }
+        headers: { 'X-Device-Info': _deviceInfoHeader, ...opts.headers },
       }
     }
     return $fetch(`${apiBase}${path}`, opts)

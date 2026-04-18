@@ -1,4 +1,4 @@
-# Numori — notes that calculate
+# Numori Notes — notes that calculate
 
 **Free, open-source notes app with a built-in natural language calculator.**
 
@@ -39,14 +39,14 @@ npm run dev                 # http://localhost:3000
 
 ## Scripts
 
-| Command | Description |
-|---|---|
-| `npm run dev` | Start dev server with HMR |
-| `npm run build` | Production build (outputs to `.output/`) |
-| `npm run preview` | Preview production build locally |
-| `npm run generate` | Static site generation |
-| `npm run test` | Run all tests once (vitest) |
-| `npm run test:watch` | Run tests in watch mode |
+| Command              | Description                              |
+| -------------------- | ---------------------------------------- |
+| `npm run dev`        | Start dev server with HMR                |
+| `npm run build`      | Production build (outputs to `.output/`) |
+| `npm run preview`    | Preview production build locally         |
+| `npm run generate`   | Static site generation                   |
+| `npm run test`       | Run all tests once (vitest)              |
+| `npm run test:watch` | Run tests in watch mode                  |
 
 ## Project structure
 
@@ -241,6 +241,7 @@ The calculator processes input line-by-line. Each line goes through this pipelin
 10. Fall back to regular math evaluation
 
 Important implementation details:
+
 - `mod` uses `⊘` as an internal placeholder to avoid conflict with the `%` percentage handler
 - `xor` uses `⊕` to distinguish from `^` (exponentiation)
 - Variable assignment is checked before sum/total keywords to prevent `total = X` from being caught as an aggregation
@@ -249,16 +250,16 @@ Important implementation details:
 
 ## Security & authentication
 
-Numori supports optional cloud sync with end-to-end encryption (E2E). The design ensures the server never has access to plaintext note content or the user's raw password.
+Numori Notes supports optional cloud sync with end-to-end encryption (E2E). The design ensures the server never has access to plaintext note content or the user's raw password.
 
 ### Key derivation
 
 From a single user password, two independent keys are derived client-side using PBKDF2-SHA256 (600 000 iterations), each with a distinct salt:
 
-| Key | Purpose | Leaves the client? |
-|---|---|---|
+| Key       | Purpose                                          | Leaves the client?                    |
+| --------- | ------------------------------------------------ | ------------------------------------- |
 | `authKey` | Hex string sent to the server for authentication | Yes (server stores `bcrypt(authKey)`) |
-| `encKey` | AES-256-GCM key used to encrypt/decrypt notes | Never |
+| `encKey`  | AES-256-GCM key used to encrypt/decrypt notes    | Never                                 |
 
 ```mermaid
 flowchart LR
@@ -346,15 +347,15 @@ Devices that are offline when their session is revoked will not receive the SSE 
 
 #### Session lifecycle
 
-| Event | Session effect |
-|---|---|
-| Login / Register / Password reset | New session created |
-| Any authenticated API call | `last_used_at` updated |
-| Logout | Current session deleted |
-| Password change | All sessions deleted (re-login required) |
-| "Close all other sessions" | All sessions except current deleted |
-| "Close session" (specific) | Target session deleted |
-| Account deletion | All sessions cascade-deleted |
+| Event                             | Session effect                           |
+| --------------------------------- | ---------------------------------------- |
+| Login / Register / Password reset | New session created                      |
+| Any authenticated API call        | `last_used_at` updated                   |
+| Logout                            | Current session deleted                  |
+| Password change                   | All sessions deleted (re-login required) |
+| "Close all other sessions"        | All sessions except current deleted      |
+| "Close session" (specific)        | Target session deleted                   |
+| Account deletion                  | All sessions cascade-deleted             |
 
 ### Encryption format
 
@@ -458,10 +459,10 @@ vi.stubGlobal('ref', (val) => ({ value: val }))
 Tests use four helper functions:
 
 ```js
-calc(expression)         // evaluate single expression, return result string
-calcNum(expression)      // evaluate single expression, return parsed number
-calcLines(lines)         // evaluate multiple lines, return all result strings
-calcLinesLastNum(lines)  // evaluate multiple lines, return last result as number
+calc(expression) // evaluate single expression, return result string
+calcNum(expression) // evaluate single expression, return parsed number
+calcLines(lines) // evaluate multiple lines, return all result strings
+calcLinesLastNum(lines) // evaluate multiple lines, return last result as number
 ```
 
 ### Test categories
@@ -508,10 +509,12 @@ Translations use [nuxt-i18n-micro](https://github.com/nicholasio/nuxt-i18n-micro
 Current locales: `en-GB`, `es-ES`
 
 Translation files:
+
 - `locales/{locale}.json` — global translations
 - `locales/pages/index/{locale}.json` — page-scoped translations
 
 To add a new locale:
+
 1. Add the locale config to `nuxt.config.ts` under `i18n.locales`
 2. Create the corresponding JSON files in `locales/` and `locales/pages/index/`
 3. Copy the structure from `en-GB.json` files and translate
@@ -525,25 +528,25 @@ Custom color palette is defined in `tailwind.config.js` with semantic names: `pr
 ## Docker
 
 ```bash
-docker build -t numori .
-docker run -p 3000:3000 numori
+docker build -t numori-notes .
+docker run -p 3000:3000 numori-notes
 ```
 
 The Dockerfile uses a multi-stage build: build stage with full Node.js, production stage with just the `.output` directory running as a non-root user.
 
 ## Deep linking (Android App Links / iOS Universal Links)
 
-The native apps are configured to open `https://app.numori.app` links directly (e.g. shared note URLs like `/shared/:hash?key=...`).
+The native apps are configured to open `https://notes.numori.app` links directly (e.g. shared note URLs like `/shared/:hash?key=...`).
 
 ### How it works
 
-When a user taps a link to `app.numori.app`, the OS checks verification files hosted on the domain to confirm the app is allowed to handle those URLs. If verified, the link opens in the app instead of the browser. The `plugins/deeplink.client.ts` Capacitor plugin then routes the URL path to Vue Router.
+When a user taps a link to `notes.numori.app`, the OS checks verification files hosted on the domain to confirm the app is allowed to handle those URLs. If verified, the link opens in the app instead of the browser. The `plugins/deeplink.client.ts` Capacitor plugin then routes the URL path to Vue Router.
 
 ### Server-side verification files
 
 Both files live in `public/.well-known/` and are deployed as static assets:
 
-- `apple-app-site-association` — iOS Universal Links. Contains the Team ID + Bundle ID (`35W253Q69K.app.numori.app`).
+- `apple-app-site-association` — iOS Universal Links. Contains the Team ID + Bundle ID (`35W253Q69K.notes.numori.app`).
 - `assetlinks.json` — Android App Links. Contains the package name and signing certificate SHA-256 fingerprints.
 
 ### Android: SHA-256 fingerprints
@@ -569,20 +572,20 @@ keytool -list -v -keystore your-upload-key.jks
 
 If you use **Play App Signing** (most apps do), you also need the fingerprint from Google Play Console → Setup → App signing → "App signing key certificate" → SHA-256.
 
-Without valid fingerprints, users must manually enable the link association in Android Settings → Apps → Numori → Open by default.
+Without valid fingerprints, users must manually enable the link association in Android Settings → Apps → Numori Notes → Open by default.
 
 ### Verifying the setup
 
 After deploying, check that the files are served correctly:
 
 ```bash
-curl https://app.numori.app/.well-known/apple-app-site-association
-curl https://app.numori.app/.well-known/assetlinks.json
+curl https://notes.numori.app/.well-known/apple-app-site-association
+curl https://notes.numori.app/.well-known/assetlinks.json
 ```
 
-Google's verification tool: `https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://app.numori.app&relation=delegate_permission/common.handle_all_urls`
+Google's verification tool: `https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://notes.numori.app&relation=delegate_permission/common.handle_all_urls`
 
-Apple's AASA validator: `https://app-site-association.cdn-apple.com/a/v1/app.numori.app` (note: Apple caches aggressively, changes can take 24–48h to propagate).
+Apple's AASA validator: `https://app-site-association.cdn-apple.com/a/v1/notes.numori.app` (note: Apple caches aggressively, changes can take 24–48h to propagate).
 
 ## Contributing guidelines
 

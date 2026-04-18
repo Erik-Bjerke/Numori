@@ -20,12 +20,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Deep Links: open app.numori.app URLs in the native app -->
+            <!-- Deep Links: open notes.numori.app URLs in the native app -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="app.numori.app" />
+                <data android:scheme="https" android:host="notes.numori.app" />
             </intent-filter>
         </activity>
 

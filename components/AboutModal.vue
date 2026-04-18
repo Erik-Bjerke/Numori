@@ -11,7 +11,7 @@
       class="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-gray-200 dark:border-gray-800 flex-shrink-0"
     >
       <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">
-        About Numori
+        About Numori Notes
       </h2>
       <UiButton variant="ghost" color="gray" icon-only size="sm" @click="$emit('close')">
         <Icon name="mdi:close" class="block w-5 h-5" />
@@ -24,13 +24,13 @@
     >
       <!-- App info -->
       <div class="text-center space-y-2">
-        <p class="text-lg font-semibold text-gray-900 dark:text-gray-200">Numori</p>
+        <p class="text-lg font-semibold text-gray-900 dark:text-gray-200">Numori Notes</p>
         <p class="text-xs text-gray-500 dark:text-gray-500">v{{ appVersion }}</p>
         <p class="text-xs text-gray-500 dark:text-gray-500">
           Made with ❤️ and code from Manchester, England
         </p>
         <a
-          href="https://github.com/Erik-Bjerke/Numori"
+          href="https://github.com/Numori-Ecosystem/Numori-Notes"
           target="_blank"
           rel="noopener noreferrer"
           class="inline-flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400 hover:underline"

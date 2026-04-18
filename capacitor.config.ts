@@ -1,9 +1,9 @@
-import type { CapacitorConfig } from '@capacitor/cli';
+import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
-  appId: 'app.numori.app',
-  appName: 'Numori',
-  webDir: '.output/public'
-};
+  appId: 'notes.numori.app',
+  appName: 'Numori Notes',
+  webDir: '.output/public',
+}
 
-export default config;
+export default config

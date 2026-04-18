@@ -39,19 +39,28 @@ export const useServiceWorker = () => {
     try {
       const row = await db.appState.get(DISMISSED_KEY)
       return row?.value || null
-    } catch { return null }
+    } catch {
+      return null
+    }
   }
 
   const setDismissedVersion = async (v) => {
-    try { await db.appState.put({ key: DISMISSED_KEY, value: v }) } catch { /* noop */ }
+    try {
+      await db.appState.put({ key: DISMISSED_KEY, value: v })
+    } catch {
+      /* noop */
+    }
   }
 
   /** Apply the update — reload for web, open store for native */
   const applyUpdate = () => {
     if (isNative) {
-      const url = storeUrl.value
-        || (platform === 'android' ? 'https://play.google.com/store/apps/details?id=app.numori.app' : '')
-        || (platform === 'ios' ? 'https://apps.apple.com/app/numori/id0000000000' : '')
+      const url =
+        storeUrl.value ||
+        (platform === 'android'
+          ? 'https://play.google.com/store/apps/details?id=notes.numori.app'
+          : '') ||
+        (platform === 'ios' ? 'https://apps.apple.com/app/numori/id0000000000' : '')
       if (url) {
         window.location.href = url
         return
@@ -112,7 +121,9 @@ export const useServiceWorker = () => {
         reg?.update()
       }
       return 'available'
-    } catch { return 'error' }
+    } catch {
+      return 'error'
+    }
   }
 
   /** Restart the poll timer with a new interval (minutes) */
@@ -141,7 +152,14 @@ export const useServiceWorker = () => {
   }
 
   return {
-    updateAvailable, latestVersion, isOnline, isNative, storeUrl,
-    applyUpdate, dismissUpdate, checkForUpdate, setPollInterval,
+    updateAvailable,
+    latestVersion,
+    isOnline,
+    isNative,
+    storeUrl,
+    applyUpdate,
+    dismissUpdate,
+    checkForUpdate,
+    setPollInterval,
   }
 }

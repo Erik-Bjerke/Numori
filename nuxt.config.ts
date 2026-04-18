@@ -19,7 +19,7 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: 'Numori — notes that calculate',
+      title: 'Numori Notes — notes that calculate',
       htmlAttrs: { lang: 'en' },
       meta: [
         {
@@ -34,10 +34,10 @@ export default defineNuxtConfig({
         },
         { name: 'mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
-        { name: 'apple-mobile-web-app-title', content: 'Numori' },
-        { name: 'application-name', content: 'Numori' },
+        { name: 'apple-mobile-web-app-title', content: 'Numori Notes' },
+        { name: 'application-name', content: 'Numori Notes' },
         { name: 'theme-color', content: '#ffffff' },
-        { name: 'og:title', content: 'Numori — notes that calculate' },
+        { name: 'og:title', content: 'Numori Notes — notes that calculate' },
         {
           name: 'og:description',
           content:
@@ -45,7 +45,7 @@ export default defineNuxtConfig({
         },
         { name: 'og:type', content: 'website' },
         { name: 'twitter:card', content: 'summary' },
-        { name: 'twitter:title', content: 'Numori — notes that calculate' },
+        { name: 'twitter:title', content: 'Numori Notes — notes that calculate' },
         {
           name: 'twitter:description',
           content:
@@ -130,7 +130,7 @@ export default defineNuxtConfig({
       apiBase: process.env.NUXT_PUBLIC_API_BASE || '',
       storeAndroid:
         process.env.NUXT_PUBLIC_STORE_ANDROID ||
-        'https://play.google.com/store/apps/details?id=app.numori.app',
+        'https://play.google.com/store/apps/details?id=notes.numori.app',
       storeIos:
         process.env.NUXT_PUBLIC_STORE_IOS || 'https://apps.apple.com/app/numori/id0000000000',
     },
