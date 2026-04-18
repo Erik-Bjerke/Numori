@@ -284,6 +284,7 @@ const auth = useAuth()
 const { apiFetch } = useApi()
 const toast = useToast()
 const appLock = useAppLock()
+const privacyScreen = usePrivacyScreen()
 
 let _onDataWipe = null
 let _onSessionRevoked = null
@@ -498,6 +499,8 @@ onMounted(async () => {
   appLock.detectBiometrics()
   // Sync app lock settings from server (waits for auth if needed)
   appLock.loadFromServer()
+  // Sync privacy screen setting from server (waits for auth if needed)
+  privacyScreen.loadFromServer()
 })
 
 // Share note handler (needs currentNoteId)

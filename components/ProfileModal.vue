@@ -518,6 +518,30 @@
           </template>
         </div>
 
+        <!-- Privacy Screen (native only) -->
+        <div v-if="isNativePlatform" class="px-3 py-3 rounded-lg bg-gray-50 dark:bg-gray-900 space-y-2">
+          <UiButton
+            variant="ghost"
+            block
+            :disabled="savingPrivacyScreen"
+            class="px-0 py-0 justify-between"
+            @click="togglePrivacyScreen"
+          >
+            <div class="flex items-center gap-2 min-w-0">
+              <Icon name="mdi:eye-off-outline" class="w-4 h-4 text-gray-500 flex-shrink-0" />
+              <span class="text-sm text-gray-700 dark:text-gray-300 truncate">Privacy screen</span>
+            </div>
+            <UiToggle :model-value="privacyScreenEnabled" :disabled="savingPrivacyScreen" size="sm" readonly />
+          </UiButton>
+          <p class="text-xs text-gray-500 dark:text-gray-500">
+            {{
+              privacyScreenEnabled
+                ? 'App content is hidden in the app switcher and screenshots are blocked.'
+                : 'Hide app content in the app switcher and prevent screenshots.'
+            }}
+          </p>
+        </div>
+
         <!-- Password recovery toggle -->
         <div class="px-3 py-3 rounded-lg bg-gray-50 dark:bg-gray-900 space-y-2">
           <UiButton
@@ -923,6 +947,10 @@ const { apiFetch, apiUrl } = useApi()
 const privacyNoTracking = ref(true)
 const savingPrivacy = ref(false)
 
+// Privacy Screen
+const { enabled: privacyScreenEnabled, isNative: isNativePlatform, loadFromUser: loadPrivacyScreen, toggle: togglePrivacyScreenSetting } = usePrivacyScreen()
+const savingPrivacyScreen = ref(false)
+
 // Security
 const passwordRecoveryEnabled = ref(false)
 const savingSecurity = ref(false)
@@ -1143,6 +1171,7 @@ watch(
       privacyNoTracking.value = props.user?.privacyNoTracking !== false
       passwordRecoveryEnabled.value = props.user?.passwordRecoveryEnabled === true
       sessionDuration.value = props.user?.sessionDuration || 604800
+      loadPrivacyScreen(props.user)
       activeSection.value = 'main'
       feedback.value = null
       editName.value = props.user?.name || ''
@@ -1411,6 +1440,18 @@ const togglePrivacy = async () => {
     showFeedback(err?.data?.statusMessage || 'Failed to update privacy setting', 'error')
   } finally {
     savingPrivacy.value = false
+  }
+}
+
+const togglePrivacyScreen = async () => {
+  savingPrivacyScreen.value = true
+  try {
+    const newVal = await togglePrivacyScreenSetting({ apiFetch, authHeaders: props.authHeaders })
+    showFeedback(newVal ? 'Privacy screen enabled' : 'Privacy screen disabled')
+  } catch (err) {
+    showFeedback(err?.data?.statusMessage || 'Failed to update privacy screen setting', 'error')
+  } finally {
+    savingPrivacyScreen.value = false
   }
 }
 

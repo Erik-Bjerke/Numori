@@ -402,5 +402,13 @@ export async function migrate() {
     END $do$
   `)
 
+  // Privacy screen preference (synced across devices, applied on native only)
+  await query(`
+    DO $do$ BEGIN
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS privacy_screen_enabled BOOLEAN NOT NULL DEFAULT FALSE;
+    EXCEPTION WHEN duplicate_column THEN NULL;
+    END $do$
+  `)
+
   console.warn('[migrate] Database tables ready')
 }
