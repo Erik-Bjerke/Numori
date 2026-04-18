@@ -19,22 +19,14 @@
             <!-- ═══ Login / Register ═══ -->
             <template v-if="step === 'auth'">
               <!-- Tab switcher -->
-              <div class="flex rounded-lg bg-gray-100 dark:bg-gray-800 p-0.5 mb-4">
-                <Button variant="ghost" size="xs" @click="switchMode('login')"
-                  class="flex-1"
-                  :class="mode === 'login'
-                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 shadow-sm'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'">
-                  Sign In
-                </Button>
-                <Button variant="ghost" size="xs" @click="switchMode('register')"
-                  class="flex-1"
-                  :class="mode === 'register'
-                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 shadow-sm'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'">
-                  Create Account
-                </Button>
-              </div>
+              <ButtonsGroup variant="tabs" class="mb-4"
+                :model-value="mode"
+                @update:model-value="switchMode($event)"
+                :options="[
+                  { value: 'login', label: 'Sign In' },
+                  { value: 'register', label: 'Create Account' },
+                ]"
+              />
 
               <p class="text-xs text-gray-500 dark:text-gray-500 mb-4">
                 {{ mode === 'login' ? 'Sign in to sync your notes across devices.' : 'Signing up is optional. It enables cloud sync across devices.' }}

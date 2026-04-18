@@ -2,46 +2,26 @@
   <div class="flex flex-wrap items-center gap-1 sm:flex-nowrap">
     <!-- View toggles -->
     <div class="flex items-center gap-1 w-full sm:w-auto justify-between sm:justify-start">
-      <div class="inline-flex items-center bg-gray-200/50 dark:bg-gray-800 rounded-lg" role="group">
-        <Button @click="$emit('update:renderMarkdown', true)" variant="ghost" icon-only
-          :class="renderMarkdown
-            ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
-            : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
-          title="Render Markdown">
-          <Icon name="mdi:language-markdown" class="w-4.5 h-4.5 block" />
-        </Button>
-        <Button @click="$emit('update:renderMarkdown', false)" variant="ghost" icon-only
-          :class="!renderMarkdown
-            ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
-            : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
-          title="Raw text">
-          <Icon name="mdi:format-text" class="w-4.5 h-4.5 block" />
-        </Button>
-      </div>
+      <ButtonsGroup
+        :model-value="renderMarkdown"
+        @update:model-value="$emit('update:renderMarkdown', $event)"
+        size="sm" icon-class="w-4.5 h-4.5"
+        :options="[
+          { value: true, icon: 'mdi:language-markdown', title: 'Render Markdown' },
+          { value: false, icon: 'mdi:format-text', title: 'Raw text' },
+        ]"
+      />
 
-      <div class="inline-flex items-center bg-gray-200/50 dark:bg-gray-800 rounded-lg" role="group">
-        <Button @click="$emit('update:resultsPosition', 'left')" variant="ghost" icon-only
-          :class="resultsPosition === 'left'
-            ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
-            : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
-          title="Results on left">
-          <Icon name="mdi:dock-left" class="w-4.5 h-4.5 block" />
-        </Button>
-        <Button @click="$emit('update:resultsPosition', 'off')" variant="ghost" icon-only
-          :class="resultsPosition === 'off'
-            ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
-            : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
-          title="Results off">
-          <Icon name="mdi:eye-off-outline" class="w-4.5 h-4.5 block" />
-        </Button>
-        <Button @click="$emit('update:resultsPosition', 'right')" variant="ghost" icon-only
-          :class="resultsPosition === 'right'
-            ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
-            : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
-          title="Results on right">
-          <Icon name="mdi:dock-right" class="w-4.5 h-4.5 block" />
-        </Button>
-      </div>
+      <ButtonsGroup
+        :model-value="resultsPosition"
+        @update:model-value="$emit('update:resultsPosition', $event)"
+        size="sm" icon-class="w-4.5 h-4.5"
+        :options="[
+          { value: 'left', icon: 'mdi:dock-left', title: 'Results on left' },
+          { value: 'off', icon: 'mdi:eye-off-outline', title: 'Results off' },
+          { value: 'right', icon: 'mdi:dock-right', title: 'Results on right' },
+        ]"
+      />
     </div>
 
     <!-- Spacer / line break on mobile -->

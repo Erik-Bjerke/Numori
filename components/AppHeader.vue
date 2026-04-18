@@ -57,29 +57,15 @@
         <!-- Right: Actions -->
         <div class="flex items-center gap-0.5">
           <!-- Inline results mode group -->
-          <div class="inline-flex items-center bg-gray-200/50 dark:bg-gray-800 rounded-lg" role="group">
-            <Button @click="$emit('update:inline-mode', 'left')" variant="ghost" icon-only
-              :class="inlineMode === 'left'
-                ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
-                : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
-              title="Results on left">
-              <Icon name="mdi:dock-left" class="w-5 h-5 block" />
-            </Button>
-            <Button @click="$emit('update:inline-mode', 'off')" variant="ghost" icon-only
-              :class="inlineMode === 'off'
-                ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
-                : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
-              title="Results off">
-              <Icon name="mdi:eye-off-outline" class="w-5 h-5 block" />
-            </Button>
-            <Button @click="$emit('update:inline-mode', 'right')" variant="ghost" icon-only
-              :class="inlineMode === 'right'
-                ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
-                : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
-              title="Results on right">
-              <Icon name="mdi:dock-right" class="w-5 h-5 block" />
-            </Button>
-          </div>
+          <ButtonsGroup
+            :model-value="inlineMode"
+            @update:model-value="$emit('update:inline-mode', $event)"
+            :options="[
+              { value: 'left', icon: 'mdi:dock-left', title: 'Results on left' },
+              { value: 'off', icon: 'mdi:eye-off-outline', title: 'Results off' },
+              { value: 'right', icon: 'mdi:dock-right', title: 'Results on right' },
+            ]"
+          />
 
           <div class="w-px h-5 bg-gray-300/60 dark:bg-gray-700 mx-0.5"></div>
 
