@@ -185,11 +185,11 @@
           </li>
           <li>
             <a
-              href="https://s00d.github.io/nuxt-i18n-micro"
+              href="https://i18n.nuxtjs.org"
               target="_blank"
               rel="noopener noreferrer"
               class="text-primary-600 dark:text-primary-400 hover:underline"
-              >nuxt-i18n-micro</a
+              >@nuxtjs/i18n</a
             >
           </li>
           <li>
@@ -264,6 +264,33 @@
               rel="noopener noreferrer"
               class="text-primary-600 dark:text-primary-400 hover:underline"
               >Vitest</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://eslint.nuxt.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-primary-600 dark:text-primary-400 hover:underline"
+              >@nuxt/eslint</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://github.com/dcastil/tailwind-merge"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-primary-600 dark:text-primary-400 hover:underline"
+              >tailwind-merge</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://nodemailer.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-primary-600 dark:text-primary-400 hover:underline"
+              >Nodemailer</a
             >
           </li>
         </ul>

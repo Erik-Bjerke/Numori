@@ -8,6 +8,7 @@ Do math with natural language and get results in real time as you type. Just wri
 
 - **Natural language math** — type `half of 500`, `30% off 89.99`, `sqrt(144)`, or `3 hours 20 min + 45 min` and see results live as you write
 - **Full notepad** — markdown support, multiple notes, tags, search, templates, and export to PDF, HTML, Markdown, and plain text
+- **Note groups** — organise notes into groups, create groups from bulk selection, drag-and-drop reordering
 - **45+ currencies with live rates** — `100 GBP in JPY` just works, updated on every session
 - **Unit conversions** — length, weight, volume, temperature, area, speed, data, time, CSS units, and more
 - **Date & time** — `days until christmas`, `today + 3 weeks`, timezone conversions
@@ -15,10 +16,12 @@ Do math with natural language and get results in real time as you type. Just wri
 - **Aggregation** — `sum` and `average` across previous lines
 - **Cloud sync with E2E encryption** — optional account, end-to-end encrypted, the server never sees your notes
 - **Session management** — view active sessions across devices, revoke any session remotely, automatic logout on revoked devices
+- **Email verification & password recovery** — verify your email, recover your account with OTP-based password reset
 - **Works everywhere** — PWA for desktop and mobile browsers, plus native iOS and Android via Capacitor
 - **Offline-first** — everything runs client-side with IndexedDB; no internet required for core features
 - **Share notes** — password-protected shared links with view analytics
 - **i18n** — English and Spanish, easy to add more
+- **In-app updates** — automatic update detection with toast notifications
 
 Built with Nuxt 4, Vue 3, CodeMirror, Tailwind CSS, and Dexie.js.
 
@@ -58,23 +61,53 @@ npm run dev                 # http://localhost:3000
 │   └── shared/
 │       └── [hash].vue             # Public shared-note viewer
 ├── components/
+│   ├── ui/                        # Reusable UI primitives
+│   │   ├── Alert.vue              # Alert / banner component
+│   │   ├── Avatar.vue             # User avatar
+│   │   ├── Badge.vue              # Status / label badge
+│   │   ├── Button.vue             # Button with variants, sizes, loading state
+│   │   ├── ButtonsGroup.vue       # Grouped button container
+│   │   ├── ButtonsList.vue        # Vertical button list
+│   │   ├── ButtonsListItem.vue    # Single item in a buttons list
+│   │   ├── Checkbox.vue           # Checkbox input
+│   │   ├── Divider.vue            # Horizontal divider
+│   │   ├── Dropdown.vue           # Dropdown menu container
+│   │   ├── DropdownItem.vue       # Dropdown menu item
+│   │   ├── DropdownSubmenu.vue    # Nested dropdown submenu
+│   │   ├── FileInput.vue          # File upload input
+│   │   ├── FormField.vue          # Form field wrapper with label / error
+│   │   ├── Input.vue              # Text input
+│   │   ├── Kbd.vue                # Keyboard shortcut badge
+│   │   ├── Modal.vue              # Modal dialog
+│   │   ├── Popup.vue              # Popup / popover
+│   │   ├── ProgressBar.vue        # Progress bar
+│   │   ├── Select.vue             # Select dropdown
+│   │   ├── Slider.vue             # Range slider
+│   │   ├── Stepper.vue            # Numeric stepper
+│   │   ├── Toggle.vue             # Toggle switch
+│   │   └── Tooltip.vue            # Tooltip
 │   ├── AboutModal.vue             # About / credits modal
+│   ├── AddToGroupModal.vue        # Add note(s) to a group
 │   ├── AppHeader.vue              # Top bar with title, menus, and actions
 │   ├── AuthModal.vue              # Login / register modal
 │   ├── AvatarEditor.vue           # Avatar upload / crop
 │   ├── ConfirmBulkDeleteModal.vue # Bulk-delete confirmation
 │   ├── ConfirmDeleteModal.vue     # Single-delete confirmation
-│   ├── DropdownItem.vue           # Reusable dropdown menu item
-│   ├── DropdownSubmenu.vue        # Nested dropdown submenu
+│   ├── DeleteGroupModal.vue       # Group deletion confirmation
+│   ├── EmailVerificationBanner.vue # Email verification prompt banner
+│   ├── EmailVerificationModal.vue # Email verification OTP modal
 │   ├── ExportOptionsModal.vue     # Export format picker
 │   ├── FileDropdown.vue           # File menu dropdown
 │   ├── FormattingToolbar.vue      # Markdown formatting toolbar
+│   ├── GroupListItem.vue          # Single group row in the sidebar
+│   ├── GroupModal.vue             # Create / rename group modal
 │   ├── HelpModal.vue              # In-app documentation modal
 │   ├── LanguageSwitcher.vue       # i18n locale selector
-│   ├── MainSidebar.vue            # Notes list sidebar with search, tags, CRUD, and account menu
+│   ├── MainSidebar.vue            # Notes list sidebar with search, tags, groups, CRUD, and account menu
 │   ├── NoteEditor.vue             # CodeMirror editor wrapper with calc integration
 │   ├── NoteListItem.vue           # Single note row in the sidebar
 │   ├── NoteMetaModal.vue          # Note rename / metadata / share modal
+│   ├── OfflineIndicator.vue       # Offline status indicator
 │   ├── ProfileModal.vue           # User profile, sessions, password change, data deletion
 │   ├── SettingsModal.vue          # Locale and display preferences
 │   ├── ShareAnalyticsModal.vue    # Shared note view analytics
@@ -83,6 +116,8 @@ npm run dev                 # http://localhost:3000
 │   ├── SyncIndicator.vue          # Sync status indicator
 │   ├── TemplatesModal.vue         # Calculation templates picker
 │   ├── ThemeSwitcher.vue          # Light / dark mode toggle
+│   ├── ToastNotification.vue      # Toast notification component
+│   ├── UpdateNotification.vue     # In-app update available notification
 │   ├── ViewDropdown.vue           # View menu dropdown (zoom, markdown, theme toggle)
 │   └── WelcomeWizard.vue          # First-run onboarding wizard
 ├── composables/
@@ -92,28 +127,46 @@ npm run dev                 # http://localhost:3000
 │   │   ├── constants.js           # pi, e, tau, phi, etc.
 │   │   ├── currency.js            # Live exchange rates + conversion
 │   │   ├── datetime.js            # Date / time / duration / timezone
+│   │   ├── extract.js             # Expression extraction and parsing helpers
 │   │   ├── math.js                # Arithmetic, functions, trig, bitwise
 │   │   ├── scales.js              # k, M, billion, trillion, SI prefixes
-│   │   └── units.js               # Unit conversion (length, weight, …)
+│   │   ├── units.js               # Unit conversion (length, weight, …)
+│   │   ├── data/
+│   │   │   ├── currencies.json    # Currency codes and metadata
+│   │   │   └── timezones.json     # Timezone aliases and mappings
+│   │   └── __tests__/             # Calculator engine tests (colocated)
 │   ├── useApi.js                  # API fetch wrapper (app-level)
 │   ├── useApiBase.js              # Base fetch helper (shared with shared page)
 │   ├── useAuth.js                 # Auth state, key derivation, session persistence and validation
-│   ├── useNumoriLanguage.js        # Custom CodeMirror language (numori)
+│   ├── useAuthHandlers.js         # Auth event handlers (login, register, logout flows)
+│   ├── useNumoriLanguage.js       # Custom CodeMirror language (numori)
 │   ├── useCalculator.js           # Calculator composable (delegates to calculator/)
 │   ├── useCodeHighlight.js        # Syntax highlighting helpers
 │   ├── useDisplayFormatter.js     # Number / result display formatting
+│   ├── useEditorDecorations.js    # CodeMirror editor decorations
+│   ├── useEditorInteractions.js   # Editor interaction handlers
+│   ├── useEditorStyles.js         # Editor styling configuration
 │   ├── useFileActions.js          # Export, import, duplicate, print
+│   ├── useGroupManagement.js      # Group CRUD and sync operations
+│   ├── useGroups.js               # Group state and local persistence
+│   ├── useHasVirtualKeyboard.js   # Virtual keyboard detection
 │   ├── useKeyboardShortcuts.js    # Global keyboard shortcut bindings
 │   ├── useLocalePreferences.js    # Locale and display preferences state
 │   ├── useNativeKeyboardToolbar.ts # iOS native keyboard accessory bridge
+│   ├── useNoteActions.js          # Note-level action handlers
 │   ├── useNotes.js                # Note CRUD + IndexedDB persistence
+│   ├── useOnlineStatus.js         # Online / offline status tracking
 │   ├── usePlatform.js             # Platform detection (web, ios, android)
+│   ├── useServiceWorker.js        # Service worker registration and update handling
+│   ├── useShareManagement.js      # Share CRUD and link management
 │   ├── useSync.js                 # Cloud sync with E2E encryption
 │   ├── useTemplates.js            # Predefined calculation templates
+│   ├── useToast.js                # Toast notification state
 │   └── useWelcomeWizard.js        # First-run wizard state
 ├── utils/
 │   ├── crypto.js                  # E2E encryption: key derivation, AES-GCM encrypt/decrypt
-│   └── keyboard-toolbar.ts        # Native keyboard toolbar utilities
+│   ├── keyboard-toolbar.ts        # Native keyboard toolbar utilities
+│   └── normaliseName.js           # Name normalisation helpers
 ├── plugins/
 │   ├── deeplink.client.ts         # Deep link handler (Universal Links / App Links)
 │   ├── pwa.client.ts              # PWA service worker registration
@@ -128,12 +181,20 @@ npm run dev                 # http://localhost:3000
 │   │   │   ├── password.put.js    # PUT  /api/auth/password — change password + re-encrypt
 │   │   │   ├── privacy.put.js     # PUT  /api/auth/privacy — tracking preferences
 │   │   │   ├── security.put.js    # PUT  /api/auth/security — toggle security settings
+│   │   │   ├── session-duration.put.js # PUT /api/auth/session-duration — configure session lifetime
 │   │   │   ├── sessions.get.js    # GET  /api/auth/sessions — list active sessions
 │   │   │   ├── sessions.delete.js # DELETE /api/auth/sessions — revoke all other sessions
 │   │   │   ├── sessions/
 │   │   │   │   └── [id].delete.js # DELETE /api/auth/sessions/:id — revoke single session
 │   │   │   ├── logout.post.js     # POST /api/auth/logout — revoke current session
-│   │   │   └── delete.post.js     # POST /api/auth/delete — delete data or account
+│   │   │   ├── delete.post.js     # POST /api/auth/delete — delete data or account
+│   │   │   ├── send-verification.post.js  # POST /api/auth/send-verification — send email OTP
+│   │   │   ├── verify-email.post.js       # POST /api/auth/verify-email — verify email OTP
+│   │   │   ├── forgot-password.post.js    # POST /api/auth/forgot-password — request password recovery
+│   │   │   ├── reset-password.post.js     # POST /api/auth/reset-password — reset password with token
+│   │   │   └── verify-recovery.post.js    # POST /api/auth/verify-recovery — verify recovery OTP
+│   │   ├── groups/
+│   │   │   └── sync.post.js       # POST /api/groups/sync — bulk group sync
 │   │   ├── notes/
 │   │   │   ├── index.get.js       # GET  /api/notes — list notes
 │   │   │   ├── index.post.js      # POST /api/notes — create / upsert note
@@ -149,52 +210,23 @@ npm run dev                 # http://localhost:3000
 │   │   │       ├── analytics.get.js    # GET  — view analytics
 │   │   │       ├── analytics.delete.js # DELETE — clear analytics
 │   │   │       └── import.post.js      # POST — record import event
-│   │   └── sync/
-│   │       └── events.get.js      # GET /api/sync/events — SSE endpoint
+│   │   ├── sync/
+│   │   │   └── events.get.js      # GET /api/sync/events — SSE endpoint
+│   │   └── version.get.js         # GET /api/version — app version for update checks
 │   ├── middleware/
 │   │   └── cors.js                # CORS headers for API routes
 │   ├── plugins/
-│   │   └── migrate.js             # Auto-run DB migrations on startup
+│   │   ├── migrate.js             # Auto-run DB migrations on startup
+│   │   └── purge-sessions.js      # Periodic expired session cleanup
 │   └── utils/
 │       ├── auth.js                # JWT sign / verify, requireAuth helper
 │       ├── db.js                  # PostgreSQL connection pool + query helper
+│       ├── email.js               # Email sending via nodemailer (SMTP)
+│       ├── geo.js                 # Geolocation from request headers
 │       ├── migrate.js             # SQL migration runner
 │       ├── session.js             # Session creation, validation, revocation helpers
 │       └── syncBroadcast.js       # SSE broadcast to connected clients
-├── locales/
-│   ├── en-GB.json                 # English translations
-│   ├── es-ES.json                 # Spanish translations
-│   └── pages/
-│       ├── index/                 # Page-scoped translations (main page)
-│       └── shared-hash/           # Page-scoped translations (shared page)
-├── tests/
-│   ├── calculator/                # Calculator engine tests (by module)
-│   │   ├── helpers.js             # Shared test helpers
-│   │   ├── aggregation.test.js
-│   │   ├── arithmetic.test.js
-│   │   ├── currency.test.js
-│   │   ├── datetime.test.js
-│   │   ├── fuelconsumption.test.js
-│   │   ├── functions.test.js
-│   │   ├── localePreferences.test.js
-│   │   ├── spaceless_units.test.js
-│   │   ├── units.test.js
-│   │   └── variables.test.js
-│   ├── server/                    # Server API tests
-│   │   ├── auth-delete.test.js
-│   │   ├── auth-login.test.js
-│   │   ├── auth-password.test.js
-│   │   ├── auth-register.test.js
-│   │   ├── share-create.test.js
-│   │   ├── share-get.test.js
-│   │   └── sync.test.js
-│   ├── numoriLanguage.test.js      # CodeMirror language tests
-│   ├── codeHighlight.test.js      # Syntax highlighting tests
-│   ├── crypto.test.js             # Crypto unit tests
-│   ├── crypto-integration.test.js # Crypto integration tests
-│   ├── fileActions.test.js        # Export / import tests
-│   ├── localePreferences.test.js  # Locale preferences tests
-│   └── logout-safety.test.js      # Logout + sync guard tests
+├── i18n/                          # i18n translation files (managed by @nuxtjs/i18n)
 ├── public/
 │   ├── .well-known/
 │   │   ├── apple-app-site-association  # iOS Universal Links verification
@@ -223,7 +255,10 @@ The app is a pure client-side SPA (`ssr: false` in `nuxt.config.ts`). All data i
 - `useCalculator.js` — The core engine. Parses natural language input and evaluates arithmetic, percentages, unit conversions, currency exchange, date/time, variables, and aggregation (sum/average). This is where most of the logic lives and where most contributions will happen.
 - `useNumoriLanguage.js` — Registers a custom CodeMirror language (`numori`) with syntax highlighting for numbers, operators, units, currencies, functions, and comments.
 - `useNotes.js` — Manages multiple notes with auto-save to IndexedDB via Dexie.js.
+- `useGroups.js` / `useGroupManagement.js` — Note group state and CRUD with cloud sync support.
 - `useTemplates.js` — Provides predefined templates (budget, cooking, fitness, etc.).
+- `useToast.js` — Toast notification state management.
+- `useServiceWorker.js` — Service worker registration and in-app update detection.
 
 ### Calculator engine overview
 
@@ -357,6 +392,10 @@ Devices that are offline when their session is revoked will not receive the SSE 
 | "Close session" (specific)        | Target session deleted                   |
 | Account deletion                  | All sessions cascade-deleted             |
 
+### Email verification & password recovery
+
+After registration, users can verify their email via an OTP code sent to their inbox. Verified emails unlock password recovery — if a user forgets their password, they can request a recovery OTP, verify it, and set a new password. Email is sent via SMTP using nodemailer.
+
 ### Encryption format
 
 All sensitive note fields (title, description, tags, content) are encrypted individually with AES-256-GCM before being sent to the server. Each encrypted field is a JSON string:
@@ -441,7 +480,7 @@ The following items are known trade-offs or areas for future improvement:
 
 ## Testing
 
-Tests live in `tests/useCalculator.test.js` — 221 tests across 35 categories covering every calculator feature.
+Tests are colocated alongside their source files in `__tests__/` directories — 709 tests across 31 test files covering calculator features, composables, server APIs, and utilities.
 
 ```bash
 npm run test          # single run
@@ -465,59 +504,32 @@ calcLines(lines) // evaluate multiple lines, return all result strings
 calcLinesLastNum(lines) // evaluate multiple lines, return last result as number
 ```
 
-### Test categories
+### Test locations
 
-1. Basic arithmetic
-2. Word operators (plus, minus, times, divide, etc.)
-3. Implicit multiplication
-4. Number formats (binary, octal, hex)
-5. Scientific notation output
-6. Scales (k, M, billion, trillion)
-7. Constants (pi, e, tau, phi)
-8. Variables and assignment
-9. Previous result (`prev`)
-10. Percentages (all 9 operations)
-11. Math functions (sqrt, cbrt, abs, log, ln, fact, round, ceil, floor)
-12. Trigonometry (sin, cos, tan with degree support)
-13. Inverse trig (arcsin, arccos, arctan)
-14. Hyperbolic functions (sinh, cosh, tanh)
-15. Unit conversion — length, weight, volume, temperature, area, speed, data, time
-16. CSS units (px, pt, em, rem with custom ppi)
-17. Angular units (degrees, radians)
-18. Currency conversion (45+ currencies, live rates)
-19. Date and time (now, today, yesterday, tomorrow, relative dates)
-20. Duration calculations
-21. `fromunix()` timestamp conversion
-22. Sum and total aggregation
-23. Average aggregation
-24. Formatting (headers, comments, labels, inline comments)
-25. Bitwise operations (AND, OR, XOR, shift)
-26. SI prefixes
-27. Compound unit expressions
-28. Square/cubic prefixes for area/volume
-29. Timezone conversion
-30. Edge cases
+```
+composables/calculator/__tests__/   # Calculator engine tests (arithmetic, units, currency, datetime, …)
+composables/__tests__/              # Composable tests (code highlight, file actions, locale, language)
+server/api/auth/__tests__/          # Auth API tests (register, login, password, delete)
+server/api/notes/__tests__/         # Notes API tests (sync, logout safety)
+server/api/share/__tests__/         # Share API tests (create, get)
+utils/__tests__/                    # Utility tests (crypto, crypto integration)
+```
 
 ### Writing new tests
 
-When adding a calculator feature, add tests to the appropriate `describe` block in `useCalculator.test.js`. If it's a new category, add a new `describe` block following the existing numbering pattern. All tests must pass before merging.
+When adding a calculator feature, add tests to the appropriate `describe` block in the relevant test file under `composables/calculator/__tests__/`. If it's a new category, add a new test file following the existing naming pattern. All tests must pass before merging.
 
 ## i18n
 
-Translations use [nuxt-i18n-micro](https://github.com/nicholasio/nuxt-i18n-micro) with the `no_prefix` strategy (no URL prefixes).
+Translations use [@nuxtjs/i18n](https://i18n.nuxtjs.org/) with the `no_prefix` strategy (no URL prefixes).
 
 Current locales: `en-GB`, `es-ES`
-
-Translation files:
-
-- `locales/{locale}.json` — global translations
-- `locales/pages/index/{locale}.json` — page-scoped translations
 
 To add a new locale:
 
 1. Add the locale config to `nuxt.config.ts` under `i18n.locales`
-2. Create the corresponding JSON files in `locales/` and `locales/pages/index/`
-3. Copy the structure from `en-GB.json` files and translate
+2. Create the corresponding JSON translation files
+3. Copy the structure from the `en-GB` files and translate
 
 ## Theming
 
@@ -589,17 +601,18 @@ Apple's AASA validator: `https://app-site-association.cdn-apple.com/a/v1/notes.n
 
 ## Contributing guidelines
 
-- All calculator logic goes in `composables/useCalculator.js`
+- All calculator logic goes in `composables/calculator/`
 - Every new feature must have corresponding unit tests
-- Run `npm run test` before committing — all 221+ tests must pass
+- Run `npm run test` before committing — all 709+ tests must pass
 - The app is a client-side SPA — no server-side logic for calculator features
 - Use Tailwind utility classes for styling, follow the existing color palette
 - All user-facing strings must use i18n keys, not hardcoded text
 - Components should be single-file Vue components in `components/`
+- Reusable UI primitives go in `components/ui/`
 
 ## What the app does (quick reference)
 
-Arithmetic, word operators, variables, percentages (9 operations), math functions, trig, unit conversions (10 categories), 45+ currencies with live rates, date/time arithmetic, timezone conversion, sum/average aggregation, number format conversion, bitwise operations, and more. See the in-app help modal or `tests/useCalculator.test.js` for the full feature list with examples.
+Arithmetic, word operators, variables, percentages (9 operations), math functions, trig, unit conversions (10 categories), 45+ currencies with live rates, date/time arithmetic, timezone conversion, sum/average aggregation, number format conversion, bitwise operations, note groups, and more. See the in-app help modal or the test files under `composables/calculator/__tests__/` for the full feature list with examples.
 
 ## License
 
