@@ -113,8 +113,7 @@
                   <!-- Controls -->
                   <div class="flex items-center justify-between flex-wrap gap-2">
                     <label class="flex items-center gap-2 cursor-pointer">
-                      <input v-model="showRaw" type="checkbox"
-                        class="w-3.5 h-3.5 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500" />
+                      <Checkbox v-model="showRaw" size="sm" />
                       <span class="text-xs text-gray-500 dark:text-gray-500">Show raw data</span>
                     </label>
                     <div class="flex items-center gap-2">
@@ -131,9 +130,8 @@
 
                   <!-- Select all on page -->
                   <label v-if="uniqueDetailViewers.length > 0" class="flex items-center gap-2 cursor-pointer px-1">
-                    <input type="checkbox" :checked="allOnPageSelected"
-                      @change="toggleSelectAll"
-                      class="w-3.5 h-3.5 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500" />
+                    <Checkbox :checked="allOnPageSelected" size="sm"
+                      @change="toggleSelectAll" />
                     <span class="text-xs text-gray-500 dark:text-gray-500">Select all on this page</span>
                   </label>
 
@@ -142,9 +140,8 @@
                     <div v-for="v in uniqueDetailViewers" :key="v.id"
                       class="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                       <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-900">
-                        <input type="checkbox" :checked="selectedIds.has(v.id)"
-                          @change="toggleSelect(v.id)"
-                          class="w-3.5 h-3.5 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500" />
+                        <Checkbox :checked="selectedIds.has(v.id)" size="sm"
+                          @change="toggleSelect(v.id)" />
                         <Icon :name="v.eventType === 'import' ? 'mdi:download' : 'mdi:eye-outline'"
                           class="w-4 h-4 flex-shrink-0"
                           :class="v.eventType === 'import' ? 'text-primary-500' : 'text-gray-400'" />

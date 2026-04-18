@@ -72,8 +72,7 @@
         </button>
         <div class="relative flex-1">
           <Icon name="mdi:magnify" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input v-model="searchQuery" type="text" placeholder="Search notes..."
-            class="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" />
+          <Input v-model="searchQuery" type="text" placeholder="Search notes..." :validate="false" />
         </div>
         <button @click="showFilters = !showFilters"
           class="flex-shrink-0 p-1.5 rounded-lg transition-all duration-200 leading-none"

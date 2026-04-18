@@ -20,8 +20,7 @@
               <div class="flex items-center gap-2">
                 <div class="relative">
                   <Icon name="mdi:magnify" class="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                  <input v-model="searchQuery" type="text" placeholder="Search settings..."
-                    class="w-40 md:w-56 pl-7 pr-7 py-1 text-sm bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                  <Input v-model="searchQuery" type="text" placeholder="Search settings..." :validate="false"
                     @keydown.escape="searchQuery = ''" />
                   <button v-if="searchQuery" @click="searchQuery = ''" class="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
                     <Icon name="mdi:close" class="block w-4 h-4" />
@@ -182,12 +181,12 @@
                         </div>
                         <div>
                           <label :class="labelClass">Font Size: {{ preferences.editorFontSize }}px</label>
-                          <input type="range" min="10" max="28" step="1" v-model.number="preferences.editorFontSize" @input="onSettingChange" class="w-full accent-primary-500" />
+                          <Slider min="10" max="28" step="1" v-model="preferences.editorFontSize" @input="onSettingChange" />
                           <div class="flex justify-between text-xs text-gray-400 mt-1"><span>10px</span><span>28px</span></div>
                         </div>
                         <div>
                           <label :class="labelClass">Line Height: {{ preferences.editorLineHeight }}px</label>
-                          <input type="range" min="14" max="36" step="1" v-model.number="preferences.editorLineHeight" @input="onSettingChange" class="w-full accent-primary-500" />
+                          <Slider min="14" max="36" step="1" v-model="preferences.editorLineHeight" @input="onSettingChange" />
                           <div class="flex justify-between text-xs text-gray-400 mt-1"><span>14px</span><span>36px</span></div>
                         </div>
                       </div>
@@ -302,7 +301,7 @@
                         </div>
                         <div>
                           <label :class="labelClass">Tab Size: {{ preferences.editorTabSize }} spaces</label>
-                          <input type="range" min="1" max="8" step="1" v-model.number="preferences.editorTabSize" @input="onSettingChange" class="w-full accent-primary-500" />
+                          <Slider min="1" max="8" step="1" v-model="preferences.editorTabSize" @input="onSettingChange" />
                           <div class="flex justify-between text-xs text-gray-400 mt-1"><span>1</span><span>8</span></div>
                         </div>
                       </div>
@@ -335,12 +334,12 @@
                         </div>
                         <div v-if="preferences.precisionMode === 'decimals'">
                           <label :class="labelClass">Decimal Places: {{ preferences.decimalPlaces }}</label>
-                          <input type="range" min="0" max="15" step="1" v-model.number="preferences.decimalPlaces" @input="onSettingChange" class="w-full accent-primary-500" />
+                          <Slider min="0" max="15" step="1" v-model="preferences.decimalPlaces" @input="onSettingChange" />
                           <div class="flex justify-between text-xs text-gray-400 mt-1"><span>0</span><span>15</span></div>
                         </div>
                         <div v-if="preferences.precisionMode === 'significant'">
                           <label :class="labelClass">Significant Figures: {{ preferences.significantFigures }}</label>
-                          <input type="range" min="1" max="15" step="1" v-model.number="preferences.significantFigures" @input="onSettingChange" class="w-full accent-primary-500" />
+                          <Slider min="1" max="15" step="1" v-model="preferences.significantFigures" @input="onSettingChange" />
                           <div class="flex justify-between text-xs text-gray-400 mt-1"><span>1</span><span>15</span></div>
                         </div>
                       </div>

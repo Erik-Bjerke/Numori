@@ -18,8 +18,7 @@
             <div v-if="activeHash" class="space-y-3">
               <p class="text-sm text-gray-700 dark:text-gray-400">Your note is shared. Anyone with this link can view it:</p>
               <div class="flex items-center gap-2">
-                <input :value="activeShareUrl" readonly
-                  class="flex-1 min-w-0 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-400 text-xs font-mono outline-none truncate" />
+                <Input :model-value="activeShareUrl" readonly :validate="false" />
                 <button @click="copyLink"
                   class="flex-shrink-0 p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
                   <Icon :name="copied ? 'mdi:check' : 'mdi:content-copy'" class="w-4 h-4 block" />
@@ -64,8 +63,7 @@
 
               <!-- Anonymous toggle -->
               <label class="flex items-center gap-2 cursor-pointer">
-                <input v-model="anonymous" type="checkbox"
-                  class="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500" />
+                <Checkbox v-model="anonymous" />
                 <span class="text-sm text-gray-700 dark:text-gray-400">Share anonymously</span>
               </label>
 
@@ -73,15 +71,11 @@
               <template v-if="!isLoggedIn && !anonymous">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Your name</label>
-                  <input v-model="sharerName" type="text"
-                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
-                    placeholder="Optional" />
+                  <Input v-model="sharerName" type="text" placeholder="Optional" :validate="false" />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Your email</label>
-                  <input v-model="sharerEmail" type="email"
-                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
-                    placeholder="Optional" />
+                  <Input v-model="sharerEmail" type="email" placeholder="Optional" />
                 </div>
               </template>
 
@@ -126,21 +120,11 @@
               <div v-if="sharePasswordMode === 'custom'" class="space-y-2">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Share password</label>
-                  <div class="relative">
-                    <input v-model="sharePassword" :type="showSharePassword ? 'text' : 'password'"
-                      class="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
-                      placeholder="Enter a password for this share" />
-                    <button type="button" @click="showSharePassword = !showSharePassword" tabindex="-1"
-                      class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                      :aria-label="showSharePassword ? 'Hide password' : 'Show password'">
-                      <Icon :name="showSharePassword ? 'mdi:eye-off-outline' : 'mdi:eye-outline'" class="w-4 h-4" />
-                    </button>
-                  </div>
+                  <Input v-model="sharePassword" type="password" placeholder="Enter a password for this share" :validate="false" />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Password hint <span class="font-normal text-gray-400 dark:text-gray-600">(optional)</span></label>
-                  <input v-model="passwordHint" type="text" maxlength="255"
-                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
+                  <Input v-model="passwordHint" type="text" :maxlength="255" :validate="false"
                     placeholder="A hint to help the recipient remember the password" />
                 </div>
               </div>
@@ -160,8 +144,7 @@
               <!-- Analytics toggle with tooltip -->
               <div class="relative">
                 <label class="flex items-center gap-2 cursor-pointer">
-                  <input v-model="collectAnalytics" type="checkbox"
-                    class="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500" />
+                  <Checkbox v-model="collectAnalytics" />
                   <span class="text-sm text-gray-700 dark:text-gray-400">Enable view analytics</span>
                   <div class="relative group">
                     <Icon name="mdi:information-outline" class="w-4 h-4 text-gray-400 cursor-help" />
@@ -232,7 +215,6 @@ const sharePasswordMode = ref('none') // 'none' = passwordless (random key in UR
 const sharePassword = ref('')
 const passwordHint = ref('')
 const usedSharePassword = ref(false)
-const showSharePassword = ref(false)
 
 const activeHash = computed(() => newShareHash.value || props.existingHash)
 

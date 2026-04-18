@@ -103,12 +103,12 @@
                   <!-- Decimal places / sig figs slider -->
                   <div v-if="preferences.precisionMode === 'decimals'">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Decimal Places: {{ preferences.decimalPlaces }}</label>
-                    <input type="range" min="0" max="15" step="1" v-model.number="preferences.decimalPlaces" @input="onPrecisionChange" class="w-full accent-primary-500" />
+                    <Slider min="0" max="15" step="1" v-model="preferences.decimalPlaces" @input="onPrecisionChange" />
                     <div class="flex justify-between text-xs text-gray-400 mt-1"><span>0</span><span>15</span></div>
                   </div>
                   <div v-if="preferences.precisionMode === 'significant'">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Significant Figures: {{ preferences.significantFigures }}</label>
-                    <input type="range" min="1" max="15" step="1" v-model.number="preferences.significantFigures" @input="onPrecisionChange" class="w-full accent-primary-500" />
+                    <Slider min="1" max="15" step="1" v-model="preferences.significantFigures" @input="onPrecisionChange" />
                     <div class="flex justify-between text-xs text-gray-400 mt-1"><span>1</span><span>15</span></div>
                   </div>
 

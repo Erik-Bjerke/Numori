@@ -175,11 +175,11 @@
                     <Icon name="mdi:image-plus" class="w-10 h-10 text-gray-400" />
                   </div>
                   <p class="text-sm text-gray-600 dark:text-gray-400">Choose an image for your avatar</p>
-                  <label class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer">
+                  <FileInput accept="image/*" @select="onFileSelect"
+                    class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg">
                     <Icon name="mdi:upload" class="w-4 h-4" />
                     Upload Image
-                    <input type="file" accept="image/*" class="hidden" @change="onFileSelect" />
-                  </label>
+                  </FileInput>
                   <button v-if="user?.avatarUrl" @click="removeAvatar"
                     class="block mx-auto text-xs text-red-500 hover:text-red-700 dark:text-red-400 transition-colors mt-2">
                     Remove current avatar
@@ -206,15 +206,11 @@
               <div v-else-if="activeSection === 'edit'" class="space-y-4">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Name</label>
-                  <input v-model="editName" type="text"
-                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
-                    placeholder="Your name" />
+                  <Input v-model="editName" type="text" placeholder="Your name" :validate="false" />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Email</label>
-                  <input v-model="editEmail" type="email"
-                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
-                    placeholder="you@example.com" />
+                  <Input v-model="editEmail" type="email" placeholder="you@example.com" />
                 </div>
                 <button @click="saveProfile" :disabled="saving"
                   class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
@@ -230,40 +226,16 @@
                 </p>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Current Password</label>
-                  <div class="relative">
-                    <input v-model="currentPassword" :type="showCurrentPassword ? 'text' : 'password'"
-                      class="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm" />
-                    <button type="button" @click="showCurrentPassword = !showCurrentPassword" tabindex="-1"
-                      class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                      :aria-label="showCurrentPassword ? 'Hide password' : 'Show password'">
-                      <Icon :name="showCurrentPassword ? 'mdi:eye-off-outline' : 'mdi:eye-outline'" class="w-4 h-4" />
-                    </button>
-                  </div>
+                  <Input v-model="currentPassword" type="password" :validate="false" />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">New Password</label>
-                  <div class="relative">
-                    <input v-model="newPassword" :type="showNewPassword ? 'text' : 'password'" minlength="8"
-                      class="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm" />
-                    <button type="button" @click="showNewPassword = !showNewPassword" tabindex="-1"
-                      class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                      :aria-label="showNewPassword ? 'Hide password' : 'Show password'">
-                      <Icon :name="showNewPassword ? 'mdi:eye-off-outline' : 'mdi:eye-outline'" class="w-4 h-4" />
-                    </button>
-                  </div>
+                  <Input v-model="newPassword" type="password" :minlength="8" :validate="false" />
                   <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">At least 8 characters</p>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Confirm New Password</label>
-                  <div class="relative">
-                    <input v-model="confirmNewPassword" :type="showConfirmNewPassword ? 'text' : 'password'"
-                      class="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm" />
-                    <button type="button" @click="showConfirmNewPassword = !showConfirmNewPassword" tabindex="-1"
-                      class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                      :aria-label="showConfirmNewPassword ? 'Hide password' : 'Show password'">
-                      <Icon :name="showConfirmNewPassword ? 'mdi:eye-off-outline' : 'mdi:eye-outline'" class="w-4 h-4" />
-                    </button>
-                  </div>
+                  <Input v-model="confirmNewPassword" type="password" :validate="false" />
                   <p v-if="confirmNewPassword && newPassword !== confirmNewPassword" class="text-xs text-red-600 dark:text-red-400 mt-1">Passwords do not match</p>
                 </div>
 
@@ -372,15 +344,7 @@
                 </p>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Confirm Password</label>
-                  <div class="relative">
-                    <input v-model="dangerPassword" :type="showDangerPassword ? 'text' : 'password'"
-                      class="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm" />
-                    <button type="button" @click="showDangerPassword = !showDangerPassword" tabindex="-1"
-                      class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                      :aria-label="showDangerPassword ? 'Hide password' : 'Show password'">
-                      <Icon :name="showDangerPassword ? 'mdi:eye-off-outline' : 'mdi:eye-outline'" class="w-4 h-4" />
-                    </button>
-                  </div>
+                  <Input v-model="dangerPassword" type="password" :validate="false" />
                 </div>
 
                 <!-- Confirmation prompt -->
@@ -596,13 +560,9 @@ const currentPassword = ref('')
 const newPassword = ref('')
 const confirmNewPassword = ref('')
 const reEncryptProgress = ref(null)
-const showCurrentPassword = ref(false)
-const showNewPassword = ref(false)
-const showConfirmNewPassword = ref(false)
 
 // Danger zone
 const dangerPassword = ref('')
-const showDangerPassword = ref(false)
 const confirmingAction = ref(null)
 
 // Shared notes
@@ -673,13 +633,11 @@ const formatDate = (iso) => {
 }
 
 // Avatar
-const onFileSelect = (e) => {
-  const file = e.target.files?.[0]
+const onFileSelect = (file) => {
   if (!file) return
   const reader = new FileReader()
   reader.onload = () => { avatarImageSrc.value = reader.result }
   reader.readAsDataURL(file)
-  e.target.value = ''
 }
 
 const onAvatarCropped = (dataUrl) => {

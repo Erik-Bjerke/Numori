@@ -17,16 +17,13 @@
             <div class="space-y-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Name</label>
-                <input v-model="localName" type="text" ref="nameInput"
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                  placeholder="Group name" @keydown.enter="save" />
+                <Input v-model="localName" type="text" ref="nameInput" placeholder="Group name" :validate="false"
+                  @keydown.enter="save" />
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Internal Name</label>
-                <input v-model="localInternalName" type="text"
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-500 font-mono text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                  placeholder="group_name"
-                  @input="internalNameManuallyEdited = true" />
+                <Input v-model="localInternalName" type="text" placeholder="group_name" :validate="false"
+                  @update:model-value="internalNameManuallyEdited = true" />
                 <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Auto-generated from name. Edit to customise.</p>
               </div>
             </div>

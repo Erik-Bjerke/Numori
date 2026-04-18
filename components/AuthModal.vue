@@ -49,47 +49,26 @@
                 <!-- Name (register only) -->
                 <div v-if="mode === 'register'">
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Name</label>
-                  <input v-model="name" type="text" autocomplete="name"
-                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
-                    placeholder="Your name (optional)" />
+                  <Input v-model="name" type="text" autocomplete="name" placeholder="Your name (optional)" :validate="false" />
                 </div>
 
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Email</label>
-                  <input v-model="email" type="email" required autocomplete="email"
-                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
-                    placeholder="you@example.com" />
+                  <Input v-model="email" type="email" required autocomplete="email" placeholder="you@example.com" />
                 </div>
 
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Password</label>
-                  <div class="relative">
-                    <input v-model="password" :type="showPassword ? 'text' : 'password'" required autocomplete="current-password"
-                      :minlength="mode === 'register' ? 8 : undefined"
-                      class="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
-                      placeholder="••••••••" />
-                    <button type="button" @click="showPassword = !showPassword" tabindex="-1"
-                      class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                      :aria-label="showPassword ? 'Hide password' : 'Show password'">
-                      <Icon :name="showPassword ? 'mdi:eye-off-outline' : 'mdi:eye-outline'" class="w-4 h-4" />
-                    </button>
-                  </div>
+                  <Input v-model="password" type="password" required autocomplete="current-password"
+                    :minlength="mode === 'register' ? 8 : undefined" placeholder="••••••••" :validate="false" />
                   <p v-if="mode === 'register'" class="text-xs text-gray-500 dark:text-gray-500 mt-1">At least 8 characters</p>
                 </div>
 
                 <!-- Confirm password (register only) -->
                 <div v-if="mode === 'register'">
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Confirm Password</label>
-                  <div class="relative">
-                    <input v-model="confirmPassword" :type="showConfirmPassword ? 'text' : 'password'" required autocomplete="new-password" minlength="8"
-                      class="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
-                      placeholder="••••••••" />
-                    <button type="button" @click="showConfirmPassword = !showConfirmPassword" tabindex="-1"
-                      class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                      :aria-label="showConfirmPassword ? 'Hide password' : 'Show password'">
-                      <Icon :name="showConfirmPassword ? 'mdi:eye-off-outline' : 'mdi:eye-outline'" class="w-4 h-4" />
-                    </button>
-                  </div>
+                  <Input v-model="confirmPassword" type="password" required autocomplete="new-password"
+                    :minlength="8" placeholder="••••••••" :validate="false" />
                   <p v-if="passwordMismatch" class="text-xs text-red-600 dark:text-red-400 mt-1">Passwords do not match</p>
                 </div>
 
@@ -126,9 +105,7 @@
               <form @submit.prevent="handleForgotPassword" class="space-y-3">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Email</label>
-                  <input v-model="recoveryEmail" type="email" required
-                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
-                    placeholder="you@example.com" />
+                  <Input v-model="recoveryEmail" type="email" required placeholder="you@example.com" />
                 </div>
                 <button type="submit" :disabled="loading"
                   class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
@@ -155,8 +132,8 @@
               <form @submit.prevent="handleVerifyRecovery" class="space-y-3">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Verification Code</label>
-                  <input v-model="otpCode" type="text" required inputmode="numeric" maxlength="6" pattern="[0-9]{6}"
-                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm text-center tracking-[0.3em] text-lg font-mono"
+                  <Input v-model="otpCode" type="text" required :maxlength="6" pattern="[0-9]{6}"
+                    validation-pattern="^[0-9]{6}$" validation-message="Enter a 6-digit code"
                     placeholder="000000" />
                 </div>
                 <button type="submit" :disabled="loading || otpCode.length !== 6"
@@ -191,28 +168,12 @@
               <form @submit.prevent="handleResetPassword" class="space-y-3">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">New Password</label>
-                  <div class="relative">
-                    <input v-model="newPassword" :type="showNewPassword ? 'text' : 'password'" required minlength="8"
-                      class="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
-                      placeholder="••••••••" />
-                    <button type="button" @click="showNewPassword = !showNewPassword" tabindex="-1"
-                      class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                      <Icon :name="showNewPassword ? 'mdi:eye-off-outline' : 'mdi:eye-outline'" class="w-4 h-4" />
-                    </button>
-                  </div>
+                  <Input v-model="newPassword" type="password" required :minlength="8" placeholder="••••••••" :validate="false" />
                   <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">At least 8 characters</p>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Confirm New Password</label>
-                  <div class="relative">
-                    <input v-model="confirmNewPassword" :type="showConfirmNewPassword ? 'text' : 'password'" required minlength="8"
-                      class="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
-                      placeholder="••••••••" />
-                    <button type="button" @click="showConfirmNewPassword = !showConfirmNewPassword" tabindex="-1"
-                      class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                      <Icon :name="showConfirmNewPassword ? 'mdi:eye-off-outline' : 'mdi:eye-outline'" class="w-4 h-4" />
-                    </button>
-                  </div>
+                  <Input v-model="confirmNewPassword" type="password" required :minlength="8" placeholder="••••••••" :validate="false" />
                   <p v-if="confirmNewPassword && newPassword !== confirmNewPassword" class="text-xs text-red-600 dark:text-red-400 mt-1">Passwords do not match</p>
                 </div>
                 <button type="submit" :disabled="loading || !newPassword || newPassword.length < 8 || newPassword !== confirmNewPassword"
@@ -246,17 +207,12 @@ const password = ref('')
 const confirmPassword = ref('')
 const name = ref('')
 
-const showPassword = ref(false)
-const showConfirmPassword = ref(false)
-
 // Recovery state
 const recoveryEmail = ref('')
 const otpCode = ref('')
 const recoveryToken = ref(null)
 const newPassword = ref('')
 const confirmNewPassword = ref('')
-const showNewPassword = ref(false)
-const showConfirmNewPassword = ref(false)
 
 const passwordMismatch = computed(() => {
   return mode.value === 'register' && confirmPassword.value && password.value !== confirmPassword.value

@@ -19,19 +19,15 @@
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">
                 Title
               </label>
-              <input v-model="localTitle" type="text"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                placeholder="Untitled Note" />
+              <Input v-model="localTitle" type="text" placeholder="Untitled Note" :validate="false" />
             </div>
 
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">
                 Internal Name
               </label>
-              <input v-model="localInternalName" type="text"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-500 font-mono text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                placeholder="untitled_note"
-                @input="internalNameManuallyEdited = true" />
+              <Input v-model="localInternalName" type="text" placeholder="untitled_note" :validate="false"
+                @update:model-value="internalNameManuallyEdited = true" />
               <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
                 Auto-generated from title. Edit to customise.
               </p>
@@ -61,12 +57,10 @@
                 </span>
               </div>
               <div class="relative">
-                <input v-model="tagInput" type="text"
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                  placeholder="e.g. work, ideas, urgent"
+                <Input v-model="tagInput" type="text" placeholder="e.g. work, ideas, urgent" :validate="false"
                   @keydown.enter.prevent="addTags"
                   @keydown.backspace="tagInput === '' && localTags.length && removeTag(localTags.length - 1)"
-                  @input="onTagInput" />
+                  @update:model-value="onTagInput" />
                 <div v-if="tagSuggestions.length" class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-32 overflow-y-auto">
                   <button v-for="s in tagSuggestions" :key="s" @mousedown.prevent="selectSuggestion(s)"
                     class="w-full text-left px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
@@ -104,8 +98,7 @@
               </button>
             </div>
             <div v-if="props.shared && props.shareHash" class="flex items-center gap-2 mt-2">
-              <input :value="shareUrl" readonly
-                class="flex-1 px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-400 text-xs font-mono outline-none" />
+              <Input :model-value="shareUrl" readonly :validate="false" />
               <button @click="copyShareLink"
                 class="flex-shrink-0 p-1.5 bg-primary-600 hover:bg-primary-700 text-white rounded transition-colors">
                 <Icon :name="copiedLink ? 'mdi:check' : 'mdi:content-copy'" class="w-3.5 h-3.5 block" />

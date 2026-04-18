@@ -19,25 +19,31 @@
       <!-- Zoom -->
       <div class="flex items-center gap-2">
         <Icon name="mdi:magnify-minus-outline" class="w-4 h-4 text-gray-400 flex-shrink-0" />
-        <input type="range" :min="minScale" :max="maxScale" :step="0.01" v-model.number="scale"
-          class="flex-1 h-1.5 accent-primary-600" @input="draw" />
+        <Slider :min="minScale" :max="maxScale" :step="0.01" v-model="scale"
+          width="flex" @input="draw" />
         <Icon name="mdi:magnify-plus-outline" class="w-4 h-4 text-gray-400 flex-shrink-0" />
+        <Input type="number" :model-value="scaleDisplay" :min="Math.round(minScale * 100)" :max="Math.round(maxScale * 100)" :step="1"
+          stepper-layout="stacked-right" :validate="false" class="!w-16 flex-shrink-0 text-center"
+          @update:model-value="onScaleInput" />
       </div>
 
       <!-- Rotate -->
       <div class="flex items-center gap-2">
         <Icon name="mdi:rotate-left" class="w-4 h-4 text-gray-400 flex-shrink-0" />
-        <input type="range" :min="-180" :max="180" :step="1" v-model.number="rotation"
-          class="flex-1 h-1.5 accent-primary-600" @input="draw" />
+        <Slider :min="-180" :max="180" :step="1" v-model="rotation"
+          width="flex" @input="draw" />
         <Icon name="mdi:rotate-right" class="w-4 h-4 text-gray-400 flex-shrink-0" />
+        <Input type="number" :model-value="rotation" :min="-180" :max="180" :step="1"
+          stepper-layout="stacked-right" :validate="false" class="!w-16 flex-shrink-0 text-center"
+          @update:model-value="onRotationInput" />
       </div>
 
-      <!-- Quick rotate buttons -->
+      <!-- Quick rotate & reset buttons -->
       <div class="flex items-center justify-center gap-2">
         <button @click="rotateBy(-90)" class="px-2 py-1 text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors">
           -90°
         </button>
-        <button @click="rotation = 0; draw()" class="px-2 py-1 text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors">
+        <button @click="resetAll" class="px-2 py-1 text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors">
           Reset
         </button>
         <button @click="rotateBy(90)" class="px-2 py-1 text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors">
@@ -67,6 +73,34 @@ const panX = ref(0)
 const panY = ref(0)
 const dragging = ref(false)
 const lastPointer = ref({ x: 0, y: 0 })
+const initialScale = ref(1)
+
+// Scale displayed as percentage for the number input
+const scaleDisplay = computed(() => Math.round(scale.value * 100))
+
+const onScaleInput = (val) => {
+  const n = Number(val)
+  if (Number.isFinite(n)) {
+    scale.value = Math.min(maxScale.value, Math.max(minScale.value, n / 100))
+    draw()
+  }
+}
+
+const onRotationInput = (val) => {
+  const n = Number(val)
+  if (Number.isFinite(n)) {
+    rotation.value = Math.min(180, Math.max(-180, n))
+    draw()
+  }
+}
+
+const resetAll = () => {
+  scale.value = initialScale.value
+  rotation.value = 0
+  panX.value = 0
+  panY.value = 0
+  draw()
+}
 
 // Load image
 watch(() => props.imageSource, (src) => {
@@ -77,6 +111,7 @@ watch(() => props.imageSource, (src) => {
     // Fit image to canvas
     const fitScale = props.canvasSize / Math.min(image.width, image.height)
     scale.value = fitScale
+    initialScale.value = fitScale
     minScale.value = fitScale * 0.5
     maxScale.value = fitScale * 3
     panX.value = 0
