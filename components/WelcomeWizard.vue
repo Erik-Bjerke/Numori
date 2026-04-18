@@ -331,16 +331,16 @@ const selectPreset = (key) => {
   props.applyPreset(key)
   const targetLocale = presetLocaleMap[key]
   if (targetLocale && availableLocales.value.some((l) => l.code === targetLocale)) {
-    $switchLocale(targetLocale)
+    setLocale(targetLocale)
   }
   props.savePreferences()
 }
 
 // Language
-const { $getLocale, $getLocales, $switchLocale } = useI18n()
-const availableLocales = computed(() => $getLocales())
-const currentLocaleCode = computed(() => $getLocale())
-const changeLocale = (code) => $switchLocale(code)
+const { locale, locales, setLocale } = useI18n()
+const availableLocales = computed(() => locales.value)
+const currentLocaleCode = computed(() => locale.value)
+const changeLocale = (code) => setLocale(code)
 const getLanguageEmoji = (code) => {
   const map = {
     'en-GB': '🇬🇧',

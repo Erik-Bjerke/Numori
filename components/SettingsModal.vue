@@ -656,10 +656,10 @@ const onScroll = () => {
 }
 
 // Language
-const { $getLocale, $getLocales, $switchLocale } = useI18n()
-const availableLocales = computed(() => $getLocales())
-const currentLocaleCode = computed(() => $getLocale())
-const changeLocale = (code) => $switchLocale(code)
+const { locale, locales, setLocale } = useI18n()
+const availableLocales = computed(() => locales.value)
+const currentLocaleCode = computed(() => locale.value)
+const changeLocale = (code) => setLocale(code)
 const getLanguageEmoji = (code) => {
   const map = {
     'en-GB': '🇬🇧',
@@ -681,7 +681,7 @@ const getLanguageEmoji = (code) => {
 const selectPreset = (name) => {
   props.applyPreset(name)
   const targetLocale = presetLocaleMap[name]
-  if (targetLocale && availableLocales.value.some((l) => l.code === targetLocale)) $switchLocale(targetLocale)
+  if (targetLocale && availableLocales.value.some((l) => l.code === targetLocale)) setLocale(targetLocale)
   props.save()
 }
 
