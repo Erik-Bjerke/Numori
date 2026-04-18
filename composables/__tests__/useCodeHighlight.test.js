@@ -5,7 +5,7 @@
  * detection regex used by NoteEditor.
  */
 import { describe, it, expect } from 'vitest'
-import { highlightCode } from '../composables/useCodeHighlight.js'
+import { highlightCode } from '../useCodeHighlight.js'
 
 // ─── Fence detection regex (mirrors NoteEditor) ───
 const FENCE_RE = /^```([\w+#.-]*)$/

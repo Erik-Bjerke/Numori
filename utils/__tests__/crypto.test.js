@@ -17,7 +17,7 @@ import {
   decryptNote,
   encryptSharedNote,
   decryptSharedNote,
-} from '../utils/crypto.js'
+} from '../crypto.js'
 
 // ── deriveAuthKey ────────────────────────────────────────────────────────
 

@@ -8,7 +8,7 @@ const mockCopy = vi.fn(() => Promise.resolve())
 vi.stubGlobal('useClipboard', () => ({ copy: mockCopy }))
 
 // We test the pure logic functions directly by importing the composable
-const { useFileActions } = await import('../composables/useFileActions.js')
+const { useFileActions } = await import('../useFileActions.js')
 
 const {
   sanitizeFilename,

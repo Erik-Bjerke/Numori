@@ -7,9 +7,9 @@ import bcrypt from 'bcryptjs'
 const mockQuery = vi.fn()
 const mockSignJwt = vi.fn()
 
-vi.mock('../../server/utils/db.js', () => ({ query: (...args) => mockQuery(...args) }))
-vi.mock('../../server/utils/auth.js', () => ({ signJwt: (...args) => mockSignJwt(...args) }))
-vi.mock('../../server/utils/session.js', () => ({ createSession: vi.fn() }))
+vi.mock('../../../utils/db.js', () => ({ query: (...args) => mockQuery(...args) }))
+vi.mock('../../../utils/auth.js', () => ({ signJwt: (...args) => mockSignJwt(...args) }))
+vi.mock('../../../utils/session.js', () => ({ createSession: vi.fn() }))
 
 globalThis.defineEventHandler = (handler) => handler
 globalThis.readBody = vi.fn()
@@ -19,7 +19,7 @@ globalThis.createError = (opts) => {
   return err
 }
 
-const handler = (await import('../../server/api/auth/login.post.js')).default
+const handler = (await import('../login.post.js')).default
 
 beforeEach(() => {
   vi.clearAllMocks()

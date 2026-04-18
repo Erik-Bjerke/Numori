@@ -32,8 +32,7 @@ vi.stubGlobal('reactive', (val) => val)
 vi.stubGlobal('computed', (fn) => ({ value: fn() }))
 vi.stubGlobal('watch', () => {})
 
-const { useLocalePreferences, LOCALE_PRESETS } =
-  await import('../../composables/useLocalePreferences.js')
+const { useLocalePreferences, LOCALE_PRESETS } = await import('../../useLocalePreferences.js')
 const dbModule = await import('~/db.js')
 const db = dbModule.default
 

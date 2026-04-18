@@ -28,8 +28,7 @@ vi.stubGlobal('import', { meta: { client: true } })
 // Dexie load path uses import.meta.client — we need to ensure it's truthy
 Object.defineProperty(import.meta, 'client', { value: true, writable: true })
 
-const { useLocalePreferences, LOCALE_PRESETS } =
-  await import('../composables/useLocalePreferences.js')
+const { useLocalePreferences, LOCALE_PRESETS } = await import('../useLocalePreferences.js')
 const dbModule = await import('~/db.js')
 const db = dbModule.default
 

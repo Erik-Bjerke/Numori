@@ -8,8 +8,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const mockQuery = vi.fn()
 const mockOptionalAuth = vi.fn()
 
-vi.mock('../../server/utils/db.js', () => ({ query: (...args) => mockQuery(...args) }))
-vi.mock('../../server/utils/auth.js', () => ({
+vi.mock('../../../utils/db.js', () => ({ query: (...args) => mockQuery(...args) }))
+vi.mock('../../../utils/auth.js', () => ({
   optionalAuth: (...args) => mockOptionalAuth(...args),
 }))
 
@@ -22,7 +22,7 @@ globalThis.createError = (opts) => {
   return err
 }
 
-const handler = (await import('../../server/api/share/[hash].get.js')).default
+const handler = (await import('../[hash].get.js')).default
 
 beforeEach(() => {
   vi.clearAllMocks()

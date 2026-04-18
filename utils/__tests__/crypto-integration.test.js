@@ -20,7 +20,7 @@ import {
   decryptNote,
   encryptSharedNote,
   decryptSharedNote,
-} from '../utils/crypto.js'
+} from '../crypto.js'
 
 describe('full E2E encryption lifecycle', () => {
   const password = 'MySecureP@ssw0rd!'

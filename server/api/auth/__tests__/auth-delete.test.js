@@ -8,11 +8,11 @@ const mockQuery = vi.fn()
 const mockRequireAuth = vi.fn()
 const mockNotifySync = vi.fn()
 
-vi.mock('../../server/utils/db.js', () => ({ query: (...args) => mockQuery(...args) }))
-vi.mock('../../server/utils/auth.js', () => ({
+vi.mock('../../../utils/db.js', () => ({ query: (...args) => mockQuery(...args) }))
+vi.mock('../../../utils/auth.js', () => ({
   requireAuth: (...args) => mockRequireAuth(...args),
 }))
-vi.mock('../../server/utils/syncBroadcast.js', () => ({
+vi.mock('../../../utils/syncBroadcast.js', () => ({
   notifyDataWipe: (...args) => mockNotifySync(...args),
 }))
 
@@ -24,7 +24,7 @@ globalThis.createError = (opts) => {
   return err
 }
 
-const handler = (await import('../../server/api/auth/delete.post.js')).default
+const handler = (await import('../delete.post.js')).default
 
 beforeEach(() => {
   vi.clearAllMocks()

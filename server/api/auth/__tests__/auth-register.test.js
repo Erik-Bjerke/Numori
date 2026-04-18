@@ -9,10 +9,10 @@ import bcrypt from 'bcryptjs'
 const mockQuery = vi.fn()
 const mockSignJwt = vi.fn()
 
-vi.mock('../../server/utils/db.js', () => ({ query: (...args) => mockQuery(...args) }))
-vi.mock('../../server/utils/auth.js', () => ({ signJwt: (...args) => mockSignJwt(...args) }))
-vi.mock('../../server/utils/session.js', () => ({ createSession: vi.fn() }))
-vi.mock('../../server/utils/email.js', () => ({
+vi.mock('../../../utils/db.js', () => ({ query: (...args) => mockQuery(...args) }))
+vi.mock('../../../utils/auth.js', () => ({ signJwt: (...args) => mockSignJwt(...args) }))
+vi.mock('../../../utils/session.js', () => ({ createSession: vi.fn() }))
+vi.mock('../../../utils/email.js', () => ({
   generateOtp: () => '123456',
   sendVerificationEmail: vi.fn(),
 }))
@@ -28,7 +28,7 @@ globalThis.createError = (opts) => {
 }
 
 // Must import AFTER mocks are set up
-const handler = (await import('../../server/api/auth/register.post.js')).default
+const handler = (await import('../register.post.js')).default
 
 beforeEach(() => {
   vi.clearAllMocks()

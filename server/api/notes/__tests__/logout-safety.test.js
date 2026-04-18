@@ -11,9 +11,9 @@ const mockQuery = vi.fn()
 const mockRequireAuth = vi.fn()
 const mockNotifySync = vi.fn()
 
-vi.mock('../server/utils/db.js', () => ({ query: (...args) => mockQuery(...args) }))
-vi.mock('../server/utils/auth.js', () => ({ requireAuth: (...args) => mockRequireAuth(...args) }))
-vi.mock('../server/utils/syncBroadcast.js', () => ({
+vi.mock('../../../utils/db.js', () => ({ query: (...args) => mockQuery(...args) }))
+vi.mock('../../../utils/auth.js', () => ({ requireAuth: (...args) => mockRequireAuth(...args) }))
+vi.mock('../../../utils/syncBroadcast.js', () => ({
   notifySync: (...args) => mockNotifySync(...args),
 }))
 
@@ -25,7 +25,7 @@ globalThis.createError = (opts) => {
   return err
 }
 
-const syncHandler = (await import('../server/api/notes/sync.post.js')).default
+const syncHandler = (await import('../sync.post.js')).default
 
 beforeEach(() => {
   vi.clearAllMocks()

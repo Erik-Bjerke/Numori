@@ -5,7 +5,7 @@ import { vi } from 'vitest'
 vi.stubGlobal('ref', (val) => ({ value: val }))
 
 // Import after mocking
-const { useCalculator } = await import('../../composables/useCalculator.js')
+const { useCalculator } = await import('../../useCalculator.js')
 
 // Helper: evaluate a single expression and return the result string
 export function calc(expression) {
