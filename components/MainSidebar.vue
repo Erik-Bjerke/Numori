@@ -103,14 +103,14 @@
         leave-to-class="opacity-0 -translate-y-1 max-h-0">
         <div v-if="showFilters" class="overflow-hidden rounded-lg bg-white dark:bg-gray-800 p-2.5 space-y-2 shadow-sm">
           <!-- Date range -->
-          <select v-model="filters.dateRange"
-            class="w-full px-2.5 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-400 outline-none focus:ring-1 focus:ring-primary-500">
-            <option value="">Modified: Any time</option>
-            <option value="today">Modified: Today</option>
-            <option value="week">Modified: Past 7 days</option>
-            <option value="month">Modified: Past 30 days</option>
-            <option value="older">Modified: Older than 30 days</option>
-          </select>
+          <UiSelect v-model="filters.dateRange" size="xs"
+            :options="[
+              { value: '', label: 'Modified: Any time' },
+              { value: 'today', label: 'Modified: Today' },
+              { value: 'week', label: 'Modified: Past 7 days' },
+              { value: 'month', label: 'Modified: Past 30 days' },
+              { value: 'older', label: 'Modified: Older than 30 days' },
+            ]" />
 
           <!-- Toggle chips -->
           <div class="flex flex-wrap gap-1.5">

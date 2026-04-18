@@ -242,14 +242,18 @@
                       <Icon name="mdi:timer-outline" class="w-4 h-4 text-gray-500 flex-shrink-0" />
                       <span class="text-sm text-gray-700 dark:text-gray-300 truncate">Session duration</span>
                     </div>
-                    <select v-model="sessionDuration" @change="saveSessionDuration" :disabled="savingSessionDuration"
-                      class="text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-1 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                      aria-label="Session duration">
-                      <option :value="3600">1 hour</option>
-                      <option :value="86400">1 day</option>
-                      <option :value="604800">7 days</option>
-                      <option :value="2592000">30 days</option>
-                    </select>
+                    <UiSelect
+                      :model-value="sessionDuration"
+                      @update:model-value="sessionDuration = $event; saveSessionDuration()"
+                      :disabled="savingSessionDuration"
+                      :block="false" size="sm"
+                      aria-label="Session duration"
+                      :options="[
+                        { value: 3600, label: '1 hour' },
+                        { value: 86400, label: '1 day' },
+                        { value: 604800, label: '7 days' },
+                        { value: 2592000, label: '30 days' },
+                      ]" />
                   </div>
                   <p class="text-xs text-gray-500 dark:text-gray-500">
                     How long you stay logged in. Shorter sessions are more secure. Changes apply on next login.

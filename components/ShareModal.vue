@@ -126,13 +126,13 @@
               <!-- Expiration -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Expires after</label>
-                <select v-model="expiresInDays"
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm">
-                  <option :value="1">1 day</option>
-                  <option :value="7">7 days</option>
-                  <option :value="14">14 days</option>
-                  <option :value="30">30 days</option>
-                </select>
+                <UiSelect v-model="expiresInDays"
+                  :options="[
+                    { value: 1, label: '1 day' },
+                    { value: 7, label: '7 days' },
+                    { value: 14, label: '14 days' },
+                    { value: 30, label: '30 days' },
+                  ]" />
               </div>
 
               <!-- Analytics toggle with tooltip -->

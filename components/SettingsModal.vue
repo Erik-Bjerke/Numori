@@ -90,71 +90,85 @@
                       <!-- Language -->
                       <div>
                         <label :class="labelClass">Language</label>
-                        <select :value="currentLocaleCode" @change="changeLocale($event.target.value)" :class="selectClass">
-                          <option v-for="locale in availableLocales" :key="locale.code" :value="locale.code">{{ getLanguageEmoji(locale.code) }} {{ locale.name }}</option>
-                        </select>
+                        <UiSelect :model-value="currentLocaleCode" searchable
+                          @update:model-value="changeLocale($event)"
+                          :options="availableLocales.map(l => ({ value: l.code, label: getLanguageEmoji(l.code) + ' ' + l.name }))" />
                       </div>
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label :class="labelClass">Volume</label>
-                          <select v-model="preferences.volume" @change="onSettingChange" :class="selectClass">
-                            <option value="litre">Litres</option>
-                            <option value="us_gallon">US Gallons</option>
-                            <option value="uk_gallon">UK Gallons (Imperial)</option>
-                          </select>
+                          <UiSelect :model-value="preferences.volume"
+                            @update:model-value="preferences.volume = $event; onSettingChange()"
+                            :options="[
+                              { value: 'litre', label: 'Litres' },
+                              { value: 'us_gallon', label: 'US Gallons' },
+                              { value: 'uk_gallon', label: 'UK Gallons (Imperial)' },
+                            ]" />
                         </div>
                         <div>
                           <label :class="labelClass">Fuel Economy</label>
-                          <select v-model="preferences.fuelEconomy" @change="onSettingChange" :class="selectClass">
-                            <option value="mpg">Miles per gallon (US)</option>
-                            <option value="mpg_uk">Miles per gallon (UK)</option>
-                            <option value="kpl">Km per litre</option>
-                            <option value="l/100km">Litres per 100 km</option>
-                            <option value="mpl">Miles per litre</option>
-                            <option value="kpg">Km per gallon (US)</option>
-                          </select>
+                          <UiSelect :model-value="preferences.fuelEconomy"
+                            @update:model-value="preferences.fuelEconomy = $event; onSettingChange()"
+                            :options="[
+                              { value: 'mpg', label: 'Miles per gallon (US)' },
+                              { value: 'mpg_uk', label: 'Miles per gallon (UK)' },
+                              { value: 'kpl', label: 'Km per litre' },
+                              { value: 'l/100km', label: 'Litres per 100 km' },
+                              { value: 'mpl', label: 'Miles per litre' },
+                              { value: 'kpg', label: 'Km per gallon (US)' },
+                            ]" />
                         </div>
                         <div>
                           <label :class="labelClass">Distance</label>
-                          <select v-model="preferences.distance" @change="onSettingChange" :class="selectClass">
-                            <option value="km">Kilometres</option>
-                            <option value="miles">Miles</option>
-                          </select>
+                          <UiSelect :model-value="preferences.distance"
+                            @update:model-value="preferences.distance = $event; onSettingChange()"
+                            :options="[
+                              { value: 'km', label: 'Kilometres' },
+                              { value: 'miles', label: 'Miles' },
+                            ]" />
                         </div>
                         <div>
                           <label :class="labelClass">Temperature</label>
-                          <select v-model="preferences.temperature" @change="onSettingChange" :class="selectClass">
-                            <option value="celsius">Celsius (°C)</option>
-                            <option value="fahrenheit">Fahrenheit (°F)</option>
-                            <option value="kelvin">Kelvin (K)</option>
-                          </select>
+                          <UiSelect :model-value="preferences.temperature"
+                            @update:model-value="preferences.temperature = $event; onSettingChange()"
+                            :options="[
+                              { value: 'celsius', label: 'Celsius (°C)' },
+                              { value: 'fahrenheit', label: 'Fahrenheit (°F)' },
+                              { value: 'kelvin', label: 'Kelvin (K)' },
+                            ]" />
                         </div>
                       </div>
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label :class="labelClass">Date Format</label>
-                          <select v-model="preferences.dateFormat" @change="onSettingChange" :class="selectClass">
-                            <option value="DD/MM/YYYY">DD/MM/YYYY (31/12/2025)</option>
-                            <option value="MM/DD/YYYY">MM/DD/YYYY (12/31/2025)</option>
-                            <option value="YYYY/MM/DD">YYYY/MM/DD (2025/12/31)</option>
-                            <option value="DD.MM.YYYY">DD.MM.YYYY (31.12.2025)</option>
-                            <option value="YYYY-MM-DD">YYYY-MM-DD (2025-12-31)</option>
-                          </select>
+                          <UiSelect :model-value="preferences.dateFormat"
+                            @update:model-value="preferences.dateFormat = $event; onSettingChange()"
+                            :options="[
+                              { value: 'DD/MM/YYYY', label: 'DD/MM/YYYY (31/12/2025)' },
+                              { value: 'MM/DD/YYYY', label: 'MM/DD/YYYY (12/31/2025)' },
+                              { value: 'YYYY/MM/DD', label: 'YYYY/MM/DD (2025/12/31)' },
+                              { value: 'DD.MM.YYYY', label: 'DD.MM.YYYY (31.12.2025)' },
+                              { value: 'YYYY-MM-DD', label: 'YYYY-MM-DD (2025-12-31)' },
+                            ]" />
                         </div>
                         <div>
                           <label :class="labelClass">Time Format</label>
-                          <select v-model="preferences.timeFormat" @change="onSettingChange" :class="selectClass">
-                            <option value="12h">12-hour (3:30 PM)</option>
-                            <option value="24h">24-hour (15:30)</option>
-                          </select>
+                          <UiSelect :model-value="preferences.timeFormat"
+                            @update:model-value="preferences.timeFormat = $event; onSettingChange()"
+                            :options="[
+                              { value: '12h', label: '12-hour (3:30 PM)' },
+                              { value: '24h', label: '24-hour (15:30)' },
+                            ]" />
                         </div>
                         <div>
                           <label :class="labelClass">Number Format</label>
-                          <select v-model="preferences.numberFormat" @change="onSettingChange" :class="selectClass">
-                            <option value="comma_dot">1,000.00 (US/UK)</option>
-                            <option value="dot_comma">1.000,00 (DE/ES)</option>
-                            <option value="space_comma">1 000,00 (FR)</option>
-                          </select>
+                          <UiSelect :model-value="preferences.numberFormat"
+                            @update:model-value="preferences.numberFormat = $event; onSettingChange()"
+                            :options="[
+                              { value: 'comma_dot', label: '1,000.00 (US/UK)' },
+                              { value: 'dot_comma', label: '1.000,00 (DE/ES)' },
+                              { value: 'space_comma', label: '1 000,00 (FR)' },
+                            ]" />
                         </div>
                       </div>
                     </div>
@@ -171,14 +185,16 @@
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label :class="labelClass">Font Family</label>
-                          <select v-model="preferences.editorFontFamily" @change="onSettingChange" :class="selectClass">
-                            <option value="system">System Default</option>
-                            <option value="fira-code">Fira Code</option>
-                            <option value="jetbrains-mono">JetBrains Mono</option>
-                            <option value="source-code-pro">Source Code Pro</option>
-                            <option value="cascadia-code">Cascadia Code</option>
-                            <option value="ibm-plex-mono">IBM Plex Mono</option>
-                          </select>
+                          <UiSelect :model-value="preferences.editorFontFamily"
+                            @update:model-value="preferences.editorFontFamily = $event; onSettingChange()"
+                            :options="[
+                              { value: 'system', label: 'System Default' },
+                              { value: 'fira-code', label: 'Fira Code' },
+                              { value: 'jetbrains-mono', label: 'JetBrains Mono' },
+                              { value: 'source-code-pro', label: 'Source Code Pro' },
+                              { value: 'cascadia-code', label: 'Cascadia Code' },
+                              { value: 'ibm-plex-mono', label: 'IBM Plex Mono' },
+                            ]" />
                           <p :class="hintClass">Custom fonts must be installed on your system</p>
                         </div>
                         <div>
@@ -213,20 +229,24 @@
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label :class="labelClass">Line Numbers</label>
-                          <select v-model="preferences.editorLineNumbers" @change="onSettingChange" :class="selectClass">
-                            <option value="on">Absolute</option>
-                            <option value="relative">Relative</option>
-                            <option value="interval">Interval (every 10)</option>
-                            <option value="off">Off</option>
-                          </select>
+                          <UiSelect :model-value="preferences.editorLineNumbers"
+                            @update:model-value="preferences.editorLineNumbers = $event; onSettingChange()"
+                            :options="[
+                              { value: 'on', label: 'Absolute' },
+                              { value: 'relative', label: 'Relative' },
+                              { value: 'interval', label: 'Interval (every 10)' },
+                              { value: 'off', label: 'Off' },
+                            ]" />
                         </div>
                         <div>
                           <label :class="labelClass">Line Highlight</label>
-                          <select v-model="preferences.editorRenderLineHighlight" @change="onSettingChange" :class="selectClass">
-                            <option value="none">None</option>
-                            <option value="line">Line</option>
-                            <option value="all">Gutter + Line</option>
-                          </select>
+                          <UiSelect :model-value="preferences.editorRenderLineHighlight"
+                            @update:model-value="preferences.editorRenderLineHighlight = $event; onSettingChange()"
+                            :options="[
+                              { value: 'none', label: 'None' },
+                              { value: 'line', label: 'Line' },
+                              { value: 'all', label: 'Gutter + Line' },
+                            ]" />
                         </div>
                       </div>
                       <div class="space-y-4">
@@ -259,10 +279,12 @@
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label :class="labelClass">Cursor Style</label>
-                          <select v-model="preferences.editorCursorStyle" @change="onSettingChange" :class="selectClass">
-                            <option value="line">Line</option>
-                            <option value="line-thin">Line (thin)</option>
-                          </select>
+                          <UiSelect :model-value="preferences.editorCursorStyle"
+                            @update:model-value="preferences.editorCursorStyle = $event; onSettingChange()"
+                            :options="[
+                              { value: 'line', label: 'Line' },
+                              { value: 'line-thin', label: 'Line (thin)' },
+                            ]" />
                         </div>
                       </div>
                       <div class="space-y-4">
@@ -288,10 +310,12 @@
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label :class="labelClass">Auto-close Brackets</label>
-                          <select v-model="preferences.editorAutoClosingBrackets" @change="onSettingChange" :class="selectClass">
-                            <option value="always">Always</option>
-                            <option value="never">Never</option>
-                          </select>
+                          <UiSelect :model-value="preferences.editorAutoClosingBrackets"
+                            @update:model-value="preferences.editorAutoClosingBrackets = $event; onSettingChange()"
+                            :options="[
+                              { value: 'always', label: 'Always' },
+                              { value: 'never', label: 'Never' },
+                            ]" />
                         </div>
                         <div>
                           <label :class="labelClass">Tab Size: {{ preferences.editorTabSize }} spaces</label>
@@ -313,18 +337,22 @@
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label :class="labelClass">Precision Mode</label>
-                          <select v-model="preferences.precisionMode" @change="onSettingChange" :class="selectClass">
-                            <option value="auto">Auto (smart formatting)</option>
-                            <option value="decimals">Fixed decimal places</option>
-                            <option value="significant">Significant figures</option>
-                          </select>
+                          <UiSelect :model-value="preferences.precisionMode"
+                            @update:model-value="preferences.precisionMode = $event; onSettingChange()"
+                            :options="[
+                              { value: 'auto', label: 'Auto (smart formatting)' },
+                              { value: 'decimals', label: 'Fixed decimal places' },
+                              { value: 'significant', label: 'Significant figures' },
+                            ]" />
                         </div>
                         <div v-if="preferences.precisionMode !== 'auto'">
                           <label :class="labelClass">Rounding Mode</label>
-                          <select v-model="preferences.roundingMode" @change="onSettingChange" :class="selectClass">
-                            <option value="round">Round</option>
-                            <option value="truncate">Truncate</option>
-                          </select>
+                          <UiSelect :model-value="preferences.roundingMode"
+                            @update:model-value="preferences.roundingMode = $event; onSettingChange()"
+                            :options="[
+                              { value: 'round', label: 'Round' },
+                              { value: 'truncate', label: 'Truncate' },
+                            ]" />
                         </div>
                         <div v-if="preferences.precisionMode === 'decimals'">
                           <label :class="labelClass">Decimal Places: {{ preferences.decimalPlaces }}</label>
@@ -354,15 +382,17 @@
                         </div>
                         <div v-if="preferences.autoCopyResult">
                           <label :class="labelClass">Copy Animation</label>
-                          <select v-model="preferences.copyAnimationStyle" @change="onSettingChange" :class="selectClass">
-                            <option value="float-up">Float up</option>
-                            <option value="fade">Fade in/out</option>
-                            <option value="scale-pop">Scale pop</option>
-                            <option value="slide-right">Slide from left</option>
-                            <option value="bounce">Bounce</option>
-                            <option value="glow">Glow pulse</option>
-                            <option value="none">None</option>
-                          </select>
+                          <UiSelect :model-value="preferences.copyAnimationStyle"
+                            @update:model-value="preferences.copyAnimationStyle = $event; onSettingChange()"
+                            :options="[
+                              { value: 'float-up', label: 'Float up' },
+                              { value: 'fade', label: 'Fade in/out' },
+                              { value: 'scale-pop', label: 'Scale pop' },
+                              { value: 'slide-right', label: 'Slide from left' },
+                              { value: 'bounce', label: 'Bounce' },
+                              { value: 'glow', label: 'Glow pulse' },
+                              { value: 'none', label: 'None' },
+                            ]" />
                           <p :class="hintClass">Animation style for the "Copied" feedback toast</p>
                         </div>
                       </div>
@@ -388,14 +418,16 @@
                       </div>
                       <div>
                         <label :class="labelClass">Update check interval</label>
-                        <select v-model.number="preferences.updateCheckInterval" @change="onSettingChange" :class="selectClass">
-                          <option :value="5">Every 5 minutes</option>
-                          <option :value="15">Every 15 minutes</option>
-                          <option :value="30">Every 30 minutes</option>
-                          <option :value="60">Every hour</option>
-                          <option :value="360">Every 6 hours</option>
-                          <option :value="0">Manual only</option>
-                        </select>
+                        <UiSelect :model-value="preferences.updateCheckInterval"
+                          @update:model-value="preferences.updateCheckInterval = $event; onSettingChange()"
+                          :options="[
+                            { value: 5, label: 'Every 5 minutes' },
+                            { value: 15, label: 'Every 15 minutes' },
+                            { value: 30, label: 'Every 30 minutes' },
+                            { value: 60, label: 'Every hour' },
+                            { value: 360, label: 'Every 6 hours' },
+                            { value: 0, label: 'Manual only' },
+                          ]" />
                         <p :class="hintClass">How often to check for new versions in the background</p>
                       </div>
                     </div>
@@ -449,7 +481,6 @@ const updateScrollPadding = () => {
   scrollPadding.value = Math.max(0, container.clientHeight - last.offsetHeight - 80)
 }
 
-const selectClass = 'w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500'
 const sectionClass = 'pb-8 border-b border-gray-200 dark:border-gray-800 last:border-b-0'
 const labelClass = 'block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1'
 const labelInlineClass = 'block text-sm font-medium text-gray-700 dark:text-gray-400'

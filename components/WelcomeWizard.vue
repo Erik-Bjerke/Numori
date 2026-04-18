@@ -171,12 +171,9 @@
                   <!-- Language -->
                   <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">Language</label>
-                    <select :value="currentLocaleCode" @change="changeLocale($event.target.value)"
-                      class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-400 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                      <option v-for="locale in availableLocales" :key="locale.code" :value="locale.code">
-                        {{ getLanguageEmoji(locale.code) }} {{ locale.name }}
-                      </option>
-                    </select>
+                    <UiSelect :model-value="currentLocaleCode" searchable
+                      @update:model-value="changeLocale($event)"
+                      :options="availableLocales.map(l => ({ value: l.code, label: getLanguageEmoji(l.code) + ' ' + l.name }))" />
                   </div>
                 </div>
               </div>
