@@ -496,8 +496,8 @@ onMounted(async () => {
   await appLock.loadSettings()
   appLock.initAppListeners()
   appLock.detectBiometrics()
-  // Sync app lock settings from server if logged in (server overrides local)
-  if (auth.isLoggedIn.value) appLock.loadFromServer()
+  // Sync app lock settings from server (waits for auth if needed)
+  appLock.loadFromServer()
 })
 
 // Share note handler (needs currentNoteId)

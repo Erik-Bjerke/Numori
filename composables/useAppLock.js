@@ -51,7 +51,7 @@ export const useAppLock = () => {
   const { apiFetch } = useApi()
   const auth = useAuth()
 
-  /** Load settings from IndexedDB */
+  /** Load settings from IndexedDB and lock on cold start if enabled */
   const loadSettings = async () => {
     if (!import.meta.client) return
     try {
@@ -66,20 +66,52 @@ export const useAppLock = () => {
       // first run
     }
     loaded.value = true
+
+    // Cold start: always lock if app lock is enabled
+    if (settings.enabled) {
+      isLocked.value = true
+    }
   }
 
-  /** Load settings from the server user profile (if logged in) */
-  const loadFromServer = () => {
+  /**
+   * Load settings from the server user profile (if logged in).
+   * Waits for auth to be ready since restore() is async.
+   */
+  const loadFromServer = async () => {
+    // If user isn't loaded yet, wait for auth.restore() to finish
+    if (auth.isLoggedIn.value && !auth.user.value) {
+      await new Promise((resolve) => {
+        const stop = watch(
+          () => auth.user.value,
+          (u) => {
+            if (u) {
+              stop()
+              resolve()
+            }
+          },
+          { immediate: true },
+        )
+        // Timeout after 5s
+        setTimeout(() => {
+          stop()
+          resolve()
+        }, 5000)
+      })
+    }
     if (!auth.user.value?.appLockSettings) return
     try {
       const remote = auth.user.value.appLockSettings
       if (typeof remote === 'object' && remote !== null) {
+        const wasEnabled = settings.enabled
         Object.assign(settings, remote)
         if (!Array.isArray(settings.selectedBiometrics)) {
           settings.selectedBiometrics = []
         }
-        // Also persist locally
-        saveLocal()
+        await saveLocal()
+        // If server says enabled but we weren't locked yet, lock now
+        if (settings.enabled && !wasEnabled) {
+          isLocked.value = true
+        }
       }
     } catch {
       // ignore parse errors
@@ -215,9 +247,8 @@ export const useAppLock = () => {
   /** Called when app goes to background */
   const onBackground = () => {
     if (!settings.enabled) return
-    if (settings.timeout === 0) {
-      lock()
-    } else {
+    // timeout 0 = manual lock only, don't auto-lock on background
+    if (settings.timeout > 0) {
       lastBackgroundTime = Date.now()
     }
   }
