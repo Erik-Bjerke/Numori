@@ -19,10 +19,10 @@
       <!-- Zoom -->
       <div class="flex items-center gap-2">
         <Icon name="mdi:magnify-minus-outline" class="w-4 h-4 text-gray-400 flex-shrink-0" />
-        <Slider :min="minScale" :max="maxScale" :step="0.01" v-model="scale"
+        <UiSlider :min="minScale" :max="maxScale" :step="0.01" v-model="scale"
           width="flex" @input="draw" />
         <Icon name="mdi:magnify-plus-outline" class="w-4 h-4 text-gray-400 flex-shrink-0" />
-        <Input type="number" :model-value="scaleDisplay" :min="Math.round(minScale * 100)" :max="Math.round(maxScale * 100)" :step="1"
+        <UiInput type="number" :model-value="scaleDisplay" :min="Math.round(minScale * 100)" :max="Math.round(maxScale * 100)" :step="1"
           stepper-layout="stacked-right" :validate="false" class="!w-16 flex-shrink-0 text-center"
           @update:model-value="onScaleInput" />
       </div>
@@ -30,25 +30,25 @@
       <!-- Rotate -->
       <div class="flex items-center gap-2">
         <Icon name="mdi:rotate-left" class="w-4 h-4 text-gray-400 flex-shrink-0" />
-        <Slider :min="-180" :max="180" :step="1" v-model="rotation"
+        <UiSlider :min="-180" :max="180" :step="1" v-model="rotation"
           width="flex" @input="draw" />
         <Icon name="mdi:rotate-right" class="w-4 h-4 text-gray-400 flex-shrink-0" />
-        <Input type="number" :model-value="rotation" :min="-180" :max="180" :step="1"
+        <UiInput type="number" :model-value="rotation" :min="-180" :max="180" :step="1"
           stepper-layout="stacked-right" :validate="false" class="!w-16 flex-shrink-0 text-center"
           @update:model-value="onRotationInput" />
       </div>
 
       <!-- Quick rotate & reset buttons -->
       <div class="flex items-center justify-center gap-2">
-        <Button variant="solid" color="gray" size="xs" @click="rotateBy(-90)">
+        <UiButton variant="solid" color="gray" size="xs" @click="rotateBy(-90)">
           -90°
-        </Button>
-        <Button variant="solid" color="gray" size="xs" @click="resetAll">
+        </UiButton>
+        <UiButton variant="solid" color="gray" size="xs" @click="resetAll">
           Reset
-        </Button>
-        <Button variant="solid" color="gray" size="xs" @click="rotateBy(90)">
+        </UiButton>
+        <UiButton variant="solid" color="gray" size="xs" @click="rotateBy(90)">
           +90°
-        </Button>
+        </UiButton>
       </div>
     </div>
   </div>

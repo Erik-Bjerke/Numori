@@ -7,9 +7,9 @@
           <div v-if="isOpen" class="bg-white dark:bg-gray-925 rounded-lg max-w-sm w-full p-4">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">Delete Group</h2>
-              <Button variant="ghost" color="gray" icon-only size="sm" @click="$emit('close')">
+              <UiButton variant="ghost" color="gray" icon-only size="sm" @click="$emit('close')">
                 <Icon name="mdi:close" class="block w-5 h-5" />
-              </Button>
+              </UiButton>
             </div>
 
             <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
@@ -17,44 +17,44 @@
             </p>
 
             <div class="space-y-2 mt-4">
-              <Button variant="outline" color="gray" block class="text-left" @click="$emit('confirm', 'keep')">
+              <UiButton variant="outline" color="gray" block class="text-left" @click="$emit('confirm', 'keep')">
                 <Icon name="mdi:folder-remove-outline" class="w-5 h-5 text-gray-500 flex-shrink-0" />
                 <div>
                   <p class="text-sm font-medium text-gray-800 dark:text-gray-300">Delete group only</p>
                   <p class="text-xs text-gray-500 dark:text-gray-400">Notes will be moved outside the group</p>
                 </div>
-              </Button>
+              </UiButton>
 
-              <Button v-if="otherGroups.length > 0" variant="outline" color="gray" block class="text-left" @click="showMoveOptions = !showMoveOptions">
+              <UiButton v-if="otherGroups.length > 0" variant="outline" color="gray" block class="text-left" @click="showMoveOptions = !showMoveOptions">
                 <Icon name="mdi:folder-swap-outline" class="w-5 h-5 text-primary-500 flex-shrink-0" />
                 <div class="flex-1">
                   <p class="text-sm font-medium text-gray-800 dark:text-gray-300">Move notes to another group</p>
                   <p class="text-xs text-gray-500 dark:text-gray-400">Then delete this group</p>
                 </div>
                 <Icon :name="showMoveOptions ? 'mdi:chevron-up' : 'mdi:chevron-down'" class="w-4 h-4 text-gray-400 flex-shrink-0" />
-              </Button>
+              </UiButton>
 
               <div v-if="showMoveOptions" class="pl-8 space-y-1">
-                <Button v-for="g in otherGroups" :key="g.id" variant="ghost" color="gray" size="sm" block
+                <UiButton v-for="g in otherGroups" :key="g.id" variant="ghost" color="gray" size="sm" block
                   @click="$emit('confirm', 'move', g.id)">
                   <Icon name="mdi:folder-outline" class="w-4 h-4 text-primary-500 flex-shrink-0" />
                   {{ g.name }}
-                </Button>
+                </UiButton>
               </div>
 
-              <Button variant="outline" color="red" block class="text-left" @click="$emit('confirm', 'delete-all')">
+              <UiButton variant="outline" color="red" block class="text-left" @click="$emit('confirm', 'delete-all')">
                 <Icon name="mdi:trash-can-outline" class="w-5 h-5 text-red-500 flex-shrink-0" />
                 <div>
                   <p class="text-sm font-medium text-red-600 dark:text-red-400">Delete group and all notes</p>
                   <p class="text-xs text-red-400 dark:text-red-500">This cannot be undone</p>
                 </div>
-              </Button>
+              </UiButton>
             </div>
 
             <div class="flex justify-end mt-4">
-              <Button variant="ghost" color="gray" @click="$emit('close')">
+              <UiButton variant="ghost" color="gray" @click="$emit('close')">
                 Cancel
-              </Button>
+              </UiButton>
             </div>
           </div>
         </Transition>

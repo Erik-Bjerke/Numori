@@ -16,63 +16,63 @@
             <span class="text-sm font-medium text-primary-700 dark:text-primary-300">
               {{ selectedIds.size }} selected
             </span>
-            <Button variant="ghost" color="gray" icon-only size="sm" @click="exitSelectMode"
+            <UiButton variant="ghost" color="gray" icon-only size="sm" @click="exitSelectMode"
               title="Cancel selection">
               <Icon name="mdi:close" class="w-5 h-5" />
-            </Button>
+            </UiButton>
           </div>
           <div class="flex items-center gap-2">
-            <Button variant="outline" color="gray" size="sm" icon-only @click="toggleSelectAll"
+            <UiButton variant="outline" color="gray" size="sm" icon-only @click="toggleSelectAll"
               class="flex-shrink-0"
               :title="allSelected ? 'Deselect All' : 'Select All'">
               <Icon :name="allSelected ? 'mdi:checkbox-marked-outline' : 'mdi:checkbox-blank-outline'" class="w-4 h-4" />
-            </Button>
-            <Button variant="solid" color="primary" size="sm" :disabled="selectedIds.size === 0" @click="bulkGroup"
+            </UiButton>
+            <UiButton variant="solid" color="primary" size="sm" :disabled="selectedIds.size === 0" @click="bulkGroup"
               class="flex-1">
               <Icon name="mdi:folder-outline" class="w-4 h-4" />
               Group
-            </Button>
-            <Button v-if="showArchive" variant="solid" color="primary" size="sm" :disabled="selectedIds.size === 0" @click="bulkUnarchive"
+            </UiButton>
+            <UiButton v-if="showArchive" variant="solid" color="primary" size="sm" :disabled="selectedIds.size === 0" @click="bulkUnarchive"
               class="flex-1">
               <Icon name="mdi:package-up" class="w-4 h-4" />
               Unarchive
-            </Button>
-            <Button v-else variant="solid" color="gray" size="sm" :disabled="selectedIds.size === 0" @click="bulkArchive"
+            </UiButton>
+            <UiButton v-else variant="solid" color="gray" size="sm" :disabled="selectedIds.size === 0" @click="bulkArchive"
               class="flex-1">
               <Icon name="mdi:archive-outline" class="w-4 h-4" />
               Archive
-            </Button>
-            <Button variant="solid" color="red" size="sm" icon-only :disabled="selectedIds.size === 0" @click="bulkDelete"
+            </UiButton>
+            <UiButton variant="solid" color="red" size="sm" icon-only :disabled="selectedIds.size === 0" @click="bulkDelete"
               class="flex-shrink-0"
               title="Delete">
               <Icon name="mdi:trash-can-outline" class="w-4 h-4" />
-            </Button>
+            </UiButton>
           </div>
         </div>
       </Transition>
 
       <!-- Normal header (always in flow to maintain height) -->
       <div class="p-4 space-y-3" :class="{ 'invisible': selectMode }">
-      <Button variant="solid" color="primary" block @click="$emit('new-note')">
+      <UiButton variant="solid" color="primary" block @click="$emit('new-note')">
         <Icon name="mdi:plus" class="w-5 h-5" />
         <span>New Note</span>
-      </Button>
+      </UiButton>
 
       <!-- Search + select toggle + filters -->
       <div class="flex items-center gap-2">
-        <Button variant="ghost" icon-only size="sm" @click="toggleSelectMode"
+        <UiButton variant="ghost" icon-only size="sm" @click="toggleSelectMode"
           class="flex-shrink-0"
           :class="selectMode
             ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30'
             : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'"
           title="Select notes">
           <Icon name="mdi:checkbox-multiple-marked-outline" class="w-4 h-4 block" />
-        </Button>
+        </UiButton>
         <div class="relative flex-1">
           <Icon name="mdi:magnify" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <Input v-model="searchQuery" type="text" placeholder="Search notes..." :validate="false" />
+          <UiInput v-model="searchQuery" type="text" placeholder="Search notes..." :validate="false" />
         </div>
-        <Button variant="ghost" icon-only size="sm" @click="showFilters = !showFilters"
+        <UiButton variant="ghost" icon-only size="sm" @click="showFilters = !showFilters"
           class="flex-shrink-0"
           :class="showFilters || hasActiveFilters
             ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30'
@@ -81,8 +81,8 @@
           <Icon :name="showFilters ? 'mdi:filter-variant-remove' : 'mdi:filter-variant'"
             class="w-4 h-4 block transition-transform duration-200"
             :class="{ 'rotate-180': showFilters }" />
-        </Button>
-        <Button v-if="hasArchivedNotes" variant="ghost" icon-only size="sm" @click="showArchive = !showArchive"
+        </UiButton>
+        <UiButton v-if="hasArchivedNotes" variant="ghost" icon-only size="sm" @click="showArchive = !showArchive"
           class="flex-shrink-0"
           :class="showArchive
             ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30'
@@ -90,7 +90,7 @@
           title="Archive">
           <Icon :name="showArchive ? 'mdi:archive' : 'mdi:archive-outline'"
             class="w-4 h-4 block" />
-        </Button>
+        </UiButton>
       </div>
 
       <!-- Advanced filters panel -->
@@ -114,48 +114,48 @@
 
           <!-- Toggle chips -->
           <div class="flex flex-wrap gap-1.5">
-            <Button variant="ghost" shape="pill" size="xs" @click="filters.searchContent = !filters.searchContent"
+            <UiButton variant="ghost" shape="pill" size="xs" @click="filters.searchContent = !filters.searchContent"
               :class="filters.searchContent
                 ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
                 : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'">
               Content
-            </Button>
-            <Button variant="ghost" shape="pill" size="xs" @click="filters.hasDescription = !filters.hasDescription"
+            </UiButton>
+            <UiButton variant="ghost" shape="pill" size="xs" @click="filters.hasDescription = !filters.hasDescription"
               :class="filters.hasDescription
                 ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
                 : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'">
               Has desc
-            </Button>
-            <Button variant="ghost" shape="pill" size="xs" @click="filters.hasTags = !filters.hasTags"
+            </UiButton>
+            <UiButton variant="ghost" shape="pill" size="xs" @click="filters.hasTags = !filters.hasTags"
               :class="filters.hasTags
                 ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
                 : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'">
               Has tags
-            </Button>
-            <Button variant="ghost" shape="pill" size="xs" @click="filters.emptyOnly = !filters.emptyOnly"
+            </UiButton>
+            <UiButton variant="ghost" shape="pill" size="xs" @click="filters.emptyOnly = !filters.emptyOnly"
               :class="filters.emptyOnly
                 ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
                 : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'">
               Empty
-            </Button>
-            <Button v-if="hasActiveFilters" variant="ghost" color="red" shape="pill" size="xs" @click="clearFilters"
+            </UiButton>
+            <UiButton v-if="hasActiveFilters" variant="ghost" color="red" shape="pill" size="xs" @click="clearFilters"
               class="ml-auto">
               Clear
-            </Button>
+            </UiButton>
           </div>
         </div>
       </Transition>
 
       <!-- Tag filter -->
       <div v-if="allTags.length" class="flex flex-wrap gap-1.5">
-        <Button v-for="tag in allTags" :key="tag"
+        <UiButton v-for="tag in allTags" :key="tag"
           variant="ghost" shape="pill" size="xs"
           @click="toggleTag(tag)"
           :class="selectedTags.includes(tag)
             ? 'bg-primary-600 text-white'
             : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'">
           {{ tag }}
-        </Button>
+        </UiButton>
       </div>
       </div>
     </div>
@@ -281,11 +281,11 @@
 
     <!-- User Account Section -->
     <div class="flex-shrink-0 bg-gray-100/80 dark:bg-gray-800/60 border-t border-gray-200 dark:border-gray-700">
-      <Dropdown ref="accountDropdownRef" drop="up"
+      <UiDropdown ref="accountDropdownRef" drop="up"
         panel-class="absolute bottom-full left-0 right-0 bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg z-50">
         <template #trigger="{ toggle }">
           <!-- Logged-in state -->
-          <Button v-if="isLoggedIn" @click="toggle" variant="list-item" class="text-left">
+          <UiButton v-if="isLoggedIn" @click="toggle" variant="list-item" class="text-left">
             <img v-if="user?.avatarUrl" :src="user.avatarUrl"
               class="w-9 h-9 rounded-full object-cover flex-shrink-0" alt="Avatar" />
             <div v-else
@@ -299,10 +299,10 @@
             <Icon name="mdi:chevron-down"
               class="w-5 h-5 flex-shrink-0 text-gray-400 dark:text-gray-500 transition-transform duration-200"
               :class="{ 'rotate-180': accountDropdownRef?.isOpen }" />
-          </Button>
+          </UiButton>
 
           <!-- Logged-out state -->
-          <Button v-else @click="toggle" variant="list-item" class="text-left">
+          <UiButton v-else @click="toggle" variant="list-item" class="text-left">
             <div class="w-9 h-9 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
               <Icon name="mdi:account-circle-outline" class="w-5 h-5 text-gray-500 dark:text-gray-400" />
             </div>
@@ -313,39 +313,39 @@
             <Icon name="mdi:chevron-down"
               class="w-5 h-5 flex-shrink-0 text-gray-400 dark:text-gray-500 transition-transform duration-200"
               :class="{ 'rotate-180': accountDropdownRef?.isOpen }" />
-          </Button>
+          </UiButton>
         </template>
 
         <div class="py-1">
           <template v-if="isLoggedIn">
-            <Button @click="accountAction('edit-profile')" variant="menu-item" class="px-4">
+            <UiButton @click="accountAction('edit-profile')" variant="menu-item" class="px-4">
               <Icon name="mdi:account-edit-outline" class="w-4 h-4" />
               Edit Profile
-            </Button>
+            </UiButton>
           </template>
           <template v-else>
-            <Button @click="accountAction('show-auth')" variant="menu-item" class="px-4">
+            <UiButton @click="accountAction('show-auth')" variant="menu-item" class="px-4">
               <Icon name="mdi:login" class="w-4 h-4" />
               Sign In / Sign Up
-            </Button>
+            </UiButton>
           </template>
-          <Button @click="accountAction('show-locale-settings')" variant="menu-item" class="px-4">
+          <UiButton @click="accountAction('show-locale-settings')" variant="menu-item" class="px-4">
             <Icon name="mdi:cog-outline" class="w-4 h-4" />
             Settings
-          </Button>
-          <Button @click="accountAction('show-language')" variant="menu-item" class="px-4">
+          </UiButton>
+          <UiButton @click="accountAction('show-language')" variant="menu-item" class="px-4">
             <Icon name="mdi:translate" class="w-4 h-4" />
             Change Language
-          </Button>
+          </UiButton>
           <template v-if="isLoggedIn">
             <div class="border-t border-gray-300 dark:border-gray-600 my-1" />
-            <Button @click="accountAction('logout')" variant="menu-item" color="red" class="px-4">
+            <UiButton @click="accountAction('logout')" variant="menu-item" color="red" class="px-4">
               <Icon name="mdi:logout" class="w-4 h-4" />
               Sign Out
-            </Button>
+            </UiButton>
           </template>
         </div>
-      </Dropdown>
+      </UiDropdown>
     </div>
   </div>
 </template>

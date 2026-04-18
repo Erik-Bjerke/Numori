@@ -1,6 +1,6 @@
 <template>
   <div :class="[wrapperClass, containerClass]" role="group">
-    <Button
+    <UiButton
       v-for="(opt, idx) in options"
       :key="opt.value"
       variant="ghost"
@@ -16,7 +16,7 @@
     >
       <Icon v-if="opt.icon" :name="opt.icon" :class="iconClass" class="block" />
       <span v-if="opt.label">{{ opt.label }}</span>
-    </Button>
+    </UiButton>
   </div>
 </template>
 

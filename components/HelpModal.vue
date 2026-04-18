@@ -16,16 +16,16 @@
       <!-- Header -->
       <div class="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-800 flex-shrink-0 gap-2">
         <div class="flex items-center gap-2 flex-shrink-0">
-          <Button variant="ghost" color="gray" icon-only @click="showIndex = !showIndex"
+          <UiButton variant="ghost" color="gray" icon-only @click="showIndex = !showIndex"
             :title="showIndex ? 'Hide index' : 'Show index'">
             <Icon name="mdi:table-of-contents" class="block w-5 h-5" />
-          </Button>
+          </UiButton>
           <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none hidden sm:block">{{ $t('help.title') }}</h2>
         </div>
         <div class="flex items-center gap-2 min-w-0">
           <div class="relative min-w-0 flex-1">
             <Icon name="mdi:magnify" class="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-            <Input
+            <UiInput
               ref="searchInputRef"
               v-model="searchQuery"
               type="text"
@@ -33,18 +33,18 @@
               :validate="false"
               @keydown.escape="searchQuery = ''"
             />
-            <Button
+            <UiButton
               v-if="searchQuery"
               variant="ghost" color="gray" icon-only size="xs"
               @click="searchQuery = ''"
               class="absolute right-1.5 top-1/2 -translate-y-1/2"
             >
               <Icon name="mdi:close" class="block w-4 h-4" />
-            </Button>
+            </UiButton>
           </div>
-          <Button variant="ghost" color="gray" icon-only @click="close" class="flex-shrink-0">
+          <UiButton variant="ghost" color="gray" icon-only @click="close" class="flex-shrink-0">
             <Icon name="mdi:close" class="block w-5 h-5" />
-          </Button>
+          </UiButton>
         </div>
       </div>
 
@@ -65,13 +65,13 @@
             class="absolute md:relative z-20 w-64 md:w-56 flex-shrink-0 h-full bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 overflow-y-auto">
             <ul class="py-3 px-3 space-y-0.5">
               <li v-for="section in filteredSections" :key="section.id">
-                <Button @click="scrollTo(section.id)" variant="ghost" block
+                <UiButton @click="scrollTo(section.id)" variant="ghost" block
                   class="text-left px-3 py-2"
                   :class="activeSection === section.id
                     ? 'bg-primary-50 dark:bg-gray-800 text-primary-700 dark:text-primary-400 font-medium'
                     : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-850 hover:text-gray-900 dark:hover:text-white'">
                   {{ section.label }}
-                </Button>
+                </UiButton>
               </li>
             </ul>
           </nav>

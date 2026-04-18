@@ -9,32 +9,32 @@
               <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">
                 {{ editingGroupId ? 'Edit Group' : 'New Group' }}
               </h2>
-              <Button variant="ghost" color="gray" icon-only size="sm" @click="$emit('close')">
+              <UiButton variant="ghost" color="gray" icon-only size="sm" @click="$emit('close')">
                 <Icon name="mdi:close" class="block w-5 h-5" />
-              </Button>
+              </UiButton>
             </div>
 
             <div class="space-y-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Name</label>
-                <Input v-model="localName" type="text" ref="nameInput" placeholder="Group name" :validate="false"
+                <UiInput v-model="localName" type="text" ref="nameInput" placeholder="Group name" :validate="false"
                   @keydown.enter="save" />
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Internal Name</label>
-                <Input v-model="localInternalName" type="text" placeholder="group_name" :validate="false"
+                <UiInput v-model="localInternalName" type="text" placeholder="group_name" :validate="false"
                   @update:model-value="internalNameManuallyEdited = true" />
                 <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Auto-generated from name. Edit to customise.</p>
               </div>
             </div>
 
             <div class="flex justify-end gap-2 mt-6">
-              <Button variant="ghost" color="gray" @click="$emit('close')">
+              <UiButton variant="ghost" color="gray" @click="$emit('close')">
                 Cancel
-              </Button>
-              <Button @click="save" :disabled="!localName.trim()">
+              </UiButton>
+              <UiButton @click="save" :disabled="!localName.trim()">
                 {{ editingGroupId ? 'Save' : 'Create' }}
-              </Button>
+              </UiButton>
             </div>
           </div>
         </Transition>

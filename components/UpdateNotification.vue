@@ -13,27 +13,27 @@
       role="alert">
 
       <!-- Dismiss (top-right corner) -->
-      <Button @click="$emit('dismiss')" variant="ghost" color="gray" icon-only class="absolute top-2 right-2"
+      <UiButton @click="$emit('dismiss')" variant="ghost" color="gray" icon-only class="absolute top-2 right-2"
         title="Dismiss">
         <Icon name="mdi:close" class="w-4 h-4" />
-      </Button>
+      </UiButton>
 
       <!-- Web: horizontal row -->
       <template v-if="!isNative">
         <Icon name="mdi:update" class="w-5 h-5 flex-shrink-0 text-primary-600 dark:text-primary-400" />
         <p class="text-sm text-gray-700 dark:text-gray-300 flex-1">A new version is available.</p>
-        <Button @click="$emit('apply')" variant="solid" color="primary" size="xs" class="flex-shrink-0">
+        <UiButton @click="$emit('apply')" variant="solid" color="primary" size="xs" class="flex-shrink-0">
           Reload
-        </Button>
+        </UiButton>
       </template>
 
       <!-- Native: vertical stack -->
       <template v-else>
         <Icon name="mdi:update" class="w-6 h-6 text-primary-600 dark:text-primary-400" />
         <p class="text-sm text-gray-700 dark:text-gray-300 text-center">A new version is available in the store.</p>
-        <Button @click="$emit('apply')" variant="solid" color="primary" block>
+        <UiButton @click="$emit('apply')" variant="solid" color="primary" block>
           Update
-        </Button>
+        </UiButton>
       </template>
     </div>
   </Transition>

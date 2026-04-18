@@ -11,7 +11,7 @@
 
             <!-- Progress dots -->
             <div class="flex justify-center gap-2 pt-5 pb-2">
-              <Button v-for="i in totalSteps" :key="i"
+              <UiButton v-for="i in totalSteps" :key="i"
                 @click="step = i"
                 variant="ghost" size="xs"
                 class="p-0 w-2 h-2 rounded-full transition-all duration-200"
@@ -58,7 +58,7 @@
                 <p class="text-sm text-gray-600 dark:text-gray-400 mb-5">Pick a theme that suits you.</p>
 
                 <div class="grid grid-cols-2 gap-3 w-full max-w-xs">
-                  <Button @click="setTheme('light')"
+                  <UiButton @click="setTheme('light')"
                     variant="outline" color="gray"
                     class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-150"
                     :class="currentTheme === 'light'
@@ -66,8 +66,8 @@
                       : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'">
                     <Icon name="mdi:weather-sunny" class="w-8 h-8 text-amber-500" />
                     <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Light</span>
-                  </Button>
-                  <Button @click="setTheme('dark')"
+                  </UiButton>
+                  <UiButton @click="setTheme('dark')"
                     variant="outline" color="gray"
                     class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-150"
                     :class="currentTheme === 'dark'
@@ -75,7 +75,7 @@
                       : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'">
                     <Icon name="mdi:weather-night" class="w-8 h-8 text-indigo-500" />
                     <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Dark</span>
-                  </Button>
+                  </UiButton>
                 </div>
               </div>
 
@@ -92,7 +92,7 @@
                   <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">Precision Mode</label>
                     <div class="grid grid-cols-3 gap-2">
-                      <Button v-for="(label, key) in precisionModeLabels" :key="key"
+                      <UiButton v-for="(label, key) in precisionModeLabels" :key="key"
                         @click="setPrecisionMode(key)"
                         variant="outline" color="gray"
                         class="border-2 transition-all duration-150"
@@ -100,19 +100,19 @@
                           ? 'bg-primary-50 dark:bg-gray-800 border-primary-500 dark:border-primary-400 text-primary-700 dark:text-primary-400'
                           : 'bg-gray-50 dark:bg-gray-925 border-transparent hover:border-gray-300 dark:hover:border-gray-700 text-gray-700 dark:text-gray-400'">
                         {{ label }}
-                      </Button>
+                      </UiButton>
                     </div>
                   </div>
 
                   <!-- Decimal places / sig figs slider -->
                   <div v-if="preferences.precisionMode === 'decimals'">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Decimal Places: {{ preferences.decimalPlaces }}</label>
-                    <Slider min="0" max="15" step="1" v-model="preferences.decimalPlaces" @input="onPrecisionChange" />
+                    <UiSlider min="0" max="15" step="1" v-model="preferences.decimalPlaces" @input="onPrecisionChange" />
                     <div class="flex justify-between text-xs text-gray-400 mt-1"><span>0</span><span>15</span></div>
                   </div>
                   <div v-if="preferences.precisionMode === 'significant'">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Significant Figures: {{ preferences.significantFigures }}</label>
-                    <Slider min="1" max="15" step="1" v-model="preferences.significantFigures" @input="onPrecisionChange" />
+                    <UiSlider min="1" max="15" step="1" v-model="preferences.significantFigures" @input="onPrecisionChange" />
                     <div class="flex justify-between text-xs text-gray-400 mt-1"><span>1</span><span>15</span></div>
                   </div>
 
@@ -120,7 +120,7 @@
                   <div v-if="preferences.precisionMode !== 'auto'">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">Rounding</label>
                     <div class="grid grid-cols-2 gap-2">
-                      <Button v-for="(label, key) in roundingModeLabels" :key="key"
+                      <UiButton v-for="(label, key) in roundingModeLabels" :key="key"
                         @click="setRoundingMode(key)"
                         variant="outline" color="gray"
                         class="border-2 transition-all duration-150"
@@ -128,7 +128,7 @@
                           ? 'bg-primary-50 dark:bg-gray-800 border-primary-500 dark:border-primary-400 text-primary-700 dark:text-primary-400'
                           : 'bg-gray-50 dark:bg-gray-925 border-transparent hover:border-gray-300 dark:hover:border-gray-700 text-gray-700 dark:text-gray-400'">
                         {{ label }}
-                      </Button>
+                      </UiButton>
                     </div>
                   </div>
 
@@ -156,7 +156,7 @@
                   <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">Region Preset</label>
                     <div class="grid grid-cols-3 gap-2">
-                      <Button v-for="(label, key) in presetLabels" :key="key"
+                      <UiButton v-for="(label, key) in presetLabels" :key="key"
                         @click="selectPreset(key)"
                         variant="outline" color="gray"
                         class="border-2 transition-all duration-150"
@@ -164,7 +164,7 @@
                           ? 'bg-primary-50 dark:bg-gray-800 border-primary-500 dark:border-primary-400 text-primary-700 dark:text-primary-400'
                           : 'bg-gray-50 dark:bg-gray-925 border-transparent hover:border-gray-300 dark:hover:border-gray-700 text-gray-700 dark:text-gray-400'">
                         {{ label }}
-                      </Button>
+                      </UiButton>
                     </div>
                   </div>
 
@@ -184,19 +184,19 @@
 
             <!-- Footer navigation -->
             <div class="px-6 pb-5 flex items-center" :class="step === 1 ? 'justify-end' : 'justify-between'">
-              <Button v-if="step > 1" @click="step--"
+              <UiButton v-if="step > 1" @click="step--"
                 variant="ghost" color="gray">
                 Back
-              </Button>
+              </UiButton>
               <div class="flex items-center gap-3">
-                <Button v-if="step < totalSteps" @click="skip"
+                <UiButton v-if="step < totalSteps" @click="skip"
                   variant="ghost" color="gray">
                   Skip
-                </Button>
-                <Button @click="next"
+                </UiButton>
+                <UiButton @click="next"
                   variant="solid" color="primary">
                   {{ step === totalSteps ? 'Get Started' : 'Next' }}
-                </Button>
+                </UiButton>
               </div>
             </div>
           </div>

@@ -12,23 +12,23 @@
             <!-- Header -->
             <div class="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
               <div class="flex items-center gap-2">
-                <Button variant="ghost" color="gray" icon-only @click="showIndex = !showIndex" :title="showIndex ? 'Hide index' : 'Show index'">
+                <UiButton variant="ghost" color="gray" icon-only @click="showIndex = !showIndex" :title="showIndex ? 'Hide index' : 'Show index'">
                   <Icon name="mdi:table-of-contents" class="block w-5 h-5" />
-                </Button>
+                </UiButton>
                 <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">Settings</h2>
               </div>
               <div class="flex items-center gap-2">
                 <div class="relative">
                   <Icon name="mdi:magnify" class="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                  <Input v-model="searchQuery" type="text" placeholder="Search settings..." :validate="false"
+                  <UiInput v-model="searchQuery" type="text" placeholder="Search settings..." :validate="false"
                     @keydown.escape="searchQuery = ''" />
-                  <Button v-if="searchQuery" variant="ghost" color="gray" icon-only size="xs" @click="searchQuery = ''" class="absolute right-1.5 top-1/2 -translate-y-1/2">
+                  <UiButton v-if="searchQuery" variant="ghost" color="gray" icon-only size="xs" @click="searchQuery = ''" class="absolute right-1.5 top-1/2 -translate-y-1/2">
                     <Icon name="mdi:close" class="block w-4 h-4" />
-                  </Button>
+                  </UiButton>
                 </div>
-                <Button variant="ghost" color="gray" icon-only @click="closeModal">
+                <UiButton variant="ghost" color="gray" icon-only @click="closeModal">
                   <Icon name="mdi:close" class="block w-5 h-5" />
-                </Button>
+                </UiButton>
               </div>
             </div>
 
@@ -44,11 +44,11 @@
                 <nav v-if="showIndex" class="absolute md:relative z-20 w-64 md:w-56 flex-shrink-0 h-full bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 overflow-y-auto">
                   <ul class="py-3 px-3 space-y-0.5">
                     <li v-for="section in filteredSections" :key="section.id">
-                      <Button @click="scrollTo(section.id)" variant="ghost" color="gray" block
+                      <UiButton @click="scrollTo(section.id)" variant="ghost" color="gray" block
                         class="justify-start text-left text-sm"
                         :class="activeSection === section.id ? 'bg-primary-50 dark:bg-gray-800 text-primary-700 dark:text-primary-400 font-medium' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-850 hover:text-gray-900 dark:hover:text-white'">
                         {{ section.label }}
-                      </Button>
+                      </UiButton>
                     </li>
                   </ul>
                 </nav>
@@ -76,14 +76,14 @@
                       <div>
                         <label :class="labelClass">Preset</label>
                         <div class="grid grid-cols-3 gap-2">
-                          <Button v-for="(_preset, name) in presets" :key="name" @click="selectPreset(name)"
+                          <UiButton v-for="(_preset, name) in presets" :key="name" @click="selectPreset(name)"
                             variant="ghost" color="gray"
                             class="rounded-lg text-sm font-medium border-2"
                             :class="activePreset === name
                               ? 'bg-primary-50 dark:bg-gray-800 border-primary-500 dark:border-primary-400 text-primary-700 dark:text-primary-400'
                               : 'bg-gray-50 dark:bg-gray-925 border-transparent hover:border-gray-300 dark:hover:border-gray-700 text-gray-700 dark:text-gray-400'">
                             {{ presetLabels[name] || name }}
-                          </Button>
+                          </UiButton>
                         </div>
                         <p v-if="activePreset === 'Custom'" class="mt-1 text-xs text-gray-500 dark:text-gray-400-muted">Custom settings — doesn't match any preset</p>
                       </div>
@@ -183,12 +183,12 @@
                         </div>
                         <div>
                           <label :class="labelClass">Font Size: {{ preferences.editorFontSize }}px</label>
-                          <Slider min="10" max="28" step="1" v-model="preferences.editorFontSize" @input="onSettingChange" />
+                          <UiSlider min="10" max="28" step="1" v-model="preferences.editorFontSize" @input="onSettingChange" />
                           <div class="flex justify-between text-xs text-gray-400 mt-1"><span>10px</span><span>28px</span></div>
                         </div>
                         <div>
                           <label :class="labelClass">Line Height: {{ preferences.editorLineHeight }}px</label>
-                          <Slider min="14" max="36" step="1" v-model="preferences.editorLineHeight" @input="onSettingChange" />
+                          <UiSlider min="14" max="36" step="1" v-model="preferences.editorLineHeight" @input="onSettingChange" />
                           <div class="flex justify-between text-xs text-gray-400 mt-1"><span>14px</span><span>36px</span></div>
                         </div>
                       </div>
@@ -197,7 +197,7 @@
                           <label :class="labelInlineClass">Font Ligatures</label>
                           <p :class="hintClass">Enable ligatures for supported fonts (e.g. Fira Code)</p>
                         </div>
-                        <Toggle v-model="preferences.editorLigatures" @update:model-value="onSettingChange()" />
+                        <UiToggle v-model="preferences.editorLigatures" @update:model-value="onSettingChange()" />
                       </div>
                     </div>
                   </section>
@@ -235,14 +235,14 @@
                             <label :class="labelInlineClass">Word Wrap</label>
                             <p :class="hintClass">Wrap long lines to fit the editor width</p>
                           </div>
-                          <Toggle v-model="preferences.editorWordWrap" @update:model-value="onSettingChange()" />
+                          <UiToggle v-model="preferences.editorWordWrap" @update:model-value="onSettingChange()" />
                         </div>
                         <div class="flex items-center justify-between">
                           <div>
                             <label :class="labelInlineClass">Code Folding</label>
                             <p :class="hintClass">Allow collapsing code regions</p>
                           </div>
-                          <Toggle v-model="preferences.editorFolding" @update:model-value="onSettingChange()" />
+                          <UiToggle v-model="preferences.editorFolding" @update:model-value="onSettingChange()" />
                         </div>
                       </div>
                     </div>
@@ -271,7 +271,7 @@
                             <label :class="labelInlineClass">Scroll Past End</label>
                             <p :class="hintClass">Allow scrolling beyond the last line of the document</p>
                           </div>
-                          <Toggle v-model="preferences.editorScrollPastEnd" @update:model-value="onSettingChange()" />
+                          <UiToggle v-model="preferences.editorScrollPastEnd" @update:model-value="onSettingChange()" />
                         </div>
                       </div>
                     </div>
@@ -295,7 +295,7 @@
                         </div>
                         <div>
                           <label :class="labelClass">Tab Size: {{ preferences.editorTabSize }} spaces</label>
-                          <Slider min="1" max="8" step="1" v-model="preferences.editorTabSize" @input="onSettingChange" />
+                          <UiSlider min="1" max="8" step="1" v-model="preferences.editorTabSize" @input="onSettingChange" />
                           <div class="flex justify-between text-xs text-gray-400 mt-1"><span>1</span><span>8</span></div>
                         </div>
                       </div>
@@ -328,12 +328,12 @@
                         </div>
                         <div v-if="preferences.precisionMode === 'decimals'">
                           <label :class="labelClass">Decimal Places: {{ preferences.decimalPlaces }}</label>
-                          <Slider min="0" max="15" step="1" v-model="preferences.decimalPlaces" @input="onSettingChange" />
+                          <UiSlider min="0" max="15" step="1" v-model="preferences.decimalPlaces" @input="onSettingChange" />
                           <div class="flex justify-between text-xs text-gray-400 mt-1"><span>0</span><span>15</span></div>
                         </div>
                         <div v-if="preferences.precisionMode === 'significant'">
                           <label :class="labelClass">Significant Figures: {{ preferences.significantFigures }}</label>
-                          <Slider min="1" max="15" step="1" v-model="preferences.significantFigures" @input="onSettingChange" />
+                          <UiSlider min="1" max="15" step="1" v-model="preferences.significantFigures" @input="onSettingChange" />
                           <div class="flex justify-between text-xs text-gray-400 mt-1"><span>1</span><span>15</span></div>
                         </div>
                       </div>
@@ -343,14 +343,14 @@
                             <label :class="labelInlineClass">Auto-copy Results</label>
                             <p :class="hintClass">Copy result to clipboard when clicked</p>
                           </div>
-                          <Toggle v-model="preferences.autoCopyResult" @update:model-value="onSettingChange()" />
+                          <UiToggle v-model="preferences.autoCopyResult" @update:model-value="onSettingChange()" />
                         </div>
                         <div class="flex items-center justify-between">
                           <div>
                             <label :class="labelInlineClass">Show Results in Code Blocks</label>
                             <p :class="hintClass">Evaluate and display results for lines inside fenced code blocks</p>
                           </div>
-                          <Toggle v-model="preferences.showResultsInCodeBlocks" @update:model-value="onSettingChange()" />
+                          <UiToggle v-model="preferences.showResultsInCodeBlocks" @update:model-value="onSettingChange()" />
                         </div>
                         <div v-if="preferences.autoCopyResult">
                           <label :class="labelClass">Copy Animation</label>
@@ -382,9 +382,9 @@
                           <label :class="labelInlineClass">Welcome Wizard</label>
                           <p :class="hintClass">Show the first-time setup wizard again</p>
                         </div>
-                        <Button @click="emit('relaunch-wizard')" variant="outline" color="gray" size="sm">
+                        <UiButton @click="emit('relaunch-wizard')" variant="outline" color="gray" size="sm">
                           Relaunch
-                        </Button>
+                        </UiButton>
                       </div>
                       <div>
                         <label :class="labelClass">Update check interval</label>
@@ -407,9 +407,9 @@
 
             <!-- Footer -->
             <div class="flex-shrink-0 p-4 bg-gray-50 dark:bg-gray-925 border-t border-gray-200 dark:border-gray-800 flex justify-between items-center">
-              <Button @click="resetAll" variant="text" color="gray" size="sm">
+              <UiButton @click="resetAll" variant="text" color="gray" size="sm">
                 Reset to defaults
-              </Button>
+              </UiButton>
               <p class="text-xs text-gray-500 dark:text-gray-400-muted">Saved automatically</p>
             </div>
           </div>

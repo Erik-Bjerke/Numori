@@ -15,9 +15,9 @@
             @click.stop>
       <div class="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700">
         <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">{{ $t('templates.title') }}</h2>
-        <Button @click="close" variant="ghost" color="gray" icon-only>
+        <UiButton @click="close" variant="ghost" color="gray" icon-only>
           <Icon name="mdi:close" class="block w-5 h-5" />
-        </Button>
+        </UiButton>
       </div>
 
       <!-- Search + Filters -->
@@ -26,7 +26,7 @@
           <div class="relative flex-1">
             <Icon name="mdi:magnify"
               class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-400-muted" />
-            <Input v-model="searchQuery" type="text" :placeholder="$t('templates.search')" :validate="false" />
+            <UiInput v-model="searchQuery" type="text" :placeholder="$t('templates.search')" :validate="false" />
           </div>
           <select v-model="activeComplexity"
             class="px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-925 text-gray-700 dark:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400">
@@ -38,7 +38,7 @@
         <!-- Use case filters -->
         <div class="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
           <span class="text-xs text-gray-400 dark:text-gray-500 shrink-0">Use case:</span>
-          <Button
+          <UiButton
             v-for="filter in categoryFilters"
             :key="filter.id"
             @click="toggleChip('category', filter.id)"
@@ -49,12 +49,12 @@
               : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-transparent hover:bg-gray-200 dark:hover:bg-gray-750 hover:text-gray-900 dark:hover:text-white'"
           >
             {{ filter.name }}
-          </Button>
+          </UiButton>
         </div>
         <!-- Feature filters -->
         <div class="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
           <span class="text-xs text-gray-400 dark:text-gray-500 shrink-0">Features:</span>
-          <Button
+          <UiButton
             v-for="feat in featureFilters"
             :key="feat.id"
             @click="toggleChip('feature', feat.id)"
@@ -65,15 +65,15 @@
               : 'bg-transparent text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
           >
             {{ feat.name }}
-          </Button>
-          <Button
+          </UiButton>
+          <UiButton
             v-if="hasActiveFilters"
             @click="clearFilters"
             variant="ghost" color="gray" size="xs" shape="pill"
             class="shrink-0"
           >
             Clear all
-          </Button>
+          </UiButton>
         </div>
       </div>
 
@@ -90,14 +90,14 @@
             {{ $t('templates.noResults') }}
           </div>
           <div v-else :key="filterKey" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Button v-for="template in filteredTemplates" :key="template.id" @click="insertTemplate(template)"
+            <UiButton v-for="template in filteredTemplates" :key="template.id" @click="insertTemplate(template)"
               variant="outline" color="gray" block
               class="text-left p-4 items-start justify-start">
               <div>
                 <h3 class="font-semibold text-gray-900 dark:text-gray-400 mb-1">{{ template.name }}</h3>
                 <p class="text-sm text-gray-600 dark:text-gray-400-muted">{{ template.description }}</p>
               </div>
-            </Button>
+            </UiButton>
           </div>
         </Transition>
       </div>

@@ -11,15 +11,15 @@
               <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">
                 {{ headerTitle }}
               </h2>
-              <Button variant="ghost" color="gray" icon-only size="sm" @click="$emit('close')">
+              <UiButton variant="ghost" color="gray" icon-only size="sm" @click="$emit('close')">
                 <Icon name="mdi:close" class="block w-5 h-5" />
-              </Button>
+              </UiButton>
             </div>
 
             <!-- ═══ Login / Register ═══ -->
             <template v-if="step === 'auth'">
               <!-- Tab switcher -->
-              <ButtonsGroup variant="tabs" class="mb-4"
+              <UiButtonsGroup variant="tabs" class="mb-4"
                 :model-value="mode"
                 @update:model-value="switchMode($event)"
                 :options="[
@@ -41,17 +41,17 @@
                 <!-- Name (register only) -->
                 <div v-if="mode === 'register'">
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Name</label>
-                  <Input v-model="name" type="text" autocomplete="name" placeholder="Your name (optional)" :validate="false" />
+                  <UiInput v-model="name" type="text" autocomplete="name" placeholder="Your name (optional)" :validate="false" />
                 </div>
 
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Email</label>
-                  <Input v-model="email" type="email" required autocomplete="email" placeholder="you@example.com" />
+                  <UiInput v-model="email" type="email" required autocomplete="email" placeholder="you@example.com" />
                 </div>
 
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Password</label>
-                  <Input v-model="password" type="password" required autocomplete="current-password"
+                  <UiInput v-model="password" type="password" required autocomplete="current-password"
                     :minlength="mode === 'register' ? 8 : undefined" placeholder="••••••••" :validate="false" />
                   <p v-if="mode === 'register'" class="text-xs text-gray-500 dark:text-gray-500 mt-1">At least 8 characters</p>
                 </div>
@@ -59,19 +59,19 @@
                 <!-- Confirm password (register only) -->
                 <div v-if="mode === 'register'">
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Confirm Password</label>
-                  <Input v-model="confirmPassword" type="password" required autocomplete="new-password"
+                  <UiInput v-model="confirmPassword" type="password" required autocomplete="new-password"
                     :minlength="8" placeholder="••••••••" :validate="false" />
                   <p v-if="passwordMismatch" class="text-xs text-red-600 dark:text-red-400 mt-1">Passwords do not match</p>
                 </div>
 
-                <Button native-type="submit" :loading="loading" block>
+                <UiButton native-type="submit" :loading="loading" block>
                   {{ mode === 'login' ? 'Sign In' : 'Create Account' }}
-                </Button>
+                </UiButton>
               </form>
 
               <!-- Forgot password link (login only) -->
               <p v-if="mode === 'login'" class="text-center text-xs text-gray-500 dark:text-gray-500 mt-3">
-                <Button variant="link" color="primary" @click="startRecovery">Forgot password?</Button>
+                <UiButton variant="link" color="primary" @click="startRecovery">Forgot password?</UiButton>
               </p>
             </template>
 
@@ -95,15 +95,15 @@
               <form @submit.prevent="handleForgotPassword" class="space-y-3">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Email</label>
-                  <Input v-model="recoveryEmail" type="email" required placeholder="you@example.com" />
+                  <UiInput v-model="recoveryEmail" type="email" required placeholder="you@example.com" />
                 </div>
-                <Button native-type="submit" :loading="loading" block>
+                <UiButton native-type="submit" :loading="loading" block>
                   Send Recovery Code
-                </Button>
+                </UiButton>
               </form>
 
               <p class="text-center text-xs text-gray-500 dark:text-gray-500 mt-3">
-                <Button variant="link" color="primary" @click="step = 'auth'; mode = 'login'">Back to sign in</Button>
+                <UiButton variant="link" color="primary" @click="step = 'auth'; mode = 'login'">Back to sign in</UiButton>
               </p>
             </template>
 
@@ -120,17 +120,17 @@
               <form @submit.prevent="handleVerifyRecovery" class="space-y-3">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Verification Code</label>
-                  <Input v-model="otpCode" type="text" required :maxlength="6" pattern="[0-9]{6}"
+                  <UiInput v-model="otpCode" type="text" required :maxlength="6" pattern="[0-9]{6}"
                     validation-pattern="^[0-9]{6}$" validation-message="Enter a 6-digit code"
                     placeholder="000000" />
                 </div>
-                <Button native-type="submit" :disabled="loading || otpCode.length !== 6" :loading="loading" block>
+                <UiButton native-type="submit" :disabled="loading || otpCode.length !== 6" :loading="loading" block>
                   Verify Code
-                </Button>
+                </UiButton>
               </form>
 
               <p class="text-center text-xs text-gray-500 dark:text-gray-500 mt-3">
-                <Button variant="link" color="primary" @click="step = 'recovery-email'">Use a different email</Button>
+                <UiButton variant="link" color="primary" @click="step = 'recovery-email'">Use a different email</UiButton>
               </p>
             </template>
 
@@ -154,17 +154,17 @@
               <form @submit.prevent="handleResetPassword" class="space-y-3">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">New Password</label>
-                  <Input v-model="newPassword" type="password" required :minlength="8" placeholder="••••••••" :validate="false" />
+                  <UiInput v-model="newPassword" type="password" required :minlength="8" placeholder="••••••••" :validate="false" />
                   <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">At least 8 characters</p>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Confirm New Password</label>
-                  <Input v-model="confirmNewPassword" type="password" required :minlength="8" placeholder="••••••••" :validate="false" />
+                  <UiInput v-model="confirmNewPassword" type="password" required :minlength="8" placeholder="••••••••" :validate="false" />
                   <p v-if="confirmNewPassword && newPassword !== confirmNewPassword" class="text-xs text-red-600 dark:text-red-400 mt-1">Passwords do not match</p>
                 </div>
-                <Button native-type="submit" color="red" :disabled="loading || !newPassword || newPassword.length < 8 || newPassword !== confirmNewPassword" :loading="loading" block>
+                <UiButton native-type="submit" color="red" :disabled="loading || !newPassword || newPassword.length < 8 || newPassword !== confirmNewPassword" :loading="loading" block>
                   Reset Password &amp; Delete Notes
-                </Button>
+                </UiButton>
               </form>
             </template>
 

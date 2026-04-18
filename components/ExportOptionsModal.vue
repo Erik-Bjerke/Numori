@@ -9,9 +9,9 @@
               <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">
                 Export Options
               </h2>
-              <Button variant="ghost" color="gray" icon-only @click="$emit('close')">
+              <UiButton variant="ghost" color="gray" icon-only @click="$emit('close')">
                 <Icon name="mdi:close" class="block w-5 h-5" />
-              </Button>
+              </UiButton>
             </div>
 
             <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
@@ -19,12 +19,12 @@
             </p>
 
             <div class="flex justify-end gap-2">
-              <Button variant="ghost" color="gray" @click="$emit('confirm', false)">
+              <UiButton variant="ghost" color="gray" @click="$emit('confirm', false)">
                 Without Results
-              </Button>
-              <Button @click="$emit('confirm', true)">
+              </UiButton>
+              <UiButton @click="$emit('confirm', true)">
                 With Results
-              </Button>
+              </UiButton>
             </div>
           </div>
         </Transition>

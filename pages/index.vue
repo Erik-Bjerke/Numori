@@ -179,14 +179,14 @@
 
             <!-- Action buttons -->
             <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Button @click="createNote" size="lg" class="w-full sm:w-auto">
+              <UiButton @click="createNote" size="lg" class="w-full sm:w-auto">
                 <Icon name="mdi:plus" class="w-5 h-5" />
                 Create new note
-              </Button>
-              <Button @click="showSidebar = true" variant="outline" color="white" size="lg" class="w-full sm:w-auto">
+              </UiButton>
+              <UiButton @click="showSidebar = true" variant="outline" color="white" size="lg" class="w-full sm:w-auto">
                 <Icon name="mdi:menu" class="w-5 h-5" />
                 Browse notes
-              </Button>
+              </UiButton>
             </div>
 
             <!-- Note count hint -->
@@ -349,13 +349,13 @@
     <ToastNotification :toasts="toast.toasts.value" />
 
     <!-- Focus mode exit button -->
-    <Button v-if="focusMode" @click="focusMode = false"
+    <UiButton v-if="focusMode" @click="focusMode = false"
       variant="ghost" color="gray" icon-only
       class="fixed z-50 pl-2.5 pb-2.5 rounded-bl-xl focus-exit-enter"
       :style="{ top: 'env(safe-area-inset-top, 0px)', right: 'env(safe-area-inset-right, 0px)', paddingRight: '4px', paddingTop: '4px' }"
       title="Exit focus mode">
       <Icon name="mdi:fullscreen-exit" class="w-4 h-4 block" />
-    </Button>
+    </UiButton>
   </div>
 </template>
 

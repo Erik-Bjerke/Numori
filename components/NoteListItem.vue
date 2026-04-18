@@ -60,57 +60,57 @@
 
       <!-- Three-dots menu -->
       <div v-if="!selectMode" class="flex-shrink-0 self-center">
-        <Dropdown ref="menuDropdownRef" width="w-48" align="right" :drop="dropUp ? 'up' : 'down'"
+        <UiDropdown ref="menuDropdownRef" width="w-48" align="right" :drop="dropUp ? 'up' : 'down'"
           @open="onMenuOpen">
           <template #trigger="{ toggle }">
-            <Button @click.stop="toggle" variant="ghost" color="gray" icon-only title="Actions">
+            <UiButton @click.stop="toggle" variant="ghost" color="gray" icon-only title="Actions">
               <Icon name="mdi:dots-vertical" class="w-5 h-5" />
-            </Button>
+            </UiButton>
           </template>
 
-          <Button @click.stop="handleAction('duplicate')" variant="menu-item">
+          <UiButton @click.stop="handleAction('duplicate')" variant="menu-item">
             <Icon name="mdi:content-duplicate" class="w-4 h-4" /> Duplicate
-          </Button>
-          <Button @click.stop="handleAction('copy-to-clipboard')" variant="menu-item">
+          </UiButton>
+          <UiButton @click.stop="handleAction('copy-to-clipboard')" variant="menu-item">
             <Icon name="mdi:clipboard-text-outline" class="w-4 h-4" /> Copy to clipboard
-          </Button>
-          <Button @click.stop="handleAction('export')" variant="menu-item">
+          </UiButton>
+          <UiButton @click.stop="handleAction('export')" variant="menu-item">
             <Icon name="mdi:file-export-outline" class="w-4 h-4" /> Export
-          </Button>
-          <Button @click.stop="handleAction('print')" variant="menu-item">
+          </UiButton>
+          <UiButton @click.stop="handleAction('print')" variant="menu-item">
             <Icon name="mdi:printer-outline" class="w-4 h-4" /> Print
-          </Button>
+          </UiButton>
           <div class="my-1 border-t border-gray-200 dark:border-gray-700" />
-          <Button @click.stop="handleAction('share')" variant="menu-item">
+          <UiButton @click.stop="handleAction('share')" variant="menu-item">
             <Icon name="mdi:share-variant-outline" class="w-4 h-4" /> {{ shared ? 'Sharing details' : 'Share' }}
-          </Button>
-          <Button v-if="shared" @click.stop="handleCopyLink" variant="menu-item">
+          </UiButton>
+          <UiButton v-if="shared" @click.stop="handleCopyLink" variant="menu-item">
             <Icon :name="copied ? 'mdi:check' : 'mdi:content-copy'" class="w-4 h-4" /> {{ copied ? 'Copied' : 'Copy link' }}
-          </Button>
-          <Button v-if="shared" @click.stop="handleAction('unshare')" variant="menu-item" color="red">
+          </UiButton>
+          <UiButton v-if="shared" @click.stop="handleAction('unshare')" variant="menu-item" color="red">
             <Icon name="mdi:link-variant-off" class="w-4 h-4" /> Stop sharing
-          </Button>
-          <Button v-if="analyticsHash" @click.stop="handleAction('analytics')" variant="menu-item">
+          </UiButton>
+          <UiButton v-if="analyticsHash" @click.stop="handleAction('analytics')" variant="menu-item">
             <Icon name="mdi:chart-bar" class="w-4 h-4" /> View analytics
-          </Button>
+          </UiButton>
           <div class="my-1 border-t border-gray-200 dark:border-gray-700" />
-          <Button v-if="note.archived" @click.stop="handleAction('unarchive')" variant="menu-item">
+          <UiButton v-if="note.archived" @click.stop="handleAction('unarchive')" variant="menu-item">
             <Icon name="mdi:package-up" class="w-4 h-4" /> Unarchive
-          </Button>
-          <Button v-else @click.stop="handleAction('archive')" variant="menu-item">
+          </UiButton>
+          <UiButton v-else @click.stop="handleAction('archive')" variant="menu-item">
             <Icon name="mdi:archive-outline" class="w-4 h-4" /> Archive
-          </Button>
-          <Button @click.stop="handleAction('properties')" variant="menu-item">
+          </UiButton>
+          <UiButton @click.stop="handleAction('properties')" variant="menu-item">
             <Icon name="mdi:information-outline" class="w-4 h-4" /> Properties
-          </Button>
-          <Button @click.stop="handleAction('add-to-group')" variant="menu-item">
+          </UiButton>
+          <UiButton @click.stop="handleAction('add-to-group')" variant="menu-item">
             <Icon name="mdi:folder-plus-outline" class="w-4 h-4" /> Add to group
-          </Button>
+          </UiButton>
           <div class="my-1 border-t border-gray-200 dark:border-gray-700" />
-          <Button @click.stop="handleAction('delete')" variant="menu-item" color="red">
+          <UiButton @click.stop="handleAction('delete')" variant="menu-item" color="red">
             <Icon name="mdi:trash-can-outline" class="w-4 h-4" /> Delete
-          </Button>
-        </Dropdown>
+          </UiButton>
+        </UiDropdown>
       </div>
     </div>
     </div>

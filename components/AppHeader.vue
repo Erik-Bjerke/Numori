@@ -2,20 +2,20 @@
   <header class="bg-gray-100 dark:bg-gray-900 flex-shrink-0" :style="{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingLeft: 'env(safe-area-inset-left, 0px)', paddingRight: 'env(safe-area-inset-right, 0px)' }">
     <div class="flex flex-col px-3 py-1.5 gap-0.5">
       <!-- Top row: Centered title -->
-      <Button @click="$emit('show-meta')" variant="ghost" color="gray" class="text-center min-w-0 px-1 py-0.5 mb-1 bg-gray-200/50 dark:bg-gray-800/50 rounded-md">
+      <UiButton @click="$emit('show-meta')" variant="ghost" color="gray" class="text-center min-w-0 px-1 py-0.5 mb-1 bg-gray-200/50 dark:bg-gray-800/50 rounded-md">
         <h1 class="text-sm font-semibold leading-tight text-gray-900 dark:text-gray-400 truncate">
           {{ currentNote?.title || 'Numori' }}
         </h1>
-      </Button>
+      </UiButton>
 
       <!-- Bottom row: All controls -->
       <div class="flex items-center gap-1">
         <!-- Left: Sidebar toggle + dropdowns -->
         <div class="flex items-center gap-0.5">
-          <Button @click="$emit('toggle-sidebar')" variant="ghost" color="gray" icon-only
+          <UiButton @click="$emit('toggle-sidebar')" variant="ghost" color="gray" icon-only
             title="Toggle notes list">
             <Icon name="mdi:menu" class="w-4.5 h-4.5 block" />
-          </Button>
+          </UiButton>
           <FileDropdown :has-note="!!currentNote" :mod-label="modLabel" :selection-count="selectionCount"
             @new-note="$emit('file-new')"
             @open-file="$emit('file-open')"
@@ -57,7 +57,7 @@
         <!-- Right: Actions -->
         <div class="flex items-center gap-0.5">
           <!-- Inline results mode group -->
-          <ButtonsGroup
+          <UiButtonsGroup
             :model-value="inlineMode"
             @update:model-value="$emit('update:inline-mode', $event)"
             :options="[
@@ -70,10 +70,10 @@
           <div class="w-px h-5 bg-gray-300/60 dark:bg-gray-700 mx-0.5"></div>
 
           <!-- Focus mode -->
-          <Button @click="$emit('toggle-focus')" variant="ghost" color="gray" icon-only
+          <UiButton @click="$emit('toggle-focus')" variant="ghost" color="gray" icon-only
             title="Focus mode">
             <Icon name="mdi:fullscreen" class="w-5 h-5 block" />
-          </Button>
+          </UiButton>
         </div>
       </div>
     </div>

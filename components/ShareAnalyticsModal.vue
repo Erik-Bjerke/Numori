@@ -10,20 +10,20 @@
             <div class="flex items-center justify-between px-5 py-3 border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
               <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">Share Analytics</h2>
               <div class="flex items-center gap-1">
-                <Button @click="refresh" :disabled="loading"
+                <UiButton @click="refresh" :disabled="loading"
                   variant="ghost" color="gray" icon-only
                   title="Refresh">
                   <Icon name="mdi:refresh" class="block w-5 h-5" :class="{ 'animate-spin': loading }" />
-                </Button>
-                <Button @click="$emit('close')" variant="ghost" color="gray" icon-only>
+                </UiButton>
+                <UiButton @click="$emit('close')" variant="ghost" color="gray" icon-only>
                   <Icon name="mdi:close" class="block w-5 h-5" />
-                </Button>
+                </UiButton>
               </div>
             </div>
 
             <!-- Tabs -->
             <div class="flex border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
-              <Button v-for="tab in tabs" :key="tab.id" @click="activeTab = tab.id"
+              <UiButton v-for="tab in tabs" :key="tab.id" @click="activeTab = tab.id"
                 variant="ghost"
                 class="flex-1 relative"
                 :class="activeTab === tab.id
@@ -31,7 +31,7 @@
                   : 'text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'">
                 {{ tab.label }}
                 <div v-if="activeTab === tab.id" class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 dark:bg-primary-400" />
-              </Button>
+              </UiButton>
             </div>
 
             <!-- Body -->
@@ -114,24 +114,24 @@
                   <!-- Controls -->
                   <div class="flex items-center justify-between flex-wrap gap-2">
                     <label class="flex items-center gap-2 cursor-pointer">
-                      <Checkbox v-model="showRaw" size="sm" />
+                      <UiCheckbox v-model="showRaw" size="sm" />
                       <span class="text-xs text-gray-500 dark:text-gray-500">Show raw data</span>
                     </label>
                     <div class="flex items-center gap-2">
-                      <Button v-if="selectedIds.size > 0" @click="deleteSelected"
+                      <UiButton v-if="selectedIds.size > 0" @click="deleteSelected"
                         variant="ghost" color="red" size="xs">
                         Delete selected ({{ selectedIds.size }})
-                      </Button>
-                      <Button v-if="data.totalRecords > 0" @click="deleteAll"
+                      </UiButton>
+                      <UiButton v-if="data.totalRecords > 0" @click="deleteAll"
                         variant="ghost" color="red" size="xs">
                         Delete all
-                      </Button>
+                      </UiButton>
                     </div>
                   </div>
 
                   <!-- Select all on page -->
                   <label v-if="uniqueDetailViewers.length > 0" class="flex items-center gap-2 cursor-pointer px-1">
-                    <Checkbox :checked="allOnPageSelected" size="sm"
+                    <UiCheckbox :checked="allOnPageSelected" size="sm"
                       @change="toggleSelectAll" />
                     <span class="text-xs text-gray-500 dark:text-gray-500">Select all on this page</span>
                   </label>
@@ -141,7 +141,7 @@
                     <div v-for="v in uniqueDetailViewers" :key="v.id"
                       class="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                       <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-900">
-                        <Checkbox :checked="selectedIds.has(v.id)" size="sm"
+                        <UiCheckbox :checked="selectedIds.has(v.id)" size="sm"
                           @change="toggleSelect(v.id)" />
                         <Icon :name="v.eventType === 'import' ? 'mdi:download' : 'mdi:eye-outline'"
                           class="w-4 h-4 flex-shrink-0"
@@ -217,22 +217,22 @@
                       Page {{ data.page }} of {{ data.totalPages }} ({{ data.totalRecords }} records)
                     </span>
                     <div class="flex items-center gap-1">
-                      <Button @click="goToPage(1)" :disabled="data.page <= 1"
+                      <UiButton @click="goToPage(1)" :disabled="data.page <= 1"
                         variant="ghost" color="gray" icon-only size="xs">
                         <Icon name="mdi:chevron-double-left" class="w-4 h-4" />
-                      </Button>
-                      <Button @click="goToPage(data.page - 1)" :disabled="data.page <= 1"
+                      </UiButton>
+                      <UiButton @click="goToPage(data.page - 1)" :disabled="data.page <= 1"
                         variant="ghost" color="gray" icon-only size="xs">
                         <Icon name="mdi:chevron-left" class="w-4 h-4" />
-                      </Button>
-                      <Button @click="goToPage(data.page + 1)" :disabled="data.page >= data.totalPages"
+                      </UiButton>
+                      <UiButton @click="goToPage(data.page + 1)" :disabled="data.page >= data.totalPages"
                         variant="ghost" color="gray" icon-only size="xs">
                         <Icon name="mdi:chevron-right" class="w-4 h-4" />
-                      </Button>
-                      <Button @click="goToPage(data.totalPages)" :disabled="data.page >= data.totalPages"
+                      </UiButton>
+                      <UiButton @click="goToPage(data.totalPages)" :disabled="data.page >= data.totalPages"
                         variant="ghost" color="gray" icon-only size="xs">
                         <Icon name="mdi:chevron-double-right" class="w-4 h-4" />
-                      </Button>
+                      </UiButton>
                     </div>
                   </div>
                 </div>

@@ -21,14 +21,14 @@
                     Select Language
                   </h2>
                 </div>
-                <Button variant="ghost" color="gray" icon-only @click="closeModal">
+                <UiButton variant="ghost" color="gray" icon-only @click="closeModal">
                   <Icon name="mdi:close" class="block w-5 h-5" />
-                </Button>
+                </UiButton>
               </div>
 
               <!-- Language Options -->
               <div class="p-4 space-y-2">
-                <Button v-for="locale in availableLocales" :key="locale.code" @click="changeLocale(locale.code)"
+                <UiButton v-for="locale in availableLocales" :key="locale.code" @click="changeLocale(locale.code)"
                   variant="ghost" color="gray" block
                   class="p-4 rounded-xl h-auto" :class="[
                     currentLocale.code === locale.code
@@ -67,7 +67,7 @@
                       <Icon name="mdi:check" class="w-5 h-5 text-white dark:text-vscode-bg-dark" />
                     </div>
                   </div>
-                </Button>
+                </UiButton>
               </div>
 
               <!-- Footer -->

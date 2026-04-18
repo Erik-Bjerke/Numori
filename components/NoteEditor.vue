@@ -43,28 +43,28 @@
       </ClientOnly>
 
       <!-- Link action popup -->
-      <Popup :show="linkPopup.show" :x="linkPopup.x" :y="linkPopup.y" :offset-y="20"
+      <UiPopup :show="linkPopup.show" :x="linkPopup.x" :y="linkPopup.y" :offset-y="20"
         @close="closeLinkPopup">
         <div v-if="linkPopup.isExternal" class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-amber-600 dark:text-amber-400">
           <Icon name="mdi:alert-outline" class="w-3.5 h-3.5 block flex-shrink-0" />
           <span>Be careful, external link</span>
         </div>
-        <Button @click="openLink" variant="menu-item">
+        <UiButton @click="openLink" variant="menu-item">
           <Icon name="mdi:open-in-new" class="w-4 h-4 block flex-shrink-0" />
           <span>Open Link</span>
-        </Button>
-        <Button @click="copyLinkUrl" variant="menu-item">
+        </UiButton>
+        <UiButton @click="copyLinkUrl" variant="menu-item">
           <Icon name="mdi:content-copy" class="w-4 h-4 block flex-shrink-0" />
           <span>Copy Link</span>
-        </Button>
-        <Button @click="copyLinkName" variant="menu-item">
+        </UiButton>
+        <UiButton @click="copyLinkName" variant="menu-item">
           <Icon name="mdi:format-text" class="w-4 h-4 block flex-shrink-0" />
           <span>Copy Link Name</span>
-        </Button>
+        </UiButton>
         <div class="px-3 py-1 text-xs text-gray-400 dark:text-gray-500 truncate border-t border-gray-100 dark:border-gray-700 mt-1 pt-1">
           {{ linkPopup.url }}
         </div>
-      </Popup>
+      </UiPopup>
     </div>
   </div>
 </template>

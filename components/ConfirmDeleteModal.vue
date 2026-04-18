@@ -9,9 +9,9 @@
               <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">
                 Delete Note
               </h2>
-              <Button variant="ghost" color="gray" icon-only @click="$emit('close')">
+              <UiButton variant="ghost" color="gray" icon-only @click="$emit('close')">
                 <Icon name="mdi:close" class="block w-5 h-5" />
-              </Button>
+              </UiButton>
             </div>
 
             <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
@@ -19,12 +19,12 @@
             </p>
 
             <div class="flex justify-end gap-2">
-              <Button variant="ghost" color="gray" @click="$emit('close')">
+              <UiButton variant="ghost" color="gray" @click="$emit('close')">
                 Cancel
-              </Button>
-              <Button color="red" @click="$emit('confirm')">
+              </UiButton>
+              <UiButton color="red" @click="$emit('confirm')">
                 Delete
-              </Button>
+              </UiButton>
             </div>
           </div>
         </Transition>

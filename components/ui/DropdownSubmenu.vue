@@ -2,12 +2,12 @@
   <div class="relative"
     @mouseenter="!isMobile && (showSub = true)"
     @mouseleave="!isMobile && (showSub = false)">
-    <Button variant="menu-item" :disabled="disabled" @click="showSub = !showSub">
+    <UiButton variant="menu-item" :disabled="disabled" @click="showSub = !showSub">
       <Icon :name="icon" class="w-4 h-4 block flex-shrink-0" />
       <span class="flex-1 text-left">{{ label }}</span>
       <Icon :name="isMobile ? (showSub ? 'mdi:chevron-up' : 'mdi:chevron-down') : 'mdi:chevron-right'"
         class="w-3.5 h-3.5 block flex-shrink-0 text-gray-400" />
-    </Button>
+    </UiButton>
 
     <!-- Mobile: inline accordion -->
     <Transition

@@ -23,10 +23,10 @@
       </span>
       <!-- Three-dots menu -->
       <div class="relative flex-shrink-0" ref="menuRef" tabindex="-1" @focusout="onFocusOut">
-        <Button @click.stop="toggleMenu" variant="ghost" color="gray" icon-only class="-m-1"
+        <UiButton @click.stop="toggleMenu" variant="ghost" color="gray" icon-only class="-m-1"
           title="Group actions">
           <Icon name="mdi:dots-vertical" class="w-4 h-4" />
-        </Button>
+        </UiButton>
         <Transition
           enter-active-class="transition-all duration-150 ease-out"
           enter-from-class="opacity-0 scale-95"
@@ -37,15 +37,15 @@
           <div v-show="menuOpen"
             class="absolute right-0 z-50 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1"
             :class="dropUp ? 'bottom-full mb-1' : 'top-full mt-1'">
-            <Button @click.stop="handleAction('edit')" variant="menu-item">
+            <UiButton @click.stop="handleAction('edit')" variant="menu-item">
               <Icon name="mdi:pencil-outline" class="w-4 h-4" />
               Edit Group
-            </Button>
+            </UiButton>
             <div class="my-1 border-t border-gray-200 dark:border-gray-700" />
-            <Button @click.stop="handleAction('delete')" variant="menu-item" color="red">
+            <UiButton @click.stop="handleAction('delete')" variant="menu-item" color="red">
               <Icon name="mdi:trash-can-outline" class="w-4 h-4" />
               Delete Group
-            </Button>
+            </UiButton>
           </div>
         </Transition>
       </div>

@@ -1,9 +1,9 @@
 <template>
-  <Button variant="menu-item" :color="color" :disabled="disabled" @click="!disabled && $emit('click')">
+  <UiButton variant="menu-item" :color="color" :disabled="disabled" @click="!disabled && $emit('click')">
     <Icon :name="icon" class="w-4 h-4 block flex-shrink-0" />
     <span class="flex-1 text-left">{{ label }}</span>
     <span v-if="shortcut" class="text-xs text-gray-400 dark:text-gray-500">{{ shortcut }}</span>
-  </Button>
+  </UiButton>
 </template>
 
 <script setup>

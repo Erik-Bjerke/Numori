@@ -7,22 +7,22 @@
           <div v-if="isOpen" class="bg-white dark:bg-gray-925 rounded-lg max-w-sm w-full p-4">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">Add to Group</h2>
-              <Button variant="ghost" color="gray" icon-only size="sm" @click="$emit('close')">
+              <UiButton variant="ghost" color="gray" icon-only size="sm" @click="$emit('close')">
                 <Icon name="mdi:close" class="block w-5 h-5" />
-              </Button>
+              </UiButton>
             </div>
 
             <div class="space-y-1 max-h-60 overflow-y-auto">
               <!-- Create new group option -->
-              <Button variant="ghost" color="primary" block @click="$emit('create-new')">
+              <UiButton variant="ghost" color="primary" block @click="$emit('create-new')">
                 <Icon name="mdi:folder-plus-outline" class="w-4.5 h-4.5 flex-shrink-0" />
                 Create new group
-              </Button>
+              </UiButton>
 
               <div v-if="groups.length" class="my-2 border-t border-gray-200 dark:border-gray-700" />
 
               <!-- Existing groups -->
-              <Button v-for="group in groups" :key="group.id"
+              <UiButton v-for="group in groups" :key="group.id"
                 variant="ghost" block
                 @click="$emit('select', group.id)"
                 :class="currentGroupId === group.id
@@ -32,22 +32,22 @@
                   :class="currentGroupId === group.id ? 'text-primary-500' : 'text-gray-400'" />
                 <span class="truncate">{{ group.name }}</span>
                 <Icon v-if="currentGroupId === group.id" name="mdi:check" class="w-4 h-4 ml-auto text-primary-500 flex-shrink-0" />
-              </Button>
+              </UiButton>
 
               <!-- Remove from group option -->
               <template v-if="currentGroupId">
                 <div class="my-2 border-t border-gray-200 dark:border-gray-700" />
-                <Button variant="ghost" color="gray" block @click="$emit('select', null)">
+                <UiButton variant="ghost" color="gray" block @click="$emit('select', null)">
                   <Icon name="mdi:folder-remove-outline" class="w-4.5 h-4.5 flex-shrink-0" />
                   Remove from group
-                </Button>
+                </UiButton>
               </template>
             </div>
 
             <div class="flex justify-end mt-4">
-              <Button variant="ghost" color="gray" @click="$emit('close')">
+              <UiButton variant="ghost" color="gray" @click="$emit('close')">
                 Cancel
-              </Button>
+              </UiButton>
             </div>
           </div>
         </Transition>

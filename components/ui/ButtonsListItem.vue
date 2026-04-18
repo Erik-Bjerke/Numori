@@ -1,5 +1,5 @@
 <template>
-  <Button
+  <UiButton
     variant="list-item"
     :color="danger ? 'red' : 'primary'"
     :disabled="disabled"
@@ -14,7 +14,7 @@
       <Icon v-if="chevron" name="mdi:chevron-right" class="w-4 h-4 flex-shrink-0"
         :class="danger ? 'text-red-300 dark:text-red-800' : 'text-gray-300 dark:text-gray-600'" />
     </slot>
-  </Button>
+  </UiButton>
 </template>
 
 <script setup>

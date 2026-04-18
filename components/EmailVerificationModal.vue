@@ -8,9 +8,9 @@
 
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">Verify Email</h2>
-              <Button variant="ghost" color="gray" icon-only @click="$emit('close')">
+              <UiButton variant="ghost" color="gray" icon-only @click="$emit('close')">
                 <Icon name="mdi:close" class="block w-5 h-5" />
-              </Button>
+              </UiButton>
             </div>
 
             <p class="text-xs text-gray-500 dark:text-gray-500 mb-4">
@@ -28,20 +28,20 @@
             <form @submit.prevent="handleVerify" class="space-y-3">
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Verification Code</label>
-                <Input v-model="code" type="text" required :maxlength="6" pattern="[0-9]{6}"
+                <UiInput v-model="code" type="text" required :maxlength="6" pattern="[0-9]{6}"
                   validation-pattern="^[0-9]{6}$" validation-message="Enter a 6-digit code"
                   placeholder="000000" />
               </div>
-              <Button native-type="submit" block :loading="loading" :disabled="loading || code.length !== 6">
+              <UiButton native-type="submit" block :loading="loading" :disabled="loading || code.length !== 6">
                 Verify
-              </Button>
+              </UiButton>
             </form>
 
             <p class="text-center text-xs text-gray-500 dark:text-gray-500 mt-3">
               Didn't receive a code?
-              <Button variant="link" color="primary" @click="handleResend" :disabled="loading || resendCooldown > 0">
+              <UiButton variant="link" color="primary" @click="handleResend" :disabled="loading || resendCooldown > 0">
                 {{ resendCooldown > 0 ? `Resend (${resendCooldown}s)` : 'Resend code' }}
-              </Button>
+              </UiButton>
             </p>
           </div>
         </Transition>

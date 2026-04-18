@@ -43,13 +43,13 @@
         <div v-if="decryptError" class="px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-xs">
           {{ decryptError }}
         </div>
-        <Input v-model="passwordInput" type="password" placeholder="Share password"
+        <UiInput v-model="passwordInput" type="password" placeholder="Share password"
           :validate="false" @keyup.enter="decryptWithPassword" />
-        <Button @click="decryptWithPassword" :disabled="!passwordInput" :loading="decrypting"
+        <UiButton @click="decryptWithPassword" :disabled="!passwordInput" :loading="decrypting"
           variant="solid" color="primary" block>
           <Icon name="mdi:lock-open-outline" class="w-4 h-4" />
           Decrypt
-        </Button>
+        </UiButton>
       </div>
     </div>
 

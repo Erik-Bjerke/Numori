@@ -13,9 +13,9 @@
             <!-- Header -->
             <div class="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
               <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">About Numori</h2>
-              <Button variant="ghost" color="gray" icon-only size="sm" @click="$emit('close')">
+              <UiButton variant="ghost" color="gray" icon-only size="sm" @click="$emit('close')">
                 <Icon name="mdi:close" class="block w-5 h-5" />
-              </Button>
+              </UiButton>
             </div>
 
             <!-- Body -->
@@ -32,10 +32,10 @@
                   GitHub
                 </a>
                 <div class="pt-1">
-                  <Button variant="outline" color="gray" size="sm" @click="handleCheckUpdate" :disabled="checking" :loading="checking">
+                  <UiButton variant="outline" color="gray" size="sm" @click="handleCheckUpdate" :disabled="checking" :loading="checking">
                     <Icon v-if="!checking" name="mdi:update" class="w-3.5 h-3.5 block" />
                     {{ checking ? 'Checking...' : 'Check for updates' }}
-                  </Button>
+                  </UiButton>
                   <p v-if="checkResult" class="mt-1.5 text-xs" :class="checkResultClass">{{ checkResult }}</p>
                 </div>
               </div>
@@ -92,9 +92,9 @@
 
             <!-- Footer -->
             <div class="px-4 sm:px-5 py-3 border-t border-gray-200 dark:border-gray-800 flex-shrink-0 text-center">
-              <Button variant="solid" color="gray" size="sm" @click="$emit('close')">
+              <UiButton variant="solid" color="gray" size="sm" @click="$emit('close')">
                 Close
-              </Button>
+              </UiButton>
             </div>
           </div>
         </Transition>

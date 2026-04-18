@@ -9,9 +9,9 @@
             <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">
               Note Details
             </h2>
-            <Button variant="ghost" color="gray" icon-only @click="$emit('close')">
+            <UiButton variant="ghost" color="gray" icon-only @click="$emit('close')">
               <Icon name="mdi:close" class="block w-5 h-5" />
-            </Button>
+            </UiButton>
           </div>
 
           <div class="space-y-4">
@@ -19,14 +19,14 @@
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">
                 Title
               </label>
-              <Input v-model="localTitle" type="text" placeholder="Untitled Note" :validate="false" />
+              <UiInput v-model="localTitle" type="text" placeholder="Untitled Note" :validate="false" />
             </div>
 
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">
                 Internal Name
               </label>
-              <Input v-model="localInternalName" type="text" placeholder="untitled_note" :validate="false"
+              <UiInput v-model="localInternalName" type="text" placeholder="untitled_note" :validate="false"
                 @update:model-value="internalNameManuallyEdited = true" />
               <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
                 Auto-generated from title. Edit to customise.
@@ -50,20 +50,20 @@
                 <span v-for="(tag, i) in localTags" :key="i"
                   class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
                   {{ tag }}
-                  <Button variant="ghost" color="gray" size="xs" icon-only @click="removeTag(i)">
+                  <UiButton variant="ghost" color="gray" size="xs" icon-only @click="removeTag(i)">
                     <Icon name="mdi:close" class="w-3 h-3" />
-                  </Button>
+                  </UiButton>
                 </span>
               </div>
               <div class="relative">
-                <Input v-model="tagInput" type="text" placeholder="e.g. work, ideas, urgent" :validate="false"
+                <UiInput v-model="tagInput" type="text" placeholder="e.g. work, ideas, urgent" :validate="false"
                   @keydown.enter.prevent="addTags"
                   @keydown.backspace="tagInput === '' && localTags.length && removeTag(localTags.length - 1)"
                   @update:model-value="onTagInput" />
                 <div v-if="tagSuggestions.length" class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-32 overflow-y-auto">
-                  <Button v-for="s in tagSuggestions" :key="s" variant="menu-item" @mousedown.prevent="selectSuggestion(s)">
+                  <UiButton v-for="s in tagSuggestions" :key="s" variant="menu-item" @mousedown.prevent="selectSuggestion(s)">
                     {{ s }}
-                  </Button>
+                  </UiButton>
                 </div>
               </div>
               <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">
@@ -86,36 +86,36 @@
                   {{ props.shared ? 'This note is shared' : 'Not shared' }}
                 </span>
               </div>
-              <Button v-if="props.shared" variant="ghost" color="red" size="xs" @click="emit('unshare', props.noteId)">
+              <UiButton v-if="props.shared" variant="ghost" color="red" size="xs" @click="emit('unshare', props.noteId)">
                 Stop sharing
-              </Button>
-              <Button v-else variant="ghost" size="xs" @click="emit('share', props.noteId)">
+              </UiButton>
+              <UiButton v-else variant="ghost" size="xs" @click="emit('share', props.noteId)">
                 Share
-              </Button>
+              </UiButton>
             </div>
             <div v-if="props.shared && props.shareHash" class="flex items-center gap-2 mt-2">
-              <Input :model-value="shareUrl" readonly :validate="false" />
-              <Button icon-only size="sm" class="flex-shrink-0" @click="copyShareLink">
+              <UiInput :model-value="shareUrl" readonly :validate="false" />
+              <UiButton icon-only size="sm" class="flex-shrink-0" @click="copyShareLink">
                 <Icon :name="copiedLink ? 'mdi:check' : 'mdi:content-copy'" class="w-3.5 h-3.5 block" />
-              </Button>
+              </UiButton>
             </div>
-            <Button v-if="props.analyticsHash" variant="ghost" size="xs" block @click="emit('open-analytics', props.analyticsHash)">
+            <UiButton v-if="props.analyticsHash" variant="ghost" size="xs" block @click="emit('open-analytics', props.analyticsHash)">
               <Icon name="mdi:chart-bar" class="w-3.5 h-3.5" />
               View analytics
-            </Button>
+            </UiButton>
           </div>
 
           <div class="flex justify-between gap-2 mt-6">
-            <Button v-if="noteId" variant="ghost" color="red" @click="handleDelete">
+            <UiButton v-if="noteId" variant="ghost" color="red" @click="handleDelete">
               Delete
-            </Button>
+            </UiButton>
             <div class="flex-1"></div>
-            <Button variant="ghost" color="gray" @click="$emit('close')">
+            <UiButton variant="ghost" color="gray" @click="$emit('close')">
               Cancel
-            </Button>
-            <Button @click="save">
+            </UiButton>
+            <UiButton @click="save">
               Save
-            </Button>
+            </UiButton>
           </div>
           </div>
         </Transition>

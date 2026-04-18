@@ -10,19 +10,19 @@
             <!-- Header -->
             <div class="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
               <div class="flex items-center gap-2 min-w-0">
-                <Button v-if="activeSection !== 'main'" variant="ghost" color="primary" size="sm" @click="goBack"
+                <UiButton v-if="activeSection !== 'main'" variant="ghost" color="primary" size="sm" @click="goBack"
                   class="flex-shrink-0 -ml-2">
                   <Icon name="mdi:arrow-left" class="block w-4 h-4" />
                   <span class="hidden sm:inline">Back</span>
-                </Button>
+                </UiButton>
                 <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none truncate">
                   {{ activeSection === 'main' ? 'Profile' : sectionTitle }}
                 </h2>
               </div>
-              <Button variant="ghost" color="gray" icon-only @click="$emit('close')"
+              <UiButton variant="ghost" color="gray" icon-only @click="$emit('close')"
                 class="flex-shrink-0">
                 <Icon name="mdi:close" class="block w-5 h-5" />
-              </Button>
+              </UiButton>
             </div>
 
             <!-- Body -->
@@ -44,7 +44,7 @@
                 <!-- Profile card -->
                 <div class="relative rounded-xl bg-gradient-to-br from-primary-50 to-primary-100/50 dark:from-primary-900/20 dark:to-primary-800/10 border border-primary-100 dark:border-primary-900/30 px-4 py-5">
                   <div class="flex items-center gap-4">
-                    <Button variant="ghost" @click="activeSection = 'avatar'" class="relative group flex-shrink-0" title="Change avatar">
+                    <UiButton variant="ghost" @click="activeSection = 'avatar'" class="relative group flex-shrink-0" title="Change avatar">
                       <div class="w-16 h-16 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden ring-2 ring-primary-200 dark:ring-primary-800 shadow-sm">
                         <img v-if="user?.avatarUrl" :src="user.avatarUrl" class="w-full h-full object-cover" alt="Avatar" />
                         <Icon v-else name="mdi:account" class="w-8 h-8 text-primary-600 dark:text-primary-400" />
@@ -52,16 +52,16 @@
                       <div class="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                         <Icon name="mdi:camera" class="w-4 h-4 text-white" />
                       </div>
-                    </Button>
+                    </UiButton>
                     <div class="flex-1 min-w-0">
-                      <Button variant="ghost" @click="activeSection = 'edit'" class="flex items-center gap-1.5 group rounded px-1 -mx-1 hover:bg-primary-200/40 dark:hover:bg-primary-800/30" title="Edit profile">
+                      <UiButton variant="ghost" @click="activeSection = 'edit'" class="flex items-center gap-1.5 group rounded px-1 -mx-1 hover:bg-primary-200/40 dark:hover:bg-primary-800/30" title="Edit profile">
                         <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{{ user?.name || 'No name set' }}</p>
                         <Icon name="mdi:pencil-outline" class="w-3 h-3 text-primary-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-                      </Button>
-                      <Button variant="ghost" @click="activeSection = 'edit'" class="flex items-center gap-1.5 group rounded px-1 -mx-1 hover:bg-primary-200/40 dark:hover:bg-primary-800/30 mt-0.5" title="Edit profile">
+                      </UiButton>
+                      <UiButton variant="ghost" @click="activeSection = 'edit'" class="flex items-center gap-1.5 group rounded px-1 -mx-1 hover:bg-primary-200/40 dark:hover:bg-primary-800/30 mt-0.5" title="Edit profile">
                         <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ user?.email }}</p>
                         <Icon name="mdi:pencil-outline" class="w-3 h-3 text-primary-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-                      </Button>
+                      </UiButton>
                       <p class="text-[10px] text-gray-400 dark:text-gray-600 mt-1">
                         Member since {{ user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—' }}
                       </p>
@@ -71,36 +71,36 @@
 
                 <!-- Quick stats -->
                 <div class="grid grid-cols-3 gap-2">
-                  <Button variant="ghost" color="gray" @click="$emit('show-notes')" class="group flex flex-col items-center gap-1 px-2 py-3 rounded-xl bg-gray-50 dark:bg-gray-900 border border-transparent hover:border-primary-300 dark:hover:border-primary-700">
+                  <UiButton variant="ghost" color="gray" @click="$emit('show-notes')" class="group flex flex-col items-center gap-1 px-2 py-3 rounded-xl bg-gray-50 dark:bg-gray-900 border border-transparent hover:border-primary-300 dark:hover:border-primary-700">
                     <Icon name="mdi:note-multiple-outline" class="w-4 h-4 text-gray-400 group-hover:text-primary-500 transition-colors" />
                     <p class="text-lg font-semibold text-gray-900 dark:text-gray-200 leading-none">{{ user?.stats?.notesCount ?? '—' }}</p>
                     <p class="text-[10px] text-gray-500 dark:text-gray-500 uppercase tracking-wide">Notes</p>
-                  </Button>
-                  <Button variant="ghost" color="gray" @click="openSharedSection" class="group flex flex-col items-center gap-1 px-2 py-3 rounded-xl bg-gray-50 dark:bg-gray-900 border border-transparent hover:border-primary-300 dark:hover:border-primary-700">
+                  </UiButton>
+                  <UiButton variant="ghost" color="gray" @click="openSharedSection" class="group flex flex-col items-center gap-1 px-2 py-3 rounded-xl bg-gray-50 dark:bg-gray-900 border border-transparent hover:border-primary-300 dark:hover:border-primary-700">
                     <Icon name="mdi:share-variant-outline" class="w-4 h-4 text-gray-400 group-hover:text-primary-500 transition-colors" />
                     <p class="text-lg font-semibold text-gray-900 dark:text-gray-200 leading-none">{{ user?.stats?.sharedCount ?? '—' }}</p>
                     <p class="text-[10px] text-gray-500 dark:text-gray-500 uppercase tracking-wide">Shared</p>
-                  </Button>
-                  <Button variant="ghost" color="gray" @click="$emit('sync-now')" class="group flex flex-col items-center gap-1 px-2 py-3 rounded-xl bg-gray-50 dark:bg-gray-900 border border-transparent hover:border-primary-300 dark:hover:border-primary-700">
+                  </UiButton>
+                  <UiButton variant="ghost" color="gray" @click="$emit('sync-now')" class="group flex flex-col items-center gap-1 px-2 py-3 rounded-xl bg-gray-50 dark:bg-gray-900 border border-transparent hover:border-primary-300 dark:hover:border-primary-700">
                     <Icon name="mdi:cloud-sync-outline" class="w-4 h-4 text-gray-400 group-hover:text-primary-500 transition-colors" />
                     <p class="text-sm font-semibold text-gray-900 dark:text-gray-200 leading-snug break-words capitalize">{{ lastSyncedAt ? formatDate(lastSyncedAt) : '—' }}</p>
                     <p class="text-[10px] text-gray-500 dark:text-gray-500 uppercase tracking-wide">Synced</p>
-                  </Button>
+                  </UiButton>
                 </div>
 
                 <!-- Account section -->
                 <!-- Account section -->
-                <ButtonsList label="Account">
-                  <ButtonsListItem icon="mdi:account-edit-outline" @click="activeSection = 'edit'">Edit Profile</ButtonsListItem>
-                  <ButtonsListItem icon="mdi:lock-outline" @click="activeSection = 'password'">Change Password</ButtonsListItem>
-                </ButtonsList>
+                <UiButtonsList label="Account">
+                  <UiButtonsListItem icon="mdi:account-edit-outline" @click="activeSection = 'edit'">Edit Profile</UiButtonsListItem>
+                  <UiButtonsListItem icon="mdi:lock-outline" @click="activeSection = 'password'">Change Password</UiButtonsListItem>
+                </UiButtonsList>
 
                 <!-- Security & Privacy section -->
-                <ButtonsList label="Security & Privacy">
-                  <ButtonsListItem icon="mdi:shield-lock-outline" @click="activeSection = 'security'">Security</ButtonsListItem>
-                  <ButtonsListItem icon="mdi:devices" @click="openSessionsSection">Active Sessions</ButtonsListItem>
+                <UiButtonsList label="Security & Privacy">
+                  <UiButtonsListItem icon="mdi:shield-lock-outline" @click="activeSection = 'security'">Security</UiButtonsListItem>
+                  <UiButtonsListItem icon="mdi:devices" @click="openSessionsSection">Active Sessions</UiButtonsListItem>
                     <!-- Privacy toggle inline -->
-                    <ButtonsListItem icon="mdi:shield-account-outline" :chevron="false"
+                    <UiButtonsListItem icon="mdi:shield-account-outline" :chevron="false"
                       :disabled="savingPrivacy" @click="togglePrivacy">
                       <div class="flex-1 min-w-0">
                         <span>Privacy protection</span>
@@ -109,22 +109,22 @@
                         </p>
                       </div>
                       <template #suffix>
-                        <Toggle :model-value="privacyNoTracking" :disabled="savingPrivacy" size="sm" readonly />
+                        <UiToggle :model-value="privacyNoTracking" :disabled="savingPrivacy" size="sm" readonly />
                       </template>
-                    </ButtonsListItem>
-                </ButtonsList>
+                    </UiButtonsListItem>
+                </UiButtonsList>
 
                 <!-- Danger zone -->
-                <ButtonsList label="Danger Zone" danger>
-                  <ButtonsListItem icon="mdi:alert-outline" danger @click="activeSection = 'danger'">Delete Data or Account</ButtonsListItem>
-                </ButtonsList>
+                <UiButtonsList label="Danger Zone" danger>
+                  <UiButtonsListItem icon="mdi:alert-outline" danger @click="activeSection = 'danger'">Delete Data or Account</UiButtonsListItem>
+                </UiButtonsList>
 
                 <!-- Sign out -->
                 <div class="flex justify-center pt-1 pb-1">
-                  <Button variant="ghost" color="red" @click="$emit('logout'); $emit('close')">
+                  <UiButton variant="ghost" color="red" @click="$emit('logout'); $emit('close')">
                     <Icon name="mdi:logout-variant" class="w-4 h-4" />
                     Sign out
-                  </Button>
+                  </UiButton>
                 </div>
               </div>
 
@@ -135,28 +135,28 @@
                     <Icon name="mdi:image-plus" class="w-10 h-10 text-gray-400" />
                   </div>
                   <p class="text-sm text-gray-600 dark:text-gray-400">Choose an image for your avatar</p>
-                  <FileInput accept="image/*" @select="onFileSelect"
+                  <UiFileInput accept="image/*" @select="onFileSelect"
                     class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg">
                     <Icon name="mdi:upload" class="w-4 h-4" />
                     Upload Image
-                  </FileInput>
-                  <Button v-if="user?.avatarUrl" variant="ghost" color="red" size="xs" @click="removeAvatar"
+                  </UiFileInput>
+                  <UiButton v-if="user?.avatarUrl" variant="ghost" color="red" size="xs" @click="removeAvatar"
                     class="block mx-auto mt-2">
                     Remove current avatar
-                  </Button>
+                  </UiButton>
                 </div>
 
                 <div v-else class="space-y-3">
                   <AvatarEditor :image-source="avatarImageSrc" :canvas-size="editorCanvasSize" @update="onAvatarCropped" />
                   <div class="flex gap-2">
-                    <Button variant="solid" color="gray" @click="avatarImageSrc = null"
+                    <UiButton variant="solid" color="gray" @click="avatarImageSrc = null"
                       class="flex-1">
                       Choose Different
-                    </Button>
-                    <Button variant="solid" color="primary" :loading="saving" @click="saveAvatar"
+                    </UiButton>
+                    <UiButton variant="solid" color="primary" :loading="saving" @click="saveAvatar"
                       class="flex-1">
                       Save Avatar
-                    </Button>
+                    </UiButton>
                   </div>
                 </div>
               </div>
@@ -165,15 +165,15 @@
               <div v-else-if="activeSection === 'edit'" class="space-y-4">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Name</label>
-                  <Input v-model="editName" type="text" placeholder="Your name" :validate="false" />
+                  <UiInput v-model="editName" type="text" placeholder="Your name" :validate="false" />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Email</label>
-                  <Input v-model="editEmail" type="email" placeholder="you@example.com" />
+                  <UiInput v-model="editEmail" type="email" placeholder="you@example.com" />
                 </div>
-                <Button variant="solid" color="primary" block :loading="saving" @click="saveProfile">
+                <UiButton variant="solid" color="primary" block :loading="saving" @click="saveProfile">
                   Save Changes
-                </Button>
+                </UiButton>
               </div>
 
               <!-- ═══ Change Password ═══ -->
@@ -183,16 +183,16 @@
                 </p>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Current Password</label>
-                  <Input v-model="currentPassword" type="password" :validate="false" />
+                  <UiInput v-model="currentPassword" type="password" :validate="false" />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">New Password</label>
-                  <Input v-model="newPassword" type="password" :minlength="8" :validate="false" />
+                  <UiInput v-model="newPassword" type="password" :minlength="8" :validate="false" />
                   <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">At least 8 characters</p>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Confirm New Password</label>
-                  <Input v-model="confirmNewPassword" type="password" :validate="false" />
+                  <UiInput v-model="confirmNewPassword" type="password" :validate="false" />
                   <p v-if="confirmNewPassword && newPassword !== confirmNewPassword" class="text-xs text-red-600 dark:text-red-400 mt-1">Passwords do not match</p>
                 </div>
 
@@ -208,9 +208,9 @@
                   </div>
                 </div>
 
-                <Button variant="solid" color="primary" block :loading="saving" :disabled="!currentPassword || !newPassword || newPassword !== confirmNewPassword || newPassword.length < 8" @click="savePassword">
+                <UiButton variant="solid" color="primary" block :loading="saving" :disabled="!currentPassword || !newPassword || newPassword !== confirmNewPassword || newPassword.length < 8" @click="savePassword">
                   Update Password
-                </Button>
+                </UiButton>
               </div>
 
               <!-- ═══ Security ═══ -->
@@ -221,15 +221,15 @@
 
                 <!-- Password recovery toggle -->
                 <div class="px-3 py-3 rounded-lg bg-gray-50 dark:bg-gray-900 space-y-2">
-                  <Button variant="ghost" block :disabled="savingSecurity"
+                  <UiButton variant="ghost" block :disabled="savingSecurity"
                     class="px-0 py-0 justify-between"
                     @click="togglePasswordRecovery">
                     <div class="flex items-center gap-2 min-w-0">
                       <Icon name="mdi:email-lock-outline" class="w-4 h-4 text-gray-500 flex-shrink-0" />
                       <span class="text-sm text-gray-700 dark:text-gray-300 truncate">Password recovery by email</span>
                     </div>
-                    <Toggle :model-value="passwordRecoveryEnabled" :disabled="savingSecurity" size="sm" readonly />
-                  </Button>
+                    <UiToggle :model-value="passwordRecoveryEnabled" :disabled="savingSecurity" size="sm" readonly />
+                  </UiButton>
                   <p class="text-xs text-gray-500 dark:text-gray-500">
                     {{ passwordRecoveryEnabled ? 'You can recover your account via email if you forget your password.' : 'Password recovery is disabled. If you forget your password, your account and notes cannot be recovered.' }}
                   </p>
@@ -295,7 +295,7 @@
                 </p>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Confirm Password</label>
-                  <Input v-model="dangerPassword" type="password" :validate="false" />
+                  <UiInput v-model="dangerPassword" type="password" :validate="false" />
                 </div>
 
                 <!-- Confirmation prompt -->
@@ -319,27 +319,27 @@
                       </div>
                     </div>
                     <div class="flex gap-2">
-                      <Button variant="outline" color="gray" @click="confirmingAction = null"
+                      <UiButton variant="outline" color="gray" @click="confirmingAction = null"
                         class="flex-1">
                         Cancel
-                      </Button>
-                      <Button variant="solid" :color="confirmingAction === 'data' ? 'amber' : 'red'" :loading="saving" @click="executeConfirmedAction"
+                      </UiButton>
+                      <UiButton variant="solid" :color="confirmingAction === 'data' ? 'amber' : 'red'" :loading="saving" @click="executeConfirmedAction"
                         class="flex-1">
                         {{ confirmingAction === 'data' ? 'Delete All Data' : 'Delete Account' }}
-                      </Button>
+                      </UiButton>
                     </div>
                 </div>
 
                 <div v-if="!confirmingAction" class="space-y-2">
-                  <Button variant="solid" color="amber" block :loading="saving" :disabled="!dangerPassword" @click="confirmingAction = 'data'">
+                  <UiButton variant="solid" color="amber" block :loading="saving" :disabled="!dangerPassword" @click="confirmingAction = 'data'">
                     <Icon v-if="!saving" name="mdi:database-remove-outline" class="w-4 h-4" />
                     Delete All Data
-                  </Button>
+                  </UiButton>
                   <p class="text-xs text-gray-500 dark:text-gray-500">Resets your account as if newly created. All notes, shared notes, and related data are permanently deleted with no possibility of recovery.</p>
-                  <Button variant="solid" color="red" block :loading="saving" :disabled="!dangerPassword" @click="confirmingAction = 'account'">
+                  <UiButton variant="solid" color="red" block :loading="saving" :disabled="!dangerPassword" @click="confirmingAction = 'account'">
                     <Icon v-if="!saving" name="mdi:account-remove-outline" class="w-4 h-4" />
                     Delete Account
-                  </Button>
+                  </UiButton>
                   <p class="text-xs text-gray-500 dark:text-gray-500">Permanently deletes your account and all associated data. This cannot be undone.</p>
                 </div>
               </div>
@@ -351,10 +351,10 @@
                 </div>
                 <template v-else>
                   <!-- Close all other sessions -->
-                  <Button v-if="sessions.length > 1" variant="ghost" color="red" block :loading="savingSessions" @click="closeOtherSessions">
+                  <UiButton v-if="sessions.length > 1" variant="ghost" color="red" block :loading="savingSessions" @click="closeOtherSessions">
                     <Icon v-if="!savingSessions" name="mdi:logout-variant" class="w-4 h-4" />
                     Close all other sessions
-                  </Button>
+                  </UiButton>
 
                   <div v-for="s in sessions" :key="s.id"
                     class="px-3 py-2.5 rounded-lg border"
@@ -387,11 +387,11 @@
                           </p>
                         </div>
                       </div>
-                      <Button v-if="!s.isCurrent" variant="ghost" color="red" size="xs" icon-only :disabled="savingSessions" @click="closeSession(s.id)"
+                      <UiButton v-if="!s.isCurrent" variant="ghost" color="red" size="xs" icon-only :disabled="savingSessions" @click="closeSession(s.id)"
                         class="flex-shrink-0"
                         title="Close session">
                         <Icon name="mdi:close" class="w-4 h-4" />
-                      </Button>
+                      </UiButton>
                     </div>
                   </div>
 
@@ -428,23 +428,23 @@
                       </p>
                     </div>
                     <div class="flex items-center gap-0.5 flex-shrink-0">
-                      <Button v-if="sn.collectAnalytics" variant="ghost" color="primary" size="xs" icon-only @click="openAnalytics(sn.hash)"
+                      <UiButton v-if="sn.collectAnalytics" variant="ghost" color="primary" size="xs" icon-only @click="openAnalytics(sn.hash)"
                         title="View analytics">
                         <Icon name="mdi:chart-bar" class="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" color="primary" size="xs" icon-only @click="copySharedLink(sn.hash)"
+                      </UiButton>
+                      <UiButton variant="ghost" color="primary" size="xs" icon-only @click="copySharedLink(sn.hash)"
                         title="Copy link">
                         <Icon :name="copiedHash === sn.hash ? 'mdi:check' : 'mdi:content-copy'" class="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" color="red" size="xs" icon-only :disabled="!sn.isActive" @click="handleUnshare(sn.hash)"
+                      </UiButton>
+                      <UiButton variant="ghost" color="red" size="xs" icon-only :disabled="!sn.isActive" @click="handleUnshare(sn.hash)"
                         :class="!sn.isActive ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : ''"
                         :title="sn.isActive ? 'Stop sharing' : 'Already unshared'">
                         <Icon name="mdi:link-variant-off" class="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" color="red" size="xs" icon-only @click="handlePurge(sn.hash)"
+                      </UiButton>
+                      <UiButton variant="ghost" color="red" size="xs" icon-only @click="handlePurge(sn.hash)"
                         title="Delete permanently">
                         <Icon name="mdi:delete-outline" class="w-4 h-4" />
-                      </Button>
+                      </UiButton>
                     </div>
                   </div>
                 </template>

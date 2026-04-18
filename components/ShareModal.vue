@@ -9,19 +9,19 @@
             <!-- Header -->
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">Share Note</h2>
-              <Button variant="ghost" color="gray" icon-only @click="$emit('close')">
+              <UiButton variant="ghost" color="gray" icon-only @click="$emit('close')">
                 <Icon name="mdi:close" class="block w-5 h-5" />
-              </Button>
+              </UiButton>
             </div>
 
             <!-- Already shared / just shared state -->
             <div v-if="activeHash" class="space-y-3">
               <p class="text-sm text-gray-700 dark:text-gray-400">Your note is shared. Anyone with this link can view it:</p>
               <div class="flex items-center gap-2">
-                <Input :model-value="activeShareUrl" readonly :validate="false" />
-                <Button icon-only class="flex-shrink-0" @click="copyLink">
+                <UiInput :model-value="activeShareUrl" readonly :validate="false" />
+                <UiButton icon-only class="flex-shrink-0" @click="copyLink">
                   <Icon :name="copied ? 'mdi:check' : 'mdi:content-copy'" class="w-4 h-4 block" />
-                </Button>
+                </UiButton>
               </div>
 
               <!-- Password hint for password-protected shares -->
@@ -31,18 +31,18 @@
               </p>
 
               <!-- Analytics link -->
-              <Button v-if="isLoggedIn" variant="ghost" color="primary" size="sm" block @click="$emit('open-analytics', activeHash)">
+              <UiButton v-if="isLoggedIn" variant="ghost" color="primary" size="sm" block @click="$emit('open-analytics', activeHash)">
                 <Icon name="mdi:chart-bar" class="w-4 h-4" />
                 View analytics
-              </Button>
+              </UiButton>
 
               <div class="flex gap-2">
-                <Button variant="solid" color="gray" class="flex-1" @click="$emit('close')">
+                <UiButton variant="solid" color="gray" class="flex-1" @click="$emit('close')">
                   Done
-                </Button>
-                <Button variant="ghost" color="red" class="flex-1" @click="handleUnshare">
+                </UiButton>
+                <UiButton variant="ghost" color="red" class="flex-1" @click="handleUnshare">
                   Stop sharing
-                </Button>
+                </UiButton>
               </div>
             </div>
 
@@ -59,7 +59,7 @@
 
               <!-- Anonymous toggle -->
               <label class="flex items-center gap-2 cursor-pointer">
-                <Checkbox v-model="anonymous" />
+                <UiCheckbox v-model="anonymous" />
                 <span class="text-sm text-gray-700 dark:text-gray-400">Share anonymously</span>
               </label>
 
@@ -67,11 +67,11 @@
               <template v-if="!isLoggedIn && !anonymous">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Your name</label>
-                  <Input v-model="sharerName" type="text" placeholder="Optional" :validate="false" />
+                  <UiInput v-model="sharerName" type="text" placeholder="Optional" :validate="false" />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Your email</label>
-                  <Input v-model="sharerEmail" type="email" placeholder="Optional" />
+                  <UiInput v-model="sharerEmail" type="email" placeholder="Optional" />
                 </div>
               </template>
 
@@ -84,18 +84,18 @@
               <div class="space-y-2">
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-400">Encryption</label>
                 <div class="flex gap-2">
-                  <Button variant="outline" size="xs" class="flex-1" @click="sharePasswordMode = 'none'"
+                  <UiButton variant="outline" size="xs" class="flex-1" @click="sharePasswordMode = 'none'"
                     :class="sharePasswordMode === 'none'
                       ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
                       : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'">
                     Link only
-                  </Button>
-                  <Button variant="outline" size="xs" class="flex-1" @click="sharePasswordMode = 'custom'"
+                  </UiButton>
+                  <UiButton variant="outline" size="xs" class="flex-1" @click="sharePasswordMode = 'custom'"
                     :class="sharePasswordMode === 'custom'
                       ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
                       : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'">
                     <Icon name="mdi:lock-outline" class="w-3 h-3 inline" /> Password
-                  </Button>
+                  </UiButton>
                 </div>
                 <p class="text-xs text-gray-400 dark:text-gray-600">
                   <template v-if="sharePasswordMode === 'custom'">
@@ -114,11 +114,11 @@
               <div v-if="sharePasswordMode === 'custom'" class="space-y-2">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Share password</label>
-                  <Input v-model="sharePassword" type="password" placeholder="Enter a password for this share" :validate="false" />
+                  <UiInput v-model="sharePassword" type="password" placeholder="Enter a password for this share" :validate="false" />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Password hint <span class="font-normal text-gray-400 dark:text-gray-600">(optional)</span></label>
-                  <Input v-model="passwordHint" type="text" :maxlength="255" :validate="false"
+                  <UiInput v-model="passwordHint" type="text" :maxlength="255" :validate="false"
                     placeholder="A hint to help the recipient remember the password" />
                 </div>
               </div>
@@ -138,7 +138,7 @@
               <!-- Analytics toggle with tooltip -->
               <div class="relative">
                 <label class="flex items-center gap-2 cursor-pointer">
-                  <Checkbox v-model="collectAnalytics" />
+                  <UiCheckbox v-model="collectAnalytics" />
                   <span class="text-sm text-gray-700 dark:text-gray-400">Enable view analytics</span>
                   <div class="relative group">
                     <Icon name="mdi:information-outline" class="w-4 h-4 text-gray-400 cursor-help" />
@@ -162,10 +162,10 @@
                 </label>
               </div>
 
-              <Button block :loading="sharing" :disabled="sharePasswordMode === 'custom' && !sharePassword" @click="handleShare">
+              <UiButton block :loading="sharing" :disabled="sharePasswordMode === 'custom' && !sharePassword" @click="handleShare">
                 <Icon name="mdi:share-variant-outline" class="w-4 h-4" />
                 Share Note
-              </Button>
+              </UiButton>
             </div>
           </div>
         </Transition>

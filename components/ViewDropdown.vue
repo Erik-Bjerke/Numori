@@ -1,50 +1,50 @@
 <template>
-  <Dropdown ref="dropdownRef" width="w-48 sm:w-56">
+  <UiDropdown ref="dropdownRef" width="w-48 sm:w-56">
     <template #trigger="{ toggle }">
-      <Button @click="toggle" variant="ghost" color="gray" size="sm" title="View menu">
+      <UiButton @click="toggle" variant="ghost" color="gray" size="sm" title="View menu">
         <Icon name="mdi:eye-outline" class="w-4.5 h-4.5 block" />
         <span class="hidden sm:inline text-sm">View</span>
         <Icon name="mdi:chevron-down" class="w-3 h-3 block transition-transform" :class="{ 'rotate-180': dropdownRef?.isOpen }" />
-      </Button>
+      </UiButton>
     </template>
 
     <!-- Zoom controls -->
     <div class="flex items-center gap-1 px-3 py-1.5">
-      <Button @click="$emit('zoom-out')" :disabled="zoomPercent <= MIN_ZOOM" variant="ghost" color="gray" icon-only size="xs"
+      <UiButton @click="$emit('zoom-out')" :disabled="zoomPercent <= MIN_ZOOM" variant="ghost" color="gray" icon-only size="xs"
         :class="zoomPercent <= MIN_ZOOM ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : ''"
         title="Zoom out">
         <Icon name="mdi:magnify-minus-outline" class="w-4.5 h-4.5 block" />
-      </Button>
-      <Button @click="$emit('zoom-reset')" :title="zoomPercent === 100 ? 'Zoom at 100%' : 'Reset zoom to 100%'"
+      </UiButton>
+      <UiButton @click="$emit('zoom-reset')" :title="zoomPercent === 100 ? 'Zoom at 100%' : 'Reset zoom to 100%'"
         class="flex-1 text-center text-sm rounded px-1 py-0.5 min-w-0"
         :class="zoomPercent === 100 ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-default' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer'"
         variant="ghost" color="gray" size="xs">
         {{ zoomPercent }}%
-      </Button>
-      <Button @click="$emit('zoom-in')" :disabled="zoomPercent >= MAX_ZOOM" variant="ghost" color="gray" icon-only size="xs"
+      </UiButton>
+      <UiButton @click="$emit('zoom-in')" :disabled="zoomPercent >= MAX_ZOOM" variant="ghost" color="gray" icon-only size="xs"
         :class="zoomPercent >= MAX_ZOOM ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : ''"
         title="Zoom in">
         <Icon name="mdi:magnify-plus-outline" class="w-4.5 h-4.5 block" />
-      </Button>
+      </UiButton>
     </div>
 
     <div class="border-t border-gray-100 dark:border-gray-700 my-1" />
 
     <div class="px-3 pt-1.5 pb-0.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Markdown</div>
 
-    <Button v-for="opt in mdOptions" :key="opt.value"
+    <UiButton v-for="opt in mdOptions" :key="opt.value"
       @click="setMarkdownMode(opt.value)" variant="menu-item"
       :class="markdownMode === opt.value
         ? 'text-gray-900 dark:text-gray-100'
         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'">
       <Icon :key="opt.value + '-' + markdownMode" :name="markdownMode === opt.value ? 'mdi:radiobox-marked' : 'mdi:radiobox-blank'" class="w-4 h-4 block flex-shrink-0" />
       <span>{{ opt.label }}</span>
-    </Button>
+    </UiButton>
 
     <div class="border-t border-gray-100 dark:border-gray-700 my-1" />
 
     <!-- Theme toggle -->
-    <Button @click="toggleTheme" variant="menu-item">
+    <UiButton @click="toggleTheme" variant="menu-item">
       <Icon name="mdi:theme-light-dark" class="w-4 h-4 block flex-shrink-0" />
       <span class="flex-1 text-left">Theme</span>
       <span class="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full"
@@ -52,22 +52,22 @@
         <Icon :name="isDark ? 'mdi:weather-night' : 'mdi:white-balance-sunny'" class="w-3 h-3" />
         {{ isDark ? 'Dark' : 'Light' }}
       </span>
-    </Button>
+    </UiButton>
 
     <div class="border-t border-gray-100 dark:border-gray-700 my-1" />
 
-    <DropdownItem icon="mdi:file-document-outline" label="Templates" @click="action('templates')" />
-    <DropdownItem icon="mdi:help-circle-outline" label="Help" @click="action('help')" />
-    <DropdownItem icon="mdi:information-outline" label="About" @click="action('about')" />
+    <UiDropdownItem icon="mdi:file-document-outline" label="Templates" @click="action('templates')" />
+    <UiDropdownItem icon="mdi:help-circle-outline" label="Help" @click="action('help')" />
+    <UiDropdownItem icon="mdi:information-outline" label="About" @click="action('about')" />
 
     <div class="border-t border-gray-100 dark:border-gray-700 my-1" />
 
-    <Button @click="handleCheckUpdate" :disabled="updateChecking" variant="menu-item"
+    <UiButton @click="handleCheckUpdate" :disabled="updateChecking" variant="menu-item"
       class="disabled:opacity-50">
       <Icon :name="updateChecking ? 'mdi:loading' : updateResultIcon" class="w-4 h-4 block flex-shrink-0" :class="{ 'animate-spin': updateChecking, [updateResultColor]: !updateChecking && updateResult }" />
       <span>{{ updateLabel }}</span>
-    </Button>
-  </Dropdown>
+    </UiButton>
+  </UiDropdown>
 </template>
 
 <script setup>

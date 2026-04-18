@@ -2,22 +2,22 @@
   <div class="flex items-center" :class="containerClass">
     <!-- Undo / Redo (pinned left) -->
     <div class="flex items-center flex-shrink-0">
-      <Button @mousedown.prevent @click="$emit('undo')"
+      <UiButton @mousedown.prevent @click="$emit('undo')"
         :disabled="!canUndo" variant="ghost" color="gray" icon-only
         :class="canUndo
           ? ''
           : 'text-gray-300 dark:text-gray-700 cursor-default'"
         title="Undo">
         <Icon name="mdi:undo" class="w-5 h-5 block" />
-      </Button>
-      <Button @mousedown.prevent @click="$emit('redo')"
+      </UiButton>
+      <UiButton @mousedown.prevent @click="$emit('redo')"
         :disabled="!canRedo" variant="ghost" color="gray" icon-only
         :class="canRedo
           ? ''
           : 'text-gray-300 dark:text-gray-700 cursor-default'"
         title="Redo">
         <Icon name="mdi:redo" class="w-5 h-5 block" />
-      </Button>
+      </UiButton>
       <div class="w-px h-5 bg-gray-300/60 dark:bg-gray-700 mx-1"></div>
     </div>
 
@@ -29,36 +29,36 @@
       @mousemove="onDragMove"
       @mouseup="onDragEnd"
       @mouseleave="onDragEnd">
-      <Button v-for="btn in buttons" :key="btn.title"
+      <UiButton v-for="btn in buttons" :key="btn.title"
         @mousedown.prevent
         @click="$emit('apply-format', btn.before, btn.after)"
         variant="ghost" color="gray" icon-only class="flex-shrink-0"
         :title="btn.title">
         <Icon :name="btn.icon" class="w-5 h-5 block" />
-      </Button>
+      </UiButton>
       <!-- Separator -->
       <div class="w-px h-5 bg-gray-300/60 dark:bg-gray-700 mx-1 flex-shrink-0"></div>
       <!-- Indent / Outdent -->
-      <Button @mousedown.prevent @click="$emit('indent')"
+      <UiButton @mousedown.prevent @click="$emit('indent')"
         variant="ghost" color="gray" icon-only class="flex-shrink-0"
         title="Indent (nest)">
         <Icon name="mdi:format-indent-increase" class="w-5 h-5 block" />
-      </Button>
-      <Button @mousedown.prevent @click="$emit('outdent')"
+      </UiButton>
+      <UiButton @mousedown.prevent @click="$emit('outdent')"
         variant="ghost" color="gray" icon-only class="flex-shrink-0"
         title="Outdent (unnest)">
         <Icon name="mdi:format-indent-decrease" class="w-5 h-5 block" />
-      </Button>
+      </UiButton>
     </div>
 
     <!-- Dismiss keyboard (pinned right, optional) -->
     <div v-if="showDismiss" class="flex items-center flex-shrink-0">
       <div class="w-px h-5 bg-gray-300/60 dark:bg-gray-700 mx-1"></div>
-      <Button @mousedown.prevent @click="$emit('dismiss-keyboard')"
+      <UiButton @mousedown.prevent @click="$emit('dismiss-keyboard')"
         variant="ghost" color="gray" icon-only
         title="Dismiss keyboard">
         <Icon name="mdi:keyboard-close" class="w-5 h-5 block" />
-      </Button>
+      </UiButton>
     </div>
   </div>
 </template>
