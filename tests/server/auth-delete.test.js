@@ -9,8 +9,12 @@ const mockRequireAuth = vi.fn()
 const mockNotifySync = vi.fn()
 
 vi.mock('../../server/utils/db.js', () => ({ query: (...args) => mockQuery(...args) }))
-vi.mock('../../server/utils/auth.js', () => ({ requireAuth: (...args) => mockRequireAuth(...args) }))
-vi.mock('../../server/utils/syncBroadcast.js', () => ({ notifyDataWipe: (...args) => mockNotifySync(...args) }))
+vi.mock('../../server/utils/auth.js', () => ({
+  requireAuth: (...args) => mockRequireAuth(...args),
+}))
+vi.mock('../../server/utils/syncBroadcast.js', () => ({
+  notifyDataWipe: (...args) => mockNotifySync(...args),
+}))
 
 globalThis.defineEventHandler = (handler) => handler
 globalThis.readBody = vi.fn()

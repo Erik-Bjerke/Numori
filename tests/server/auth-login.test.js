@@ -48,7 +48,16 @@ describe('POST /api/auth/login', () => {
     const hash = await bcrypt.hash(authKey, 4)
     readBody.mockResolvedValue({ email: 'test@example.com', authKey })
     mockQuery.mockResolvedValueOnce({
-      rows: [{ id: 1, email: 'test@example.com', name: 'Test', password_hash: hash, created_at: '2025-01-01', email_verified: false }]
+      rows: [
+        {
+          id: 1,
+          email: 'test@example.com',
+          name: 'Test',
+          password_hash: hash,
+          created_at: '2025-01-01',
+          email_verified: false,
+        },
+      ],
     })
     mockSignJwt.mockResolvedValue('jwt-token')
 
@@ -62,7 +71,16 @@ describe('POST /api/auth/login', () => {
     const correctHash = await bcrypt.hash('correct-key', 4)
     readBody.mockResolvedValue({ email: 'test@example.com', authKey: 'wrong-key' })
     mockQuery.mockResolvedValueOnce({
-      rows: [{ id: 1, email: 'test@example.com', name: 'Test', password_hash: correctHash, created_at: '2025-01-01', email_verified: false }]
+      rows: [
+        {
+          id: 1,
+          email: 'test@example.com',
+          name: 'Test',
+          password_hash: correctHash,
+          created_at: '2025-01-01',
+          email_verified: false,
+        },
+      ],
     })
     await expect(handler({})).rejects.toThrow('Invalid email or password')
   })
@@ -72,7 +90,16 @@ describe('POST /api/auth/login', () => {
     const hash = await bcrypt.hash(authKey, 4)
     readBody.mockResolvedValue({ email: '  TEST@Example.COM  ', authKey })
     mockQuery.mockResolvedValueOnce({
-      rows: [{ id: 1, email: 'test@example.com', name: '', password_hash: hash, created_at: '2025-01-01', email_verified: false }]
+      rows: [
+        {
+          id: 1,
+          email: 'test@example.com',
+          name: '',
+          password_hash: hash,
+          created_at: '2025-01-01',
+          email_verified: false,
+        },
+      ],
     })
     mockSignJwt.mockResolvedValue('token')
 

@@ -55,19 +55,45 @@ describe('Previous Result (prev)', () => {
 })
 
 describe('Percentages', () => {
-  it('X% of Y: 20% of $10 = 2', () => { expect(calcNum('20% of 10')).toBeCloseTo(2, 5) })
-  it('X% on Y (add percentage): 5% on $30 = 31.5', () => { expect(calcNum('5% on 30')).toBeCloseTo(31.5, 5) })
-  it('X% off Y (subtract percentage): 6% off 40 = 37.6', () => { expect(calcNum('6% off 40')).toBeCloseTo(37.6, 5) })
-  it('X + Y%: 100 + 20% = 120', () => { expect(calcNum('100 + 20%')).toBe(120) })
-  it('X - Y%: 100 - 15% = 85', () => { expect(calcNum('100 - 15%')).toBe(85) })
-  it('X * Y%: 100 * 5% = 5', () => { expect(calcNum('100 * 5%')).toBe(5) })
-  it('X / Y%: 100 / 5% = 2000', () => { expect(calcNum('100 / 5%')).toBe(2000) })
-  it('$50 as a % of $100 = 50%', () => { expect(calc('50 as a % of 100')).toMatch(/50/) })
-  it('$70 as a % on $20 = 250%', () => { expect(calc('70 as a % on 20')).toMatch(/250/) })
-  it('$20 as a % off $70 ≈ 71.43%', () => { expect(parseFloat(calc('20 as a % off 70'))).toBeCloseTo(71.43, 1) })
-  it('5% of what is 6 = 120', () => { expect(parseFloat(calc('5% of what is 6'))).toBeCloseTo(120, 0) })
-  it('5% on what is 6 ≈ 5.71', () => { expect(parseFloat(calc('5% on what is 6'))).toBeCloseTo(5.714, 2) })
-  it('5% off what is 6 ≈ 6.316', () => { expect(parseFloat(calc('5% off what is 6'))).toBeCloseTo(6.316, 2) })
+  it('X% of Y: 20% of $10 = 2', () => {
+    expect(calcNum('20% of 10')).toBeCloseTo(2, 5)
+  })
+  it('X% on Y (add percentage): 5% on $30 = 31.5', () => {
+    expect(calcNum('5% on 30')).toBeCloseTo(31.5, 5)
+  })
+  it('X% off Y (subtract percentage): 6% off 40 = 37.6', () => {
+    expect(calcNum('6% off 40')).toBeCloseTo(37.6, 5)
+  })
+  it('X + Y%: 100 + 20% = 120', () => {
+    expect(calcNum('100 + 20%')).toBe(120)
+  })
+  it('X - Y%: 100 - 15% = 85', () => {
+    expect(calcNum('100 - 15%')).toBe(85)
+  })
+  it('X * Y%: 100 * 5% = 5', () => {
+    expect(calcNum('100 * 5%')).toBe(5)
+  })
+  it('X / Y%: 100 / 5% = 2000', () => {
+    expect(calcNum('100 / 5%')).toBe(2000)
+  })
+  it('$50 as a % of $100 = 50%', () => {
+    expect(calc('50 as a % of 100')).toMatch(/50/)
+  })
+  it('$70 as a % on $20 = 250%', () => {
+    expect(calc('70 as a % on 20')).toMatch(/250/)
+  })
+  it('$20 as a % off $70 ≈ 71.43%', () => {
+    expect(parseFloat(calc('20 as a % off 70'))).toBeCloseTo(71.43, 1)
+  })
+  it('5% of what is 6 = 120', () => {
+    expect(parseFloat(calc('5% of what is 6'))).toBeCloseTo(120, 0)
+  })
+  it('5% on what is 6 ≈ 5.71', () => {
+    expect(parseFloat(calc('5% on what is 6'))).toBeCloseTo(5.714, 2)
+  })
+  it('5% off what is 6 ≈ 6.316', () => {
+    expect(parseFloat(calc('5% off what is 6'))).toBeCloseTo(6.316, 2)
+  })
 })
 
 describe('Exponent Precedence with Percentages', () => {
@@ -80,11 +106,21 @@ describe('Exponent Precedence with Percentages', () => {
     expect(parseFloat(results[2])).toBeCloseTo(121, 1)
   })
   it('compound interest without parentheses', () => {
-    const results = calcLines(['interest = 110%', 'starting = 1000', 'years = 3', 'starting * interest ^ years'])
+    const results = calcLines([
+      'interest = 110%',
+      'starting = 1000',
+      'years = 3',
+      'starting * interest ^ years',
+    ])
     expect(parseFloat(results[3])).toBeCloseTo(1331, 0)
   })
   it('compound interest with parentheses gives same result', () => {
-    const results = calcLines(['interest = 110%', 'starting = 1000', 'years = 3', 'starting * (interest ^ years)'])
+    const results = calcLines([
+      'interest = 110%',
+      'starting = 1000',
+      'years = 3',
+      'starting * (interest ^ years)',
+    ])
     expect(parseFloat(results[3])).toBeCloseTo(1331, 0)
   })
   it('addition with percentage ^ exponent', () => {
@@ -105,4 +141,3 @@ describe('Exponent Precedence with Percentages', () => {
     expect(calcNum('100 - 10%')).toBe(90)
   })
 })
-

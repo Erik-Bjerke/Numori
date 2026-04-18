@@ -7,7 +7,9 @@ const mockQuery = vi.fn()
 const mockOptionalAuth = vi.fn()
 
 vi.mock('../../server/utils/db.js', () => ({ query: (...args) => mockQuery(...args) }))
-vi.mock('../../server/utils/auth.js', () => ({ optionalAuth: (...args) => mockOptionalAuth(...args) }))
+vi.mock('../../server/utils/auth.js', () => ({
+  optionalAuth: (...args) => mockOptionalAuth(...args),
+}))
 
 globalThis.defineEventHandler = (handler) => handler
 globalThis.readBody = vi.fn()
@@ -27,7 +29,8 @@ beforeEach(() => {
 })
 
 // Helper: find the INSERT call (the one whose SQL starts with INSERT)
-const findInsertCall = () => mockQuery.mock.calls.find(c => typeof c[0] === 'string' && c[0].includes('INSERT'))
+const findInsertCall = () =>
+  mockQuery.mock.calls.find((c) => typeof c[0] === 'string' && c[0].includes('INSERT'))
 
 describe('POST /api/share', () => {
   it('rejects empty body', async () => {
@@ -46,7 +49,7 @@ describe('POST /api/share', () => {
       tags: encTags,
       description: '{"iv":"g","ct":"h"}',
       encrypted: true,
-      sourceClientId: 'client-1'
+      sourceClientId: 'client-1',
     })
 
     const result = await handler({})
@@ -67,7 +70,7 @@ describe('POST /api/share', () => {
     readBody.mockResolvedValue({
       title: 'Test',
       content: 'content',
-      tags: ['a', 'b']
+      tags: ['a', 'b'],
     })
 
     await handler({})
@@ -92,7 +95,7 @@ describe('POST /api/share', () => {
     mockQuery
       .mockResolvedValueOnce({ rows: [{ name: 'Alice', email: 'alice@example.com' }] }) // user lookup
       .mockResolvedValueOnce({ rows: [] }) // ALTER TABLE ensurePasswordHintColumn
-      // INSERT uses default mockResolvedValue
+    // INSERT uses default mockResolvedValue
 
     await handler({})
 

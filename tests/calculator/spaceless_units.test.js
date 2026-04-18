@@ -111,18 +111,12 @@ describe('Spaceless Units — Arithmetic', () => {
 
 describe('Spaceless Units — Variable Assignment', () => {
   it('distance = 100km stores with unit', () => {
-    const results = calcLines([
-      'distance = 100km',
-      'distance in miles',
-    ])
+    const results = calcLines(['distance = 100km', 'distance in miles'])
     expect(parseFloat(results[1])).toBeCloseTo(62.137, 1)
   })
 
   it('mileage = 30mpg stores with unit', () => {
-    const results = calcLines([
-      'mileage = 30mpg',
-      'mileage in kpl',
-    ])
+    const results = calcLines(['mileage = 30mpg', 'mileage in kpl'])
     expect(parseFloat(results[1])).toBeCloseTo(12.754, 1)
   })
 })

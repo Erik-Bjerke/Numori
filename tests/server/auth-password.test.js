@@ -8,7 +8,9 @@ const mockQuery = vi.fn()
 const mockRequireAuth = vi.fn()
 
 vi.mock('../../server/utils/db.js', () => ({ query: (...args) => mockQuery(...args) }))
-vi.mock('../../server/utils/auth.js', () => ({ requireAuth: (...args) => mockRequireAuth(...args) }))
+vi.mock('../../server/utils/auth.js', () => ({
+  requireAuth: (...args) => mockRequireAuth(...args),
+}))
 vi.mock('../../server/utils/session.js', () => ({ revokeAllSessions: vi.fn() }))
 
 globalThis.defineEventHandler = (handler) => handler
@@ -56,8 +58,20 @@ describe('PUT /api/auth/password', () => {
     const newAuthKey = 'new-auth-key'
 
     const reEncryptedNotes = [
-      { clientId: 'n1', title: 'enc-title-1', description: 'enc-desc', tags: 'enc-tags', content: 'enc-content' },
-      { clientId: 'n2', title: 'enc-title-2', description: 'enc-desc', tags: ['tag'], content: 'enc-content' }
+      {
+        clientId: 'n1',
+        title: 'enc-title-1',
+        description: 'enc-desc',
+        tags: 'enc-tags',
+        content: 'enc-content',
+      },
+      {
+        clientId: 'n2',
+        title: 'enc-title-2',
+        description: 'enc-desc',
+        tags: ['tag'],
+        content: 'enc-content',
+      },
     ]
 
     readBody.mockResolvedValue({ currentAuthKey, newAuthKey, reEncryptedNotes })
@@ -90,7 +104,7 @@ describe('PUT /api/auth/password', () => {
     readBody.mockResolvedValue({
       currentAuthKey,
       newAuthKey: 'new',
-      reEncryptedNotes: [{ title: 'no-id', content: 'x' }]
+      reEncryptedNotes: [{ title: 'no-id', content: 'x' }],
     })
 
     mockQuery.mockResolvedValueOnce({ rows: [{ password_hash: currentHash }] })

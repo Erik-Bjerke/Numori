@@ -41,54 +41,31 @@ describe('Sum inside expressions (not standalone)', () => {
   })
 
   it('number minus sum', () => {
-    const results = calcLines([
-      '10',
-      '20',
-      '30',
-      '100 - sum',
-    ])
+    const results = calcLines(['10', '20', '30', '100 - sum'])
     // sum = 10+20+30 = 60, 100 - 60 = 40
     expect(parseFloat(results[3])).toBe(40)
   })
 
   it('sum plus number', () => {
-    const results = calcLines([
-      '10',
-      '20',
-      'sum + 5',
-    ])
+    const results = calcLines(['10', '20', 'sum + 5'])
     // sum = 30, 30 + 5 = 35
     expect(parseFloat(results[2])).toBe(35)
   })
 
   it('sum multiplied by number', () => {
-    const results = calcLines([
-      '10',
-      '20',
-      'sum * 2',
-    ])
+    const results = calcLines(['10', '20', 'sum * 2'])
     // sum = 30, 30 * 2 = 60
     expect(parseFloat(results[2])).toBe(60)
   })
 
   it('variable plus sum with empty line separator', () => {
-    const results = calcLines([
-      'bonus = 500',
-      '',
-      '100',
-      '200',
-      'bonus + sum',
-    ])
+    const results = calcLines(['bonus = 500', '', '100', '200', 'bonus + sum'])
     // sum = 100+200 = 300, bonus + sum = 500 + 300 = 800
     expect(parseFloat(results[4])).toBe(800)
   })
 
   it('parenthesized expression with sum', () => {
-    const results = calcLines([
-      '100',
-      '200',
-      '(sum) * 2',
-    ])
+    const results = calcLines(['100', '200', '(sum) * 2'])
     // sum = 300, 300 * 2 = 600
     expect(parseFloat(results[2])).toBe(600)
   })
@@ -117,47 +94,25 @@ describe('Sum inside expressions (not standalone)', () => {
   })
 
   it('average inside expression with empty line separator', () => {
-    const results = calcLines([
-      'target = 100',
-      '',
-      '80',
-      '90',
-      '70',
-      'diff = target - average',
-    ])
+    const results = calcLines(['target = 100', '', '80', '90', '70', 'diff = target - average'])
     // average = (80+90+70)/3 = 80, target - average = 100 - 80 = 20
     expect(parseFloat(results[5])).toBe(20)
   })
 
   it('avg inside expression: 2 * avg', () => {
-    const results = calcLines([
-      '10',
-      '20',
-      '30',
-      '2 * avg',
-    ])
+    const results = calcLines(['10', '20', '30', '2 * avg'])
     // avg = 20, 2 * 20 = 40
     expect(parseFloat(results[3])).toBe(40)
   })
 
   it('standalone sum includes assignment lines', () => {
-    const results = calcLines([
-      'Alquiler = 475',
-      'Comida = 200',
-      'Gasolina = 120',
-      'sum',
-    ])
+    const results = calcLines(['Alquiler = 475', 'Comida = 200', 'Gasolina = 120', 'sum'])
     // sum should include all assignment values: 475+200+120 = 795
     expect(parseFloat(results[3])).toBe(795)
   })
 
   it('standalone sum with currency assignments', () => {
-    const results = calcLines([
-      'Alquiler = €475',
-      'Comida = €200',
-      'Gasolina = €120',
-      'sum',
-    ])
+    const results = calcLines(['Alquiler = €475', 'Comida = €200', 'Gasolina = €120', 'sum'])
     expect(parseFloat(results[3])).toBe(795)
     expect(results[3]).toMatch(/EUR/)
   })

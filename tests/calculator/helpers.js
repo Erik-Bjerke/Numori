@@ -18,7 +18,7 @@ export function calc(expression) {
 export function calcLines(lines) {
   const { evaluateLines } = useCalculator()
   const results = evaluateLines(lines)
-  return results.map(r => r.result)
+  return results.map((r) => r.result)
 }
 
 // Helper: evaluate and return numeric value

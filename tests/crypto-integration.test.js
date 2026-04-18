@@ -19,7 +19,7 @@ import {
   encryptNote,
   decryptNote,
   encryptSharedNote,
-  decryptSharedNote
+  decryptSharedNote,
 } from '../utils/crypto.js'
 
 describe('full E2E encryption lifecycle', () => {
@@ -42,11 +42,25 @@ describe('full E2E encryption lifecycle', () => {
     const encKey = await deriveEncKey(password)
 
     const localNotes = [
-      { clientId: 'n1', title: 'Budget 2025', description: 'Monthly budget', tags: ['finance'], content: '1000 + 2000\n= 3000', sortOrder: 0 },
-      { clientId: 'n2', title: 'Shopping List', description: '', tags: [], content: 'Milk\nBread\nEggs', sortOrder: 1 }
+      {
+        clientId: 'n1',
+        title: 'Budget 2025',
+        description: 'Monthly budget',
+        tags: ['finance'],
+        content: '1000 + 2000\n= 3000',
+        sortOrder: 0,
+      },
+      {
+        clientId: 'n2',
+        title: 'Shopping List',
+        description: '',
+        tags: [],
+        content: 'Milk\nBread\nEggs',
+        sortOrder: 1,
+      },
     ]
 
-    const encrypted = await Promise.all(localNotes.map(n => encryptNote(n, encKey)))
+    const encrypted = await Promise.all(localNotes.map((n) => encryptNote(n, encKey)))
 
     // All sensitive fields are encrypted
     for (const enc of encrypted) {
@@ -66,7 +80,13 @@ describe('full E2E encryption lifecycle', () => {
   it('sync pull: decrypts notes received from server', async () => {
     const encKey = await deriveEncKey(password)
 
-    const note = { clientId: 'n1', title: 'Secret', description: 'desc', tags: ['private'], content: 'classified' }
+    const note = {
+      clientId: 'n1',
+      title: 'Secret',
+      description: 'desc',
+      tags: ['private'],
+      content: 'classified',
+    }
     const encrypted = await encryptNote(note, encKey)
 
     // Simulate server returning encrypted data
@@ -90,9 +110,9 @@ describe('full E2E encryption lifecycle', () => {
     // Notes encrypted with old key
     const notes = [
       { clientId: 'n1', title: 'Note 1', description: '', tags: ['a'], content: 'content 1' },
-      { clientId: 'n2', title: 'Note 2', description: 'desc', tags: [], content: 'content 2' }
+      { clientId: 'n2', title: 'Note 2', description: 'desc', tags: [], content: 'content 2' },
     ]
-    const encryptedOld = await Promise.all(notes.map(n => encryptNote(n, oldEncKey)))
+    const encryptedOld = await Promise.all(notes.map((n) => encryptNote(n, oldEncKey)))
 
     // Re-encryption process
     const reEncrypted = []
@@ -119,7 +139,12 @@ describe('full E2E encryption lifecycle', () => {
 
     // Sender encrypts
     const senderKey = await deriveShareKey(sharePassword)
-    const noteData = { title: 'Shared Secret', description: '', tags: ['shared'], content: 'confidential data' }
+    const noteData = {
+      title: 'Shared Secret',
+      description: '',
+      tags: ['shared'],
+      content: 'confidential data',
+    }
     const encrypted = await encryptSharedNote(noteData, senderKey)
 
     expect(encrypted.encrypted).toBe(true)
@@ -157,7 +182,7 @@ describe('full E2E encryption lifecycle', () => {
     const senderKey = await deriveShareKey('correct-password')
     const encrypted = await encryptSharedNote(
       { title: 'Secret', description: '', tags: [], content: 'data' },
-      senderKey
+      senderKey,
     )
 
     const wrongKey = await deriveShareKey('wrong-password')

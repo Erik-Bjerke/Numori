@@ -12,7 +12,10 @@ const mockSignJwt = vi.fn()
 vi.mock('../../server/utils/db.js', () => ({ query: (...args) => mockQuery(...args) }))
 vi.mock('../../server/utils/auth.js', () => ({ signJwt: (...args) => mockSignJwt(...args) }))
 vi.mock('../../server/utils/session.js', () => ({ createSession: vi.fn() }))
-vi.mock('../../server/utils/email.js', () => ({ generateOtp: () => '123456', sendVerificationEmail: vi.fn() }))
+vi.mock('../../server/utils/email.js', () => ({
+  generateOtp: () => '123456',
+  sendVerificationEmail: vi.fn(),
+}))
 
 // Nitro globals
 globalThis.defineEventHandler = (handler) => handler
@@ -61,7 +64,7 @@ describe('POST /api/auth/register', () => {
     mockQuery
       .mockResolvedValueOnce({ rows: [] }) // no existing user
       .mockResolvedValueOnce({
-        rows: [{ id: 1, email: 'new@example.com', name: 'Test User', created_at: '2025-01-01' }]
+        rows: [{ id: 1, email: 'new@example.com', name: 'Test User', created_at: '2025-01-01' }],
       })
 
     mockSignJwt.mockResolvedValue('jwt-token-123')
@@ -80,9 +83,9 @@ describe('POST /api/auth/register', () => {
 
   it('normalizes email to lowercase', async () => {
     readBody.mockResolvedValue({ email: '  TEST@Example.COM  ', authKey: 'a'.repeat(64) })
-    mockQuery
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [{ id: 1, email: 'test@example.com', name: '', created_at: '2025-01-01' }] })
+    mockQuery.mockResolvedValueOnce({ rows: [] }).mockResolvedValueOnce({
+      rows: [{ id: 1, email: 'test@example.com', name: '', created_at: '2025-01-01' }],
+    })
     mockSignJwt.mockResolvedValue('token')
 
     await handler({})

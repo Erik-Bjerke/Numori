@@ -114,7 +114,7 @@ describe('exportNoteAsText', () => {
   })
 
   it('exports with results when evaluateLines is provided', () => {
-    const mockEval = (lines) => lines.map(l => ({ result: l === '2 + 2' ? '4' : null }))
+    const mockEval = (lines) => lines.map((l) => ({ result: l === '2 + 2' ? '4' : null }))
     const note = { title: 'Calc', content: '2 + 2' }
     expect(exportNoteAsText(note, mockEval)).toBe(true)
     expect(createdElements[0].download).toBe('calc.num')
@@ -239,7 +239,7 @@ describe('printNote', () => {
       print: vi.fn(),
     }
     globalThis.window = { open: vi.fn(() => mockWindow) }
-    const mockEval = (lines) => lines.map(l => ({ result: l === '5 + 5' ? '10' : null }))
+    const mockEval = (lines) => lines.map((l) => ({ result: l === '5 + 5' ? '10' : null }))
     const note = { title: 'Calc', content: '5 + 5' }
     const result = printNote(note, mockEval)
 
@@ -251,7 +251,7 @@ describe('printNote', () => {
 
 // Mock evaluateLines for testing "with results" exports
 const mockEvaluateLines = (lines) =>
-  lines.map(line => {
+  lines.map((line) => {
     if (line === '2 + 2') return { result: '4' }
     if (line === '# Header') return { result: null, type: 'header' }
     if (line === '// comment') return { result: null, type: 'comment' }

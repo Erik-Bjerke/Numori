@@ -13,7 +13,9 @@ const mockNotifySync = vi.fn()
 
 vi.mock('../server/utils/db.js', () => ({ query: (...args) => mockQuery(...args) }))
 vi.mock('../server/utils/auth.js', () => ({ requireAuth: (...args) => mockRequireAuth(...args) }))
-vi.mock('../server/utils/syncBroadcast.js', () => ({ notifySync: (...args) => mockNotifySync(...args) }))
+vi.mock('../server/utils/syncBroadcast.js', () => ({
+  notifySync: (...args) => mockNotifySync(...args),
+}))
 
 globalThis.defineEventHandler = (handler) => handler
 globalThis.readBody = vi.fn()
@@ -35,16 +37,46 @@ describe('empty push does not delete server notes', () => {
     readBody.mockResolvedValue({
       notes: [],
       deletedClientIds: [],
-      broadcast: false
+      broadcast: false,
     })
 
     // pull
     mockQuery.mockResolvedValueOnce({
       rows: [
-        { id: 1, client_id: 'n1', title: 'Note 1', description: '', tags: '[]', content: 'c1', sort_order: 0, created_at: '2025-01-01', updated_at: '2025-01-01' },
-        { id: 2, client_id: 'n2', title: 'Note 2', description: '', tags: '[]', content: 'c2', sort_order: 1, created_at: '2025-01-01', updated_at: '2025-01-01' },
-        { id: 3, client_id: 'n3', title: 'Note 3', description: '', tags: '[]', content: 'c3', sort_order: 2, created_at: '2025-01-01', updated_at: '2025-01-01' }
-      ]
+        {
+          id: 1,
+          client_id: 'n1',
+          title: 'Note 1',
+          description: '',
+          tags: '[]',
+          content: 'c1',
+          sort_order: 0,
+          created_at: '2025-01-01',
+          updated_at: '2025-01-01',
+        },
+        {
+          id: 2,
+          client_id: 'n2',
+          title: 'Note 2',
+          description: '',
+          tags: '[]',
+          content: 'c2',
+          sort_order: 1,
+          created_at: '2025-01-01',
+          updated_at: '2025-01-01',
+        },
+        {
+          id: 3,
+          client_id: 'n3',
+          title: 'Note 3',
+          description: '',
+          tags: '[]',
+          content: 'c3',
+          sort_order: 2,
+          created_at: '2025-01-01',
+          updated_at: '2025-01-01',
+        },
+      ],
     })
     // SELECT welcome_created
     mockQuery.mockResolvedValueOnce({ rows: [{ welcome_created: false }] })
@@ -64,23 +96,73 @@ describe('empty push does not delete server notes', () => {
   it('notes absent from the push are not deleted on the server', async () => {
     // Client pushes only n1, server has n1 + n2 + n3
     readBody.mockResolvedValue({
-      notes: [{
-        clientId: 'n1', title: 't', content: 'c',
-        sortOrder: 0, createdAt: '2025-01-01T00:00:00Z', updatedAt: '2025-01-01T00:00:00Z'
-      }],
+      notes: [
+        {
+          clientId: 'n1',
+          title: 't',
+          content: 'c',
+          sortOrder: 0,
+          createdAt: '2025-01-01T00:00:00Z',
+          updatedAt: '2025-01-01T00:00:00Z',
+        },
+      ],
       deletedClientIds: [],
-      broadcast: false
+      broadcast: false,
     })
 
     mockQuery.mockResolvedValueOnce({ rows: [] }) // check tombstone
-    mockQuery.mockResolvedValueOnce({ rows: [{ id: 1, client_id: 'n1', title: 't', description: '', tags: '[]', content: 'c', sort_order: 0, created_at: '2025-01-01', updated_at: '2025-01-01' }] }) // upsert
+    mockQuery.mockResolvedValueOnce({
+      rows: [
+        {
+          id: 1,
+          client_id: 'n1',
+          title: 't',
+          description: '',
+          tags: '[]',
+          content: 'c',
+          sort_order: 0,
+          created_at: '2025-01-01',
+          updated_at: '2025-01-01',
+        },
+      ],
+    }) // upsert
     mockQuery.mockResolvedValueOnce({ rows: [] }) // server-deleted IDs
     mockQuery.mockResolvedValueOnce({
       rows: [
-        { id: 1, client_id: 'n1', title: 't', description: '', tags: '[]', content: 'c', sort_order: 0, created_at: '2025-01-01', updated_at: '2025-01-01' },
-        { id: 2, client_id: 'n2', title: 'Note 2', description: '', tags: '[]', content: 'c2', sort_order: 1, created_at: '2025-01-01', updated_at: '2025-01-01' },
-        { id: 3, client_id: 'n3', title: 'Note 3', description: '', tags: '[]', content: 'c3', sort_order: 2, created_at: '2025-01-01', updated_at: '2025-01-01' }
-      ]
+        {
+          id: 1,
+          client_id: 'n1',
+          title: 't',
+          description: '',
+          tags: '[]',
+          content: 'c',
+          sort_order: 0,
+          created_at: '2025-01-01',
+          updated_at: '2025-01-01',
+        },
+        {
+          id: 2,
+          client_id: 'n2',
+          title: 'Note 2',
+          description: '',
+          tags: '[]',
+          content: 'c2',
+          sort_order: 1,
+          created_at: '2025-01-01',
+          updated_at: '2025-01-01',
+        },
+        {
+          id: 3,
+          client_id: 'n3',
+          title: 'Note 3',
+          description: '',
+          tags: '[]',
+          content: 'c3',
+          sort_order: 2,
+          created_at: '2025-01-01',
+          updated_at: '2025-01-01',
+        },
+      ],
     }) // pull
     // SELECT welcome_created
     mockQuery.mockResolvedValueOnce({ rows: [{ welcome_created: false }] })
@@ -100,7 +182,7 @@ describe('empty push does not delete server notes', () => {
     readBody.mockResolvedValue({
       notes: [],
       deletedClientIds: ['n2'],
-      broadcast: false
+      broadcast: false,
     })
 
     // 1. DELETE FROM notes
@@ -110,9 +192,29 @@ describe('empty push does not delete server notes', () => {
     // 3. Pull
     mockQuery.mockResolvedValueOnce({
       rows: [
-        { id: 1, client_id: 'n1', title: 'Note 1', description: '', tags: '[]', content: 'c1', sort_order: 0, created_at: '2025-01-01', updated_at: '2025-01-01' },
-        { id: 3, client_id: 'n3', title: 'Note 3', description: '', tags: '[]', content: 'c3', sort_order: 2, created_at: '2025-01-01', updated_at: '2025-01-01' }
-      ]
+        {
+          id: 1,
+          client_id: 'n1',
+          title: 'Note 1',
+          description: '',
+          tags: '[]',
+          content: 'c1',
+          sort_order: 0,
+          created_at: '2025-01-01',
+          updated_at: '2025-01-01',
+        },
+        {
+          id: 3,
+          client_id: 'n3',
+          title: 'Note 3',
+          description: '',
+          tags: '[]',
+          content: 'c3',
+          sort_order: 2,
+          created_at: '2025-01-01',
+          updated_at: '2025-01-01',
+        },
+      ],
     })
     // 4. SELECT welcome_created
     mockQuery.mockResolvedValueOnce({ rows: [{ welcome_created: false }] })

@@ -14,9 +14,15 @@ class MockStream {
     this.start = 0
     this._sol = true
   }
-  sol() { return this._sol }
-  eol() { return this.pos >= this.string.length }
-  peek() { return this.pos < this.string.length ? this.string[this.pos] : undefined }
+  sol() {
+    return this._sol
+  }
+  eol() {
+    return this.pos >= this.string.length
+  }
+  peek() {
+    return this.pos < this.string.length ? this.string[this.pos] : undefined
+  }
   next() {
     if (this.pos < this.string.length) return this.string[this.pos++]
     return undefined
@@ -41,8 +47,12 @@ class MockStream {
     while (this.pos < this.string.length && /\s/.test(this.string[this.pos])) this.pos++
     return this.pos > before
   }
-  skipToEnd() { this.pos = this.string.length }
-  current() { return this.string.slice(this.start, this.pos) }
+  skipToEnd() {
+    this.pos = this.string.length
+  }
+  current() {
+    return this.string.slice(this.start, this.pos)
+  }
 }
 
 /**
@@ -76,16 +86,11 @@ describe('Stream parser — code block skipping', () => {
   it('tokenizes normal lines with types', () => {
     const doc = tokenizeDoc(['10 + 20'])
     expect(doc[0].tokens.length).toBeGreaterThan(0)
-    expect(doc[0].tokens.some(t => t.type !== null)).toBe(true)
+    expect(doc[0].tokens.some((t) => t.type !== null)).toBe(true)
   })
 
   it('returns null type for content inside a fenced code block', () => {
-    const doc = tokenizeDoc([
-      '```javascript',
-      'const x = 1',
-      'var y = 2',
-      '```',
-    ])
+    const doc = tokenizeDoc(['```javascript', 'const x = 1', 'var y = 2', '```'])
     expect(doc[0].tokens[0].type).toBe('comment')
     for (const tok of doc[1].tokens) expect(tok.type).toBeNull()
     for (const tok of doc[2].tokens) expect(tok.type).toBeNull()
@@ -93,13 +98,8 @@ describe('Stream parser — code block skipping', () => {
   })
 
   it('resumes normal tokenizing after closing fence', () => {
-    const doc = tokenizeDoc([
-      '```',
-      'code here',
-      '```',
-      '10 + 20',
-    ])
-    expect(doc[3].tokens.some(t => t.type !== null)).toBe(true)
+    const doc = tokenizeDoc(['```', 'code here', '```', '10 + 20'])
+    expect(doc[3].tokens.some((t) => t.type !== null)).toBe(true)
   })
 
   it('handles code block without language tag', () => {
@@ -118,23 +118,30 @@ describe('Stream parser — code block skipping', () => {
 
   it('does not treat inline backticks as code blocks', () => {
     const doc = tokenizeDoc(['use `code` inline'])
-    expect(doc[0].tokens.every(t => t.type === null)).toBe(false)
+    expect(doc[0].tokens.every((t) => t.type === null)).toBe(false)
   })
 
   it('handles multiple code blocks in one document', () => {
     const doc = tokenizeDoc([
-      'sum', '```bash', 'echo hi', '```',
-      'total', '```python', 'x = 1', '```', 'prev',
+      'sum',
+      '```bash',
+      'echo hi',
+      '```',
+      'total',
+      '```python',
+      'x = 1',
+      '```',
+      'prev',
     ])
-    expect(doc[0].tokens.some(t => t.type === 'keyword')).toBe(true)
+    expect(doc[0].tokens.some((t) => t.type === 'keyword')).toBe(true)
     expect(doc[1].tokens[0].type).toBe('comment')
     for (const tok of doc[2].tokens) expect(tok.type).toBeNull()
     expect(doc[3].tokens[0].type).toBe('comment')
-    expect(doc[4].tokens.some(t => t.type === 'keyword')).toBe(true)
+    expect(doc[4].tokens.some((t) => t.type === 'keyword')).toBe(true)
     expect(doc[5].tokens[0].type).toBe('comment')
     for (const tok of doc[6].tokens) expect(tok.type).toBeNull()
     expect(doc[7].tokens[0].type).toBe('comment')
-    expect(doc[8].tokens.some(t => t.type === 'keyword')).toBe(true)
+    expect(doc[8].tokens.some((t) => t.type === 'keyword')).toBe(true)
   })
 
   it('code block with c++ language tag', () => {
@@ -171,21 +178,21 @@ describe('Stream parser — normal tokenizing outside code blocks', () => {
 
   it('tokenizes numbers', () => {
     const doc = tokenizeDoc(['42'])
-    expect(doc[0].tokens.some(t => t.type === 'number')).toBe(true)
+    expect(doc[0].tokens.some((t) => t.type === 'number')).toBe(true)
   })
 
   it('tokenizes keywords', () => {
     const doc = tokenizeDoc(['sum'])
-    expect(doc[0].tokens.some(t => t.type === 'keyword')).toBe(true)
+    expect(doc[0].tokens.some((t) => t.type === 'keyword')).toBe(true)
   })
 
   it('tokenizes operators', () => {
     const doc = tokenizeDoc(['1 + 2'])
-    expect(doc[0].tokens.some(t => t.type === 'operator')).toBe(true)
+    expect(doc[0].tokens.some((t) => t.type === 'operator')).toBe(true)
   })
 
   it('tokenizes variables', () => {
     const doc = tokenizeDoc(['myVar'])
-    expect(doc[0].tokens.some(t => t.type === 'variableName')).toBe(true)
+    expect(doc[0].tokens.some((t) => t.type === 'variableName')).toBe(true)
   })
 })

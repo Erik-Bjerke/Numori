@@ -33,7 +33,7 @@ describe('highlightCode — basic', () => {
   it('concatenated span texts equal the original code', () => {
     const code = 'function hello() { return "world"; }'
     const spans = highlightCode(code, 'javascript')
-    const reconstructed = spans.map(s => s.text).join('')
+    const reconstructed = spans.map((s) => s.text).join('')
     expect(reconstructed).toBe(code)
   })
 
@@ -54,84 +54,84 @@ describe('highlightCode — basic', () => {
 describe('highlightCode — language detection', () => {
   it('highlights JavaScript keywords', () => {
     const spans = highlightCode('const x = 1', 'javascript')
-    const keyword = spans.find(s => s.text === 'const')
+    const keyword = spans.find((s) => s.text === 'const')
     expect(keyword).toBeDefined()
     expect(keyword.className).toContain('hljs-keyword')
   })
 
   it('highlights Python keywords', () => {
     const spans = highlightCode('def hello():\n  pass', 'python')
-    const keyword = spans.find(s => s.text === 'def')
+    const keyword = spans.find((s) => s.text === 'def')
     expect(keyword).toBeDefined()
     expect(keyword.className).toContain('hljs-keyword')
   })
 
   it('highlights TypeScript types', () => {
     const spans = highlightCode('let x: number = 5', 'typescript')
-    const hasHighlight = spans.some(s => s.className !== null)
+    const hasHighlight = spans.some((s) => s.className !== null)
     expect(hasHighlight).toBe(true)
   })
 
   it('highlights HTML/XML tags', () => {
     const spans = highlightCode('<div class="test">hello</div>', 'html')
-    const hasHighlight = spans.some(s => s.className !== null)
+    const hasHighlight = spans.some((s) => s.className !== null)
     expect(hasHighlight).toBe(true)
   })
 
   it('highlights CSS properties', () => {
     const spans = highlightCode('body { color: red; }', 'css')
-    const hasHighlight = spans.some(s => s.className !== null)
+    const hasHighlight = spans.some((s) => s.className !== null)
     expect(hasHighlight).toBe(true)
   })
 
   it('highlights JSON keys', () => {
     const spans = highlightCode('{ "key": "value" }', 'json')
-    const hasHighlight = spans.some(s => s.className !== null)
+    const hasHighlight = spans.some((s) => s.className !== null)
     expect(hasHighlight).toBe(true)
   })
 
   it('highlights YAML keys', () => {
     const spans = highlightCode('name: test\nversion: 1', 'yaml')
-    const hasHighlight = spans.some(s => s.className !== null)
+    const hasHighlight = spans.some((s) => s.className !== null)
     expect(hasHighlight).toBe(true)
   })
 
   it('highlights bash commands', () => {
     const spans = highlightCode('echo "hello" && ls -la', 'bash')
-    const hasHighlight = spans.some(s => s.className !== null)
+    const hasHighlight = spans.some((s) => s.className !== null)
     expect(hasHighlight).toBe(true)
   })
 
   it('highlights SQL statements', () => {
     const spans = highlightCode('SELECT * FROM users WHERE id = 1', 'sql')
-    const keyword = spans.find(s => s.text === 'SELECT')
+    const keyword = spans.find((s) => s.text === 'SELECT')
     expect(keyword).toBeDefined()
     expect(keyword.className).toContain('hljs-keyword')
   })
 
   it('highlights C code', () => {
     const spans = highlightCode('int main() { return 0; }', 'c')
-    const hasHighlight = spans.some(s => s.className !== null)
+    const hasHighlight = spans.some((s) => s.className !== null)
     expect(hasHighlight).toBe(true)
   })
 
   it('highlights Rust code', () => {
     const spans = highlightCode('fn main() { println!("hi"); }', 'rust')
-    const keyword = spans.find(s => s.text === 'fn')
+    const keyword = spans.find((s) => s.text === 'fn')
     expect(keyword).toBeDefined()
     expect(keyword.className).toContain('hljs-keyword')
   })
 
   it('highlights Go code', () => {
     const spans = highlightCode('func main() {}', 'go')
-    const keyword = spans.find(s => s.text === 'func')
+    const keyword = spans.find((s) => s.text === 'func')
     expect(keyword).toBeDefined()
     expect(keyword.className).toContain('hljs-keyword')
   })
 
   it('highlights Dockerfile instructions', () => {
     const spans = highlightCode('FROM node:18\nRUN npm install', 'dockerfile')
-    const keyword = spans.find(s => s.text === 'FROM')
+    const keyword = spans.find((s) => s.text === 'FROM')
     expect(keyword).toBeDefined()
     expect(keyword.className).toContain('hljs-keyword')
   })
@@ -168,18 +168,23 @@ describe('highlightCode — aliases', () => {
   for (const [alias, _expected] of aliasCases) {
     it(`alias "${alias}" produces highlighted output`, () => {
       // Use a snippet that any language would tokenize
-      const code = alias === 'yml' || alias === 'yaml' || alias === 'toml' || alias === 'dotenv' || alias === 'env'
-        ? 'key: value'
-        : alias === 'html' || alias === 'htm' || alias === 'svg'
-          ? '<div>test</div>'
-          : alias === 'md'
-            ? '# Hello'
-            : alias === 'docker' || alias === 'dockerfile'
-              ? 'FROM node:18'
-              : 'var x = 1;'
+      const code =
+        alias === 'yml' ||
+        alias === 'yaml' ||
+        alias === 'toml' ||
+        alias === 'dotenv' ||
+        alias === 'env'
+          ? 'key: value'
+          : alias === 'html' || alias === 'htm' || alias === 'svg'
+            ? '<div>test</div>'
+            : alias === 'md'
+              ? '# Hello'
+              : alias === 'docker' || alias === 'dockerfile'
+                ? 'FROM node:18'
+                : 'var x = 1;'
       const spans = highlightCode(code, alias)
       expect(spans.length).toBeGreaterThan(0)
-      const reconstructed = spans.map(s => s.text).join('')
+      const reconstructed = spans.map((s) => s.text).join('')
       expect(reconstructed).toBe(code)
     })
   }
@@ -188,13 +193,13 @@ describe('highlightCode — aliases', () => {
     const upper = highlightCode('const x = 1', 'JAVASCRIPT')
     const lower = highlightCode('const x = 1', 'javascript')
     // Both should produce highlighted output
-    expect(upper.some(s => s.className !== null)).toBe(true)
-    expect(lower.some(s => s.className !== null)).toBe(true)
+    expect(upper.some((s) => s.className !== null)).toBe(true)
+    expect(lower.some((s) => s.className !== null)).toBe(true)
   })
 
   it('mixed case alias works', () => {
     const spans = highlightCode('const x = 1', 'Js')
-    expect(spans.some(s => s.className !== null)).toBe(true)
+    expect(spans.some((s) => s.className !== null)).toBe(true)
   })
 })
 
@@ -204,7 +209,7 @@ describe('highlightCode — multi-line', () => {
   it('preserves newlines in span text', () => {
     const code = 'const a = 1;\nconst b = 2;'
     const spans = highlightCode(code, 'javascript')
-    const reconstructed = spans.map(s => s.text).join('')
+    const reconstructed = spans.map((s) => s.text).join('')
     expect(reconstructed).toBe(code)
   })
 
@@ -223,7 +228,7 @@ describe('highlightCode — multi-line', () => {
     const lines = Array.from({ length: 50 }, (_, i) => `const v${i} = ${i};`)
     const code = lines.join('\n')
     const spans = highlightCode(code, 'javascript')
-    const reconstructed = spans.map(s => s.text).join('')
+    const reconstructed = spans.map((s) => s.text).join('')
     expect(reconstructed).toBe(code)
   })
 })
@@ -234,28 +239,28 @@ describe('highlightCode — HTML entities', () => {
   it('decodes &amp; in output', () => {
     const code = 'a && b'
     const spans = highlightCode(code, 'javascript')
-    const reconstructed = spans.map(s => s.text).join('')
+    const reconstructed = spans.map((s) => s.text).join('')
     expect(reconstructed).toBe(code)
   })
 
   it('decodes &lt; and &gt; in output', () => {
     const code = 'if (a < b && c > d) {}'
     const spans = highlightCode(code, 'javascript')
-    const reconstructed = spans.map(s => s.text).join('')
+    const reconstructed = spans.map((s) => s.text).join('')
     expect(reconstructed).toBe(code)
   })
 
   it('decodes &quot; in output', () => {
     const code = 'const s = "hello"'
     const spans = highlightCode(code, 'javascript')
-    const reconstructed = spans.map(s => s.text).join('')
+    const reconstructed = spans.map((s) => s.text).join('')
     expect(reconstructed).toBe(code)
   })
 
   it('decodes single quotes in output', () => {
     const code = "const s = 'hello'"
     const spans = highlightCode(code, 'javascript')
-    const reconstructed = spans.map(s => s.text).join('')
+    const reconstructed = spans.map((s) => s.text).join('')
     expect(reconstructed).toBe(code)
   })
 })
@@ -265,14 +270,14 @@ describe('highlightCode — HTML entities', () => {
 describe('highlightCode — edge cases', () => {
   it('empty string returns empty array or single empty span', () => {
     const spans = highlightCode('', 'javascript')
-    const reconstructed = spans.map(s => s.text).join('')
+    const reconstructed = spans.map((s) => s.text).join('')
     expect(reconstructed).toBe('')
   })
 
   it('unknown language falls back to auto-detection', () => {
     const spans = highlightCode('const x = 1', 'nonexistent_lang_xyz')
     expect(spans.length).toBeGreaterThan(0)
-    const reconstructed = spans.map(s => s.text).join('')
+    const reconstructed = spans.map((s) => s.text).join('')
     expect(reconstructed).toBe('const x = 1')
   })
 
@@ -294,28 +299,28 @@ describe('highlightCode — edge cases', () => {
   it('plain text with no syntax produces spans with null className', () => {
     const code = 'just some plain text with no syntax'
     const spans = highlightCode(code, 'nonexistent_lang_xyz')
-    const reconstructed = spans.map(s => s.text).join('')
+    const reconstructed = spans.map((s) => s.text).join('')
     expect(reconstructed).toBe(code)
   })
 
   it('code with special characters preserves them', () => {
     const code = 'const regex = /[a-z]+/g;'
     const spans = highlightCode(code, 'javascript')
-    const reconstructed = spans.map(s => s.text).join('')
+    const reconstructed = spans.map((s) => s.text).join('')
     expect(reconstructed).toBe(code)
   })
 
   it('code with unicode preserves it', () => {
     const code = 'const emoji = "🎉";'
     const spans = highlightCode(code, 'javascript')
-    const reconstructed = spans.map(s => s.text).join('')
+    const reconstructed = spans.map((s) => s.text).join('')
     expect(reconstructed).toBe(code)
   })
 
   it('very long single line', () => {
     const code = 'const x = ' + '"a"'.repeat(500) + ';'
     const spans = highlightCode(code, 'javascript')
-    const reconstructed = spans.map(s => s.text).join('')
+    const reconstructed = spans.map((s) => s.text).join('')
     expect(reconstructed).toBe(code)
   })
 })
@@ -561,10 +566,10 @@ describe('Span-to-line offset mapping', () => {
 
     expect(mapped).toHaveLength(3)
     // Line 0 should have 'function' keyword
-    const fnSpan = mapped[0].find(s => lines[0].substring(s.from, s.to) === 'function')
+    const fnSpan = mapped[0].find((s) => lines[0].substring(s.from, s.to) === 'function')
     expect(fnSpan).toBeDefined()
     // Line 1 should have 'return' keyword
-    const retSpan = mapped[1].find(s => lines[1].substring(s.from, s.to) === 'return')
+    const retSpan = mapped[1].find((s) => lines[1].substring(s.from, s.to) === 'return')
     expect(retSpan).toBeDefined()
   })
 

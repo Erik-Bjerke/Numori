@@ -16,7 +16,7 @@ import {
   encryptNote,
   decryptNote,
   encryptSharedNote,
-  decryptSharedNote
+  decryptSharedNote,
 } from '../utils/crypto.js'
 
 // ── deriveAuthKey ────────────────────────────────────────────────────────
@@ -258,7 +258,7 @@ describe('encryptNote / decryptNote', () => {
     content: '10 + 20\nresult = 30',
     sortOrder: 1,
     createdAt: '2025-01-01T00:00:00Z',
-    updatedAt: '2025-01-02T00:00:00Z'
+    updatedAt: '2025-01-02T00:00:00Z',
   }
 
   it('encrypts all sensitive fields', async () => {
@@ -298,7 +298,13 @@ describe('encryptNote / decryptNote', () => {
   })
 
   it('handles null/undefined fields gracefully', async () => {
-    const note = { clientId: 'x', title: null, description: undefined, tags: null, content: undefined }
+    const note = {
+      clientId: 'x',
+      title: null,
+      description: undefined,
+      tags: null,
+      content: undefined,
+    }
     const enc = await encryptNote(note, key)
     const dec = await decryptNote(enc, key)
     expect(dec.title).toBe('')
@@ -327,7 +333,7 @@ describe('encryptSharedNote / decryptSharedNote', () => {
     title: 'Shared Title',
     description: 'Shared desc',
     tags: ['shared'],
-    content: 'shared content here'
+    content: 'shared content here',
   }
 
   it('encrypts all fields and sets encrypted flag', async () => {
@@ -379,7 +385,7 @@ describe('password change re-encryption', () => {
       title: 'Secret Note',
       description: 'desc',
       tags: ['private'],
-      content: 'sensitive data'
+      content: 'sensitive data',
     }
 
     // Encrypt with old key

@@ -16,7 +16,9 @@ vi.mock('~/db.js', () => ({
   default: {
     preferences: {
       get: vi.fn(async (key) => prefStore[key] ?? undefined),
-      put: vi.fn(async (row) => { prefStore[row.key] = row }),
+      put: vi.fn(async (row) => {
+        prefStore[row.key] = row
+      }),
     },
   },
 }))
@@ -30,7 +32,8 @@ vi.stubGlobal('reactive', (val) => val)
 vi.stubGlobal('computed', (fn) => ({ value: fn() }))
 vi.stubGlobal('watch', () => {})
 
-const { useLocalePreferences, LOCALE_PRESETS } = await import('../../composables/useLocalePreferences.js')
+const { useLocalePreferences, LOCALE_PRESETS } =
+  await import('../../composables/useLocalePreferences.js')
 const dbModule = await import('~/db.js')
 const db = dbModule.default
 
@@ -137,7 +140,7 @@ describe('useLocalePreferences', () => {
     save()
     expect(db.preferences.put).toHaveBeenCalledWith({
       key: 'locale',
-      value: expect.any(String)
+      value: expect.any(String),
     })
     const saved = JSON.parse(db.preferences.put.mock.calls.at(-1)[0].value)
     expect(saved.fuelEconomy).toBe('mpg')
@@ -152,7 +155,14 @@ describe('useLocalePreferences', () => {
 
 describe('Preset Definitions', () => {
   it('all presets have all required keys', () => {
-    const requiredKeys = ['volume', 'fuelEconomy', 'distance', 'temperature', 'dateFormat', 'numberFormat']
+    const requiredKeys = [
+      'volume',
+      'fuelEconomy',
+      'distance',
+      'temperature',
+      'dateFormat',
+      'numberFormat',
+    ]
     for (const [name, preset] of Object.entries(LOCALE_PRESETS)) {
       for (const key of requiredKeys) {
         expect(preset[key], `${name} preset missing ${key}`).toBeDefined()

@@ -11,8 +11,12 @@ const mockRequireAuth = vi.fn()
 const mockNotifySync = vi.fn()
 
 vi.mock('../../server/utils/db.js', () => ({ query: (...args) => mockQuery(...args) }))
-vi.mock('../../server/utils/auth.js', () => ({ requireAuth: (...args) => mockRequireAuth(...args) }))
-vi.mock('../../server/utils/syncBroadcast.js', () => ({ notifySync: (...args) => mockNotifySync(...args) }))
+vi.mock('../../server/utils/auth.js', () => ({
+  requireAuth: (...args) => mockRequireAuth(...args),
+}))
+vi.mock('../../server/utils/syncBroadcast.js', () => ({
+  notifySync: (...args) => mockNotifySync(...args),
+}))
 
 globalThis.defineEventHandler = (handler) => handler
 globalThis.readBody = vi.fn()
@@ -33,28 +37,38 @@ describe('POST /api/notes/sync', () => {
   it('stores encrypted string tags as-is', async () => {
     const encryptedTags = '{"iv":"abc","ct":"def"}'
     readBody.mockResolvedValue({
-      notes: [{
-        clientId: 'n1',
-        title: '{"iv":"t","ct":"t"}',
-        description: '',
-        tags: encryptedTags,
-        content: '{"iv":"c","ct":"c"}',
-        sortOrder: 0,
-        createdAt: '2025-01-01T00:00:00Z',
-        updatedAt: '2025-01-01T00:00:00Z'
-      }],
-      deletedClientIds: []
+      notes: [
+        {
+          clientId: 'n1',
+          title: '{"iv":"t","ct":"t"}',
+          description: '',
+          tags: encryptedTags,
+          content: '{"iv":"c","ct":"c"}',
+          sortOrder: 0,
+          createdAt: '2025-01-01T00:00:00Z',
+          updatedAt: '2025-01-01T00:00:00Z',
+        },
+      ],
+      deletedClientIds: [],
     })
 
     // 1. Check tombstone for n1
     mockQuery.mockResolvedValueOnce({ rows: [] })
     // 2. INSERT/UPSERT
     mockQuery.mockResolvedValueOnce({
-      rows: [{
-        id: 1, client_id: 'n1', title: '{"iv":"t","ct":"t"}',
-        description: '', tags: encryptedTags, content: '{"iv":"c","ct":"c"}',
-        sort_order: 0, created_at: '2025-01-01', updated_at: '2025-01-01'
-      }]
+      rows: [
+        {
+          id: 1,
+          client_id: 'n1',
+          title: '{"iv":"t","ct":"t"}',
+          description: '',
+          tags: encryptedTags,
+          content: '{"iv":"c","ct":"c"}',
+          sort_order: 0,
+          created_at: '2025-01-01',
+          updated_at: '2025-01-01',
+        },
+      ],
     })
     // 3. Check server-deleted IDs
     mockQuery.mockResolvedValueOnce({ rows: [] })
@@ -74,25 +88,35 @@ describe('POST /api/notes/sync', () => {
 
   it('JSON.stringifies array tags (legacy)', async () => {
     readBody.mockResolvedValue({
-      notes: [{
-        clientId: 'n1',
-        title: 'Plain Title',
-        tags: ['tag1', 'tag2'],
-        content: 'plain content',
-        sortOrder: 0,
-        createdAt: '2025-01-01T00:00:00Z',
-        updatedAt: '2025-01-01T00:00:00Z'
-      }],
-      deletedClientIds: []
+      notes: [
+        {
+          clientId: 'n1',
+          title: 'Plain Title',
+          tags: ['tag1', 'tag2'],
+          content: 'plain content',
+          sortOrder: 0,
+          createdAt: '2025-01-01T00:00:00Z',
+          updatedAt: '2025-01-01T00:00:00Z',
+        },
+      ],
+      deletedClientIds: [],
     })
 
     mockQuery.mockResolvedValueOnce({ rows: [] }) // check tombstone
     mockQuery.mockResolvedValueOnce({
-      rows: [{
-        id: 1, client_id: 'n1', title: 'Plain Title',
-        description: '', tags: '["tag1","tag2"]', content: 'plain content',
-        sort_order: 0, created_at: '2025-01-01', updated_at: '2025-01-01'
-      }]
+      rows: [
+        {
+          id: 1,
+          client_id: 'n1',
+          title: 'Plain Title',
+          description: '',
+          tags: '["tag1","tag2"]',
+          content: 'plain content',
+          sort_order: 0,
+          created_at: '2025-01-01',
+          updated_at: '2025-01-01',
+        },
+      ],
     })
     mockQuery.mockResolvedValueOnce({ rows: [] }) // server-deleted IDs
     mockQuery.mockResolvedValueOnce({ rows: [] }) // pull
@@ -108,7 +132,7 @@ describe('POST /api/notes/sync', () => {
   it('hard-deletes notes and records tombstones', async () => {
     readBody.mockResolvedValue({
       notes: [],
-      deletedClientIds: ['n1', 'n2']
+      deletedClientIds: ['n1', 'n2'],
     })
 
     // 1. DELETE FROM notes
@@ -136,15 +160,17 @@ describe('POST /api/notes/sync', () => {
 
   it('skips notes that have a tombstone on server', async () => {
     readBody.mockResolvedValue({
-      notes: [{
-        clientId: 'n1',
-        title: 'title',
-        content: 'content',
-        sortOrder: 0,
-        createdAt: '2025-01-01T00:00:00Z',
-        updatedAt: '2025-01-01T00:00:00Z'
-      }],
-      deletedClientIds: []
+      notes: [
+        {
+          clientId: 'n1',
+          title: 'title',
+          content: 'content',
+          sortOrder: 0,
+          createdAt: '2025-01-01T00:00:00Z',
+          updatedAt: '2025-01-01T00:00:00Z',
+        },
+      ],
+      deletedClientIds: [],
     })
 
     // 1. Check tombstone: exists
@@ -168,16 +194,19 @@ describe('POST /api/notes/sync', () => {
 
     // Pull query
     mockQuery.mockResolvedValueOnce({
-      rows: [{
-        id: 1, client_id: 'n1',
-        title: '{"iv":"a","ct":"b"}',
-        description: '{"iv":"c","ct":"d"}',
-        tags: '{"iv":"e","ct":"f"}',
-        content: '{"iv":"g","ct":"h"}',
-        sort_order: 0,
-        created_at: '2025-01-01',
-        updated_at: '2025-01-01'
-      }]
+      rows: [
+        {
+          id: 1,
+          client_id: 'n1',
+          title: '{"iv":"a","ct":"b"}',
+          description: '{"iv":"c","ct":"d"}',
+          tags: '{"iv":"e","ct":"f"}',
+          content: '{"iv":"g","ct":"h"}',
+          sort_order: 0,
+          created_at: '2025-01-01',
+          updated_at: '2025-01-01',
+        },
+      ],
     })
     // SELECT welcome_created
     mockQuery.mockResolvedValueOnce({ rows: [{ welcome_created: false }] })
@@ -196,7 +225,7 @@ describe('POST /api/notes/sync', () => {
       notes: [],
       deletedClientIds: [],
       sessionId: 'sess-1',
-      broadcast: true
+      broadcast: true,
     })
     mockQuery.mockResolvedValueOnce({ rows: [] }) // pull
     mockQuery.mockResolvedValueOnce({ rows: [{ welcome_created: false }] }) // welcome_created
@@ -211,7 +240,7 @@ describe('POST /api/notes/sync', () => {
     readBody.mockResolvedValue({
       notes: [],
       deletedClientIds: [],
-      broadcast: false
+      broadcast: false,
     })
     mockQuery.mockResolvedValueOnce({ rows: [] }) // pull
     mockQuery.mockResolvedValueOnce({ rows: [{ welcome_created: false }] }) // welcome_created
@@ -224,14 +253,37 @@ describe('POST /api/notes/sync', () => {
 
   it('reports server-deleted client IDs via tombstones', async () => {
     readBody.mockResolvedValue({
-      notes: [{ clientId: 'n1', title: 't', content: 'c', sortOrder: 0, createdAt: '2025-01-01T00:00:00Z', updatedAt: '2025-01-01T00:00:00Z' }],
-      deletedClientIds: []
+      notes: [
+        {
+          clientId: 'n1',
+          title: 't',
+          content: 'c',
+          sortOrder: 0,
+          createdAt: '2025-01-01T00:00:00Z',
+          updatedAt: '2025-01-01T00:00:00Z',
+        },
+      ],
+      deletedClientIds: [],
     })
 
     // 1. Check tombstone for n1: not deleted
     mockQuery.mockResolvedValueOnce({ rows: [] })
     // 2. INSERT
-    mockQuery.mockResolvedValueOnce({ rows: [{ id: 1, client_id: 'n1', title: 't', description: '', tags: '[]', content: 'c', sort_order: 0, created_at: '2025-01-01', updated_at: '2025-01-01' }] })
+    mockQuery.mockResolvedValueOnce({
+      rows: [
+        {
+          id: 1,
+          client_id: 'n1',
+          title: 't',
+          description: '',
+          tags: '[]',
+          content: 'c',
+          sort_order: 0,
+          created_at: '2025-01-01',
+          updated_at: '2025-01-01',
+        },
+      ],
+    })
     // 3. Check which client IDs are tombstoned
     mockQuery.mockResolvedValueOnce({ rows: [{ client_id: 'n1' }] })
     // 4. Pull

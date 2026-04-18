@@ -16,7 +16,9 @@ vi.mock('~/db.js', () => ({
   default: {
     preferences: {
       get: vi.fn(async (key) => prefStore[key] ?? undefined),
-      put: vi.fn(async (row) => { prefStore[row.key] = row }),
+      put: vi.fn(async (row) => {
+        prefStore[row.key] = row
+      }),
     },
   },
 }))
@@ -26,7 +28,8 @@ vi.stubGlobal('import', { meta: { client: true } })
 // Dexie load path uses import.meta.client — we need to ensure it's truthy
 Object.defineProperty(import.meta, 'client', { value: true, writable: true })
 
-const { useLocalePreferences, LOCALE_PRESETS } = await import('../composables/useLocalePreferences.js')
+const { useLocalePreferences, LOCALE_PRESETS } =
+  await import('../composables/useLocalePreferences.js')
 const dbModule = await import('~/db.js')
 const db = dbModule.default
 
@@ -67,6 +70,7 @@ const EXPECTED_DEFAULTS = {
   inlineMode: 'left',
   // Customisation
   precisionMode: 'auto',
+  roundingMode: 'round',
   decimalPlaces: 6,
   significantFigures: 6,
   autoCopyResult: true,
@@ -232,7 +236,7 @@ describe('Persistence (save & load)', () => {
     save()
     expect(db.preferences.put).toHaveBeenCalledWith({
       key: 'locale',
-      value: expect.any(String)
+      value: expect.any(String),
     })
     const savedValue = JSON.parse(db.preferences.put.mock.calls[0][0].value)
     expect(savedValue.editorFontSize).toBe(22)
@@ -304,8 +308,10 @@ describe('Editor Settings — Valid Values', () => {
   it('boolean editor settings toggle correctly', () => {
     const { preferences } = useLocalePreferences()
     const booleanKeys = [
-      'editorLigatures', 'editorWordWrap',
-      'editorFolding', 'editorScrollPastEnd',
+      'editorLigatures',
+      'editorWordWrap',
+      'editorFolding',
+      'editorScrollPastEnd',
     ]
     for (const key of booleanKeys) {
       const original = preferences[key]
@@ -335,9 +341,9 @@ describe('Editor Settings — Valid Values', () => {
 })
 
 describe('Editor Options Mapping', () => {
-  const mapWordWrap = (val) => val ? 'on' : 'off'
-  const mapLineNumbers = (val) => ['on', 'off', 'relative', 'interval'].includes(val) ? val : 'on'
-  const mapCursorStyle = (val) => ['line', 'line-thin'].includes(val) ? val : 'line'
+  const mapWordWrap = (val) => (val ? 'on' : 'off')
+  const mapLineNumbers = (val) => (['on', 'off', 'relative', 'interval'].includes(val) ? val : 'on')
+  const mapCursorStyle = (val) => (['line', 'line-thin'].includes(val) ? val : 'line')
 
   it('wordWrap maps boolean to on/off', () => {
     expect(mapWordWrap(false)).toBe('off')

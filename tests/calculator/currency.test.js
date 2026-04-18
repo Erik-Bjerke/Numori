@@ -5,9 +5,15 @@ import { describe, it, expect } from 'vitest'
 import { calc, calcLines } from './helpers'
 
 describe('Currency', () => {
-  it('$30 returns value with USD', () => { expect(calc('$30')).toMatch(/30/) })
-  it('€50 returns value with EUR', () => { expect(calc('€50')).toMatch(/50/) })
-  it('£100 returns value with GBP', () => { expect(calc('£100')).toMatch(/100/) })
+  it('$30 returns value with USD', () => {
+    expect(calc('$30')).toMatch(/30/)
+  })
+  it('€50 returns value with EUR', () => {
+    expect(calc('€50')).toMatch(/50/)
+  })
+  it('£100 returns value with GBP', () => {
+    expect(calc('£100')).toMatch(/100/)
+  })
 
   it('$30 in EUR converts currency', () => {
     const result = calc('$30 in EUR')
@@ -15,8 +21,12 @@ describe('Currency', () => {
     expect(result).toMatch(/EUR/)
   })
 
-  it('$30 in euro (common name)', () => { expect(calc('$30 in euro')).toBeTruthy() })
-  it('currency arithmetic: $30 + €20 (mixed currencies)', () => { expect(calc('$30 + €20')).toBeTruthy() })
+  it('$30 in euro (common name)', () => {
+    expect(calc('$30 in euro')).toBeTruthy()
+  })
+  it('currency arithmetic: $30 + €20 (mixed currencies)', () => {
+    expect(calc('$30 + €20')).toBeTruthy()
+  })
 
   it('100 USD in GBP', () => {
     const result = calc('100 USD in GBP')
@@ -210,7 +220,9 @@ describe('Currency with Scales', () => {
     expect(parseFloat(result)).toBe(2000)
     expect(result).toMatch(/USD/)
   })
-  it('$1.5k = 1500 USD', () => { expect(parseFloat(calc('$1.5k'))).toBe(1500) })
+  it('$1.5k = 1500 USD', () => {
+    expect(parseFloat(calc('$1.5k'))).toBe(1500)
+  })
   it('€3M = 3000000 EUR', () => {
     const result = calc('€3M')
     expect(parseFloat(result)).toBe(3000000)
@@ -221,7 +233,9 @@ describe('Currency with Scales', () => {
     expect(parseFloat(result)).toBe(1000000)
     expect(result).toMatch(/GBP/)
   })
-  it('$500k displays USD', () => { expect(calc('$500k')).toMatch(/USD/) })
+  it('$500k displays USD', () => {
+    expect(calc('$500k')).toMatch(/USD/)
+  })
 
   // Code suffix + scale
   it('2k eur = 2000 EUR', () => {

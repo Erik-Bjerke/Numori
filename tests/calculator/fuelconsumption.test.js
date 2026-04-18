@@ -74,7 +74,7 @@ describe('Fuel Economy — Conversions', () => {
   })
 
   it('8 l/100km in mpg ≈ 29.40', () => {
-    expect(calcNum('8 l/100km in mpg')).toBeCloseTo(29.40, 0)
+    expect(calcNum('8 l/100km in mpg')).toBeCloseTo(29.4, 0)
   })
 
   // kpl to l/100km: l/100km = 100 / kpl
@@ -136,10 +136,7 @@ describe('Fuel Economy — UK Gallon Variants', () => {
 
 describe('Fuel Economy — Variable Assignment and Arithmetic', () => {
   it('assign fuel economy to variable and use in conversion', () => {
-    const results = calcLines([
-      'efficiency = 30 mpg',
-      '30 mpg in kpl',
-    ])
+    const results = calcLines(['efficiency = 30 mpg', '30 mpg in kpl'])
     expect(results[1]).toBeTruthy()
     expect(parseFloat(results[1])).toBeCloseTo(12.754, 1)
   })
@@ -178,19 +175,13 @@ describe('Fuel Economy — Variable Assignment and Arithmetic', () => {
   })
 
   it('fuel economy variable used in conversion', () => {
-    const results = calcLines([
-      'mileage = 30 mpg',
-      'mileage in kpl',
-    ])
+    const results = calcLines(['mileage = 30 mpg', 'mileage in kpl'])
     expect(results[1]).toBeTruthy()
     expect(parseFloat(results[1])).toBeCloseTo(12.754, 1)
   })
 
   it('distance variable used in conversion', () => {
-    const results = calcLines([
-      'distance = 100 km',
-      'distance in miles',
-    ])
+    const results = calcLines(['distance = 100 km', 'distance in miles'])
     expect(parseFloat(results[1])).toBeCloseTo(62.137, 1)
   })
 })
