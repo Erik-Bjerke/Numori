@@ -156,10 +156,7 @@
                       { value: 'us_gallon', label: 'US Gallons' },
                       { value: 'uk_gallon', label: 'UK Gallons (Imperial)' },
                     ]"
-                    @update:model-value="
-                      preferences.volume = $event
-                      onSettingChange()
-                    "
+                    @update:model-value="preferences.volume = $event; onSettingChange()"
                   />
                 </UiFormField>
                 <UiFormField label="Fuel Economy">
@@ -173,10 +170,7 @@
                       { value: 'mpl', label: 'Miles per litre' },
                       { value: 'kpg', label: 'Km per gallon (US)' },
                     ]"
-                    @update:model-value="
-                      preferences.fuelEconomy = $event
-                      onSettingChange()
-                    "
+                    @update:model-value="preferences.fuelEconomy = $event; onSettingChange()"
                   />
                 </UiFormField>
                 <UiFormField label="Distance">
@@ -186,10 +180,7 @@
                       { value: 'km', label: 'Kilometres' },
                       { value: 'miles', label: 'Miles' },
                     ]"
-                    @update:model-value="
-                      preferences.distance = $event
-                      onSettingChange()
-                    "
+                    @update:model-value="preferences.distance = $event; onSettingChange()"
                   />
                 </UiFormField>
                 <UiFormField label="Temperature">
@@ -200,10 +191,7 @@
                       { value: 'fahrenheit', label: 'Fahrenheit (°F)' },
                       { value: 'kelvin', label: 'Kelvin (K)' },
                     ]"
-                    @update:model-value="
-                      preferences.temperature = $event
-                      onSettingChange()
-                    "
+                    @update:model-value="preferences.temperature = $event; onSettingChange()"
                   />
                 </UiFormField>
               </div>
@@ -218,10 +206,7 @@
                       { value: 'DD.MM.YYYY', label: 'DD.MM.YYYY (31.12.2025)' },
                       { value: 'YYYY-MM-DD', label: 'YYYY-MM-DD (2025-12-31)' },
                     ]"
-                    @update:model-value="
-                      preferences.dateFormat = $event
-                      onSettingChange()
-                    "
+                    @update:model-value="preferences.dateFormat = $event; onSettingChange()"
                   />
                 </UiFormField>
                 <UiFormField label="Time Format">
@@ -231,10 +216,7 @@
                       { value: '12h', label: '12-hour (3:30 PM)' },
                       { value: '24h', label: '24-hour (15:30)' },
                     ]"
-                    @update:model-value="
-                      preferences.timeFormat = $event
-                      onSettingChange()
-                    "
+                    @update:model-value="preferences.timeFormat = $event; onSettingChange()"
                   />
                 </UiFormField>
                 <UiFormField label="Number Format">
@@ -245,10 +227,7 @@
                       { value: 'dot_comma', label: '1.000,00 (DE/ES)' },
                       { value: 'space_comma', label: '1 000,00 (FR)' },
                     ]"
-                    @update:model-value="
-                      preferences.numberFormat = $event
-                      onSettingChange()
-                    "
+                    @update:model-value="preferences.numberFormat = $event; onSettingChange()"
                   />
                 </UiFormField>
               </div>
@@ -275,10 +254,7 @@
                       { value: 'cascadia-code', label: 'Cascadia Code' },
                       { value: 'ibm-plex-mono', label: 'IBM Plex Mono' },
                     ]"
-                    @update:model-value="
-                      preferences.editorFontFamily = $event
-                      onSettingChange()
-                    "
+                    @update:model-value="preferences.editorFontFamily = $event; onSettingChange()"
                   />
                 </UiFormField>
                 <UiFormField :label="`Font Size: ${preferences.editorFontSize}px`">
@@ -324,10 +300,7 @@
                       { value: 'interval', label: 'Interval (every 10)' },
                       { value: 'off', label: 'Off' },
                     ]"
-                    @update:model-value="
-                      preferences.editorLineNumbers = $event
-                      onSettingChange()
-                    "
+                    @update:model-value="preferences.editorLineNumbers = $event; onSettingChange()"
                   />
                 </UiFormField>
                 <UiFormField label="Line Highlight">
@@ -338,10 +311,7 @@
                       { value: 'line', label: 'Line' },
                       { value: 'all', label: 'Gutter + Line' },
                     ]"
-                    @update:model-value="
-                      preferences.editorRenderLineHighlight = $event
-                      onSettingChange()
-                    "
+                    @update:model-value="preferences.editorRenderLineHighlight = $event; onSettingChange()"
                   />
                 </UiFormField>
               </div>
@@ -380,10 +350,7 @@
                       { value: 'line', label: 'Line' },
                       { value: 'line-thin', label: 'Line (thin)' },
                     ]"
-                    @update:model-value="
-                      preferences.editorCursorStyle = $event
-                      onSettingChange()
-                    "
+                    @update:model-value="preferences.editorCursorStyle = $event; onSettingChange()"
                   />
                 </UiFormField>
               </div>
@@ -415,10 +382,7 @@
                       { value: 'always', label: 'Always' },
                       { value: 'never', label: 'Never' },
                     ]"
-                    @update:model-value="
-                      preferences.editorAutoClosingBrackets = $event
-                      onSettingChange()
-                    "
+                    @update:model-value="preferences.editorAutoClosingBrackets = $event; onSettingChange()"
                   />
                 </UiFormField>
                 <UiFormField :label="`Tab Size: ${preferences.editorTabSize} spaces`">
@@ -448,10 +412,7 @@
                       { value: 'decimals', label: 'Fixed decimal places' },
                       { value: 'significant', label: 'Significant figures' },
                     ]"
-                    @update:model-value="
-                      preferences.precisionMode = $event
-                      onSettingChange()
-                    "
+                    @update:model-value="preferences.precisionMode = $event; onSettingChange()"
                   />
                 </UiFormField>
                 <UiFormField v-if="preferences.precisionMode !== 'auto'" label="Rounding Mode">
@@ -461,10 +422,7 @@
                       { value: 'round', label: 'Round' },
                       { value: 'truncate', label: 'Truncate' },
                     ]"
-                    @update:model-value="
-                      preferences.roundingMode = $event
-                      onSettingChange()
-                    "
+                    @update:model-value="preferences.roundingMode = $event; onSettingChange()"
                   />
                 </UiFormField>
                 <UiFormField
@@ -519,10 +477,7 @@
                       { value: 'glow', label: 'Glow pulse' },
                       { value: 'none', label: 'None' },
                     ]"
-                    @update:model-value="
-                      preferences.copyAnimationStyle = $event
-                      onSettingChange()
-                    "
+                    @update:model-value="preferences.copyAnimationStyle = $event; onSettingChange()"
                   />
                 </UiFormField>
               </div>
@@ -557,10 +512,7 @@
                     { value: 360, label: 'Every 6 hours' },
                     { value: 0, label: 'Manual only' },
                   ]"
-                  @update:model-value="
-                    preferences.updateCheckInterval = $event
-                    onSettingChange()
-                  "
+                  @update:model-value="preferences.updateCheckInterval = $event; onSettingChange()"
                 />
               </UiFormField>
             </div>

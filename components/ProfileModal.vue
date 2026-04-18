@@ -191,10 +191,7 @@
           <UiButton
             variant="ghost"
             color="red"
-            @click="
-              $emit('logout')
-              $emit('close')
-            "
+            @click="$emit('logout'); $emit('close')"
           >
             <Icon name="mdi:logout-variant" class="w-4 h-4" />
             Sign out
@@ -343,10 +340,7 @@
                 { value: 604800, label: '7 days' },
                 { value: 2592000, label: '30 days' },
               ]"
-              @update:model-value="
-                sessionDuration = $event
-                saveSessionDuration()
-              "
+              @update:model-value="sessionDuration = $event; saveSessionDuration()"
             />
           </div>
           <p class="text-xs text-gray-500 dark:text-gray-500">

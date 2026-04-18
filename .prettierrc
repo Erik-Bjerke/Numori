@@ -5,14 +5,5 @@
   "printWidth": 100,
   "tabWidth": 2,
   "arrowParens": "always",
-  "endOfLine": "lf",
-  "vueIndentScriptAndStyle": false,
-  "overrides": [
-    {
-      "files": "*.vue",
-      "options": {
-        "printWidth": 120
-      }
-    }
-  ]
+  "endOfLine": "lf"
 }

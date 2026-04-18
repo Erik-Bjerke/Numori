@@ -349,10 +349,7 @@
       :save="localePrefs.save"
       :reset="localePrefs.reset"
       @close="showLocaleSettings = false"
-      @relaunch-wizard="
-        showLocaleSettings = false
-        welcomeWizard.isOpen.value = true
-      "
+      @relaunch-wizard="showLocaleSettings = false; welcomeWizard.isOpen.value = true"
     />
 
     <ExportOptionsModal
@@ -467,11 +464,7 @@
       :is-open="showAddToGroupModal"
       :groups="groups"
       :current-group-id="addToGroupNoteId ? notes.find((n) => n.id === addToGroupNoteId)?.groupId || null : null"
-      @close="
-        showAddToGroupModal = false
-        bulkGroupNoteIds = null
-        addToGroupNoteId = null
-      "
+      @close="showAddToGroupModal = false; bulkGroupNoteIds = null; addToGroupNoteId = null"
       @select="handleAddToGroupSelect"
       @create-new="handleAddToGroupCreateNew"
     />

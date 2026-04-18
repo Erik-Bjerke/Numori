@@ -122,10 +122,7 @@
           <UiButton
             variant="link"
             color="primary"
-            @click="
-              step = 'auth'
-              mode = 'login'
-            "
+            @click="step = 'auth'; mode = 'login'"
             >Back to sign in</UiButton
           >
         </p>
