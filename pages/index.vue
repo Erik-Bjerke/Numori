@@ -254,6 +254,8 @@
     >
       <Icon name="mdi:fullscreen-exit" class="w-4 h-4 block" />
     </UiButton>
+
+    <AppLockScreen :show="appLock.isLocked.value" />
   </div>
 </template>
 
@@ -281,6 +283,7 @@ const welcomeWizard = useWelcomeWizard()
 const auth = useAuth()
 const { apiFetch } = useApi()
 const toast = useToast()
+const appLock = useAppLock()
 
 let _onDataWipe = null
 let _onSessionRevoked = null
@@ -490,6 +493,11 @@ onBeforeUnmount(() => { if (vvCleanup) vvCleanup() })
 onMounted(async () => {
   if (window.innerWidth < 1024) showSidebar.value = false
   await welcomeWizard.showIfFirstTime()
+  await appLock.loadSettings()
+  appLock.initAppListeners()
+  appLock.detectBiometrics()
+  // Sync app lock settings from server if logged in (server overrides local)
+  if (auth.isLoggedIn.value) appLock.loadFromServer()
 })
 
 // Share note handler (needs currentNoteId)
@@ -577,6 +585,7 @@ const handleBulkUnarchive = (ids) => { bulkUnarchive(ids); syncNow(); toast.show
 const sidebarProps = computed(() => ({
   notes: notes.value, groups: groups.value, currentNoteId: currentNoteId.value,
   allTags: allTags.value, isLoggedIn: auth.isLoggedIn.value, user: auth.user.value,
+  appLockEnabled: appLock.settings.enabled,
   sharedNoteIds: sharedNoteIds.value, sharedNotesMap: sharedNotesMap.value,
   analyticsNotesMap: analyticsNotesMap.value, pendingNoteIds: pendingNoteIds.value,
 }))
@@ -588,6 +597,7 @@ const sidebarEvents = {
   'show-locale-settings': () => { showLocaleSettings.value = true },
   'show-auth': () => { authHandlers.showAuthModal.value = true },
   logout: authHandlers.handleLogout, 'edit-profile': authHandlers.handleShowProfile,
+  'lock-app': () => { appLock.lock() },
   'share-note': handleShareNote, 'show-properties': handleShowProperties,
   'unshare-note': shareManagement.handleUnshareNote, 'open-analytics': shareManagement.handleOpenAnalytics,
   reorder: handleReorder,

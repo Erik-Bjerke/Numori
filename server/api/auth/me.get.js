@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
   const auth = await requireAuth(event)
 
   const result = await query(
-    'SELECT id, email, name, avatar_url, created_at, privacy_no_tracking, email_verified, password_recovery_enabled, session_duration FROM users WHERE id = $1',
+    'SELECT id, email, name, avatar_url, created_at, privacy_no_tracking, email_verified, password_recovery_enabled, session_duration, app_lock_settings FROM users WHERE id = $1',
     [auth.userId],
   )
 
@@ -34,6 +34,11 @@ export default defineEventHandler(async (event) => {
     emailVerified: user.email_verified,
     passwordRecoveryEnabled: user.password_recovery_enabled,
     sessionDuration: user.session_duration,
+    appLockSettings: user.app_lock_settings
+      ? typeof user.app_lock_settings === 'string'
+        ? JSON.parse(user.app_lock_settings)
+        : user.app_lock_settings
+      : null,
     stats: {
       notesCount: parseInt(notesResult.rows[0].count),
       sharedCount: parseInt(sharesResult.rows[0].count),

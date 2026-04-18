@@ -62,6 +62,7 @@
     "@capacitor/network": "^8.0.1",
     "@capacitor/share": "^8.0.1",
     "@capacitor/status-bar": "^8.0.2",
+    "@capgo/capacitor-native-biometric": "^8.4.2",
     "@codemirror/commands": "^6.10.3",
     "@codemirror/language": "^6.12.3",
     "@codemirror/state": "^6.6.0",

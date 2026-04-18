@@ -494,6 +494,13 @@
             <Icon name="mdi:translate" class="w-4 h-4" />
             Change Language
           </UiButton>
+          <template v-if="isLoggedIn && appLockEnabled">
+            <UiDivider color="dark" />
+            <UiButton variant="menu-item" class="px-4" @click="accountAction('lock-app')">
+              <Icon name="mdi:lock" class="w-4 h-4" />
+              Lock App
+            </UiButton>
+          </template>
           <template v-if="isLoggedIn">
             <UiDivider color="dark" />
             <UiButton variant="menu-item" color="red" class="px-4" @click="accountAction('logout')">
@@ -515,6 +522,7 @@ const props = defineProps({
   allTags: { type: Array, default: () => [] },
   isLoggedIn: { type: Boolean, default: false },
   user: { type: Object, default: null },
+  appLockEnabled: { type: Boolean, default: false },
   sharedNoteIds: { type: Array, default: () => [] },
   sharedNotesMap: { type: Map, default: () => new Map() },
   analyticsNotesMap: { type: Map, default: () => new Map() },
@@ -532,6 +540,7 @@ const emit = defineEmits([
   'show-auth',
   'logout',
   'edit-profile',
+  'lock-app',
   'bulk-delete',
   'selection-change',
   'reorder',

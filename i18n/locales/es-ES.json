@@ -66,5 +66,24 @@
     "title": "Plantillas",
     "search": "Buscar plantillas...",
     "noResults": "No se encontraron plantillas"
+  },
+  "appLock": {
+    "title": "Bloqueo de App",
+    "enabled": "La app está protegida. Se requiere desbloqueo después del tiempo de espera.",
+    "disabled": "Protege la app con PIN, contraseña o biometría.",
+    "enterPin": "Ingresa tu PIN para desbloquear",
+    "enterPassword": "Ingresa tu contraseña para desbloquear",
+    "incorrectPin": "PIN incorrecto",
+    "incorrectPassword": "Contraseña incorrecta",
+    "biometricsFailed": "La autenticación biométrica falló",
+    "unlockBiometrics": "Desbloquear con biometría",
+    "useFallback": "Usar {method} en su lugar",
+    "lockApp": "Bloquear App",
+    "lockMethod": "Método de bloqueo",
+    "lockAfter": "Bloquear después de",
+    "immediately": "Inmediatamente",
+    "pinSaved": "PIN guardado",
+    "lockEnabled": "Bloqueo de App activado — configura tu PIN abajo",
+    "lockDisabled": "Bloqueo de App desactivado"
   }
 }

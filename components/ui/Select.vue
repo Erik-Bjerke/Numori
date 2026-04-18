@@ -1,11 +1,24 @@
 <template>
-  <div ref="containerRef" class="relative">
+  <div ref="containerRef" class="relative" :class="!block ? 'inline-block' : ''">
+    <!-- Hidden sizer: measures the widest option label so the trigger never shrinks below it -->
+    <div v-if="!block" ref="sizerRef" aria-hidden="true" class="invisible absolute h-0 overflow-hidden pointer-events-none whitespace-nowrap" :class="sizerTextClass">
+      <span v-for="opt in normalizedOptions" :key="opt.value" class="block">
+        <span class="inline-flex items-center gap-2">
+          <span v-if="opt.icon" class="w-4" />
+          {{ opt.label }}
+          <!-- account for chevron + padding -->
+          <span class="w-4" />
+        </span>
+      </span>
+    </div>
+
     <!-- Trigger button: shows selected value, placeholder, or loading spinner -->
     <button
       type="button"
       :disabled="disabled || loading"
       :aria-label="ariaLabel"
       :class="[triggerClasses, disabled || loading ? 'opacity-50 cursor-not-allowed' : '']"
+      :style="autoMinWidth"
       @click="toggleOpen"
     >
       <span
@@ -42,8 +55,8 @@
     >
       <div
         v-show="isOpen"
-        class="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden"
-        :class="dropUp ? 'bottom-full mb-1 mt-0' : ''"
+        class="absolute z-50 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden"
+        :class="[dropUp ? 'bottom-full mb-1 mt-0' : '', block ? 'w-full' : 'min-w-full right-0']"
       >
         <!-- Search input for filtering options -->
         <div v-if="searchable" class="p-1.5">
@@ -219,9 +232,35 @@ const emit = defineEmits(['update:modelValue'])
 
 const containerRef = ref(null)
 const searchRef = ref(null)
+const sizerRef = ref(null)
 const isOpen = ref(false)
 const searchQuery = ref('')
 const dropUp = ref(false)
+const measuredWidth = ref(0)
+
+// Text class for the hidden sizer — must match the trigger's font size
+const sizerTextClass = computed(() => {
+  const map = { xs: 'text-xs', sm: 'text-sm', md: 'text-sm' }
+  return map[props.size] || 'text-sm'
+})
+
+// Measure the widest option on mount and when options change
+const measureSizer = () => {
+  if (props.block || !sizerRef.value) { measuredWidth.value = 0; return }
+  measuredWidth.value = sizerRef.value.scrollWidth
+}
+
+onMounted(measureSizer)
+watch(() => props.options, () => nextTick(measureSizer), { deep: true })
+
+// Auto min-width style: only applied when block=false and no explicit width override
+const autoMinWidth = computed(() => {
+  if (props.block || !measuredWidth.value) return undefined
+  // Add padding for the trigger's horizontal padding + border
+  const padMap = { xs: 28, sm: 24, md: 30 }
+  const pad = padMap[props.size] || 30
+  return { minWidth: `${measuredWidth.value + pad}px` }
+})
 
 // ── Normalize options ────────────────────────────────────
 // Convert primitive options (string/number) into { value, label, icon, group } objects

@@ -394,5 +394,13 @@ export async function migrate() {
     END $do$
   `)
 
+  // App lock settings (JSON) for per-user app lock configuration
+  await query(`
+    DO $do$ BEGIN
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS app_lock_settings JSONB;
+    EXCEPTION WHEN duplicate_column THEN NULL;
+    END $do$
+  `)
+
   console.warn('[migrate] Database tables ready')
 }
