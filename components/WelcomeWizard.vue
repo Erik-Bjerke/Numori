@@ -7,9 +7,9 @@
     </div>
 
     <!-- Step content -->
-    <div class="px-6 pb-2 pt-3 min-h-[320px] flex flex-col">
+    <div class="px-6 pb-2 pt-3 flex-1 flex flex-col items-center overflow-y-auto">
       <!-- Step 1: Welcome -->
-      <div v-if="step === 1" class="flex-1 flex flex-col items-center text-center">
+      <div v-if="step === 1" class="flex-1 flex flex-col items-center justify-center text-center w-full max-w-md">
         <div
           class="w-16 h-16 rounded-2xl bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center mb-4"
         >
@@ -55,7 +55,7 @@
       </div>
 
       <!-- Step 2: Appearance -->
-      <div v-if="step === 2" class="flex-1 flex flex-col items-center text-center">
+      <div v-if="step === 2" class="flex-1 flex flex-col items-center justify-center text-center w-full max-w-md">
         <div
           class="w-16 h-16 rounded-2xl bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center mb-4"
         >
@@ -97,7 +97,7 @@
       </div>
 
       <!-- Step 3: Precision -->
-      <div v-if="step === 3" class="flex-1 flex flex-col items-center text-center">
+      <div v-if="step === 3" class="flex-1 flex flex-col items-center justify-center text-center w-full max-w-md">
         <div
           class="w-16 h-16 rounded-2xl bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center mb-4"
         >
@@ -207,7 +207,7 @@
       </div>
 
       <!-- Step 4: Region & Language -->
-      <div v-if="step === 4" class="flex-1 flex flex-col items-center text-center">
+      <div v-if="step === 4" class="flex-1 flex flex-col items-center justify-center text-center w-full max-w-md">
         <div
           class="w-16 h-16 rounded-2xl bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center mb-4"
         >
@@ -268,7 +268,7 @@
 
     <!-- Footer navigation -->
     <div
-      class="px-6 pb-5 flex items-center"
+      class="px-6 pb-5 flex items-center w-full max-w-md mx-auto"
       :class="step === 1 ? 'justify-end' : 'justify-between'"
     >
       <UiButton v-if="step > 1" variant="ghost" color="gray" @click="step--"> Back </UiButton>
