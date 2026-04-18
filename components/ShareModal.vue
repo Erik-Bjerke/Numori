@@ -9,9 +9,9 @@
             <!-- Header -->
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">Share Note</h2>
-              <button @click="$emit('close')" class="flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+              <Button variant="ghost" color="gray" icon-only @click="$emit('close')">
                 <Icon name="mdi:close" class="block w-5 h-5" />
-              </button>
+              </Button>
             </div>
 
             <!-- Already shared / just shared state -->
@@ -19,10 +19,9 @@
               <p class="text-sm text-gray-700 dark:text-gray-400">Your note is shared. Anyone with this link can view it:</p>
               <div class="flex items-center gap-2">
                 <Input :model-value="activeShareUrl" readonly :validate="false" />
-                <button @click="copyLink"
-                  class="flex-shrink-0 p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors">
+                <Button icon-only class="flex-shrink-0" @click="copyLink">
                   <Icon :name="copied ? 'mdi:check' : 'mdi:content-copy'" class="w-4 h-4 block" />
-                </button>
+                </Button>
               </div>
 
               <!-- Password hint for password-protected shares -->
@@ -32,21 +31,18 @@
               </p>
 
               <!-- Analytics link -->
-              <button v-if="isLoggedIn" @click="$emit('open-analytics', activeHash)"
-                class="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 hover:bg-primary-100 dark:hover:bg-primary-900/30 rounded-lg transition-colors">
+              <Button v-if="isLoggedIn" variant="ghost" color="primary" size="sm" block @click="$emit('open-analytics', activeHash)">
                 <Icon name="mdi:chart-bar" class="w-4 h-4" />
                 View analytics
-              </button>
+              </Button>
 
               <div class="flex gap-2">
-                <button @click="$emit('close')"
-                  class="flex-1 px-4 py-2 text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors">
+                <Button variant="solid" color="gray" class="flex-1" @click="$emit('close')">
                   Done
-                </button>
-                <button @click="handleUnshare"
-                  class="flex-1 px-4 py-2 text-sm bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg transition-colors">
+                </Button>
+                <Button variant="ghost" color="red" class="flex-1" @click="handleUnshare">
                   Stop sharing
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -88,20 +84,18 @@
               <div class="space-y-2">
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-400">Encryption</label>
                 <div class="flex gap-2">
-                  <button @click="sharePasswordMode = 'none'"
-                    class="flex-1 px-3 py-2 text-xs rounded-lg border transition-colors"
+                  <Button variant="outline" size="xs" class="flex-1" @click="sharePasswordMode = 'none'"
                     :class="sharePasswordMode === 'none'
                       ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
                       : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'">
                     Link only
-                  </button>
-                  <button @click="sharePasswordMode = 'custom'"
-                    class="flex-1 px-3 py-2 text-xs rounded-lg border transition-colors"
+                  </Button>
+                  <Button variant="outline" size="xs" class="flex-1" @click="sharePasswordMode = 'custom'"
                     :class="sharePasswordMode === 'custom'
                       ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
                       : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'">
                     <Icon name="mdi:lock-outline" class="w-3 h-3 inline" /> Password
-                  </button>
+                  </Button>
                 </div>
                 <p class="text-xs text-gray-400 dark:text-gray-600">
                   <template v-if="sharePasswordMode === 'custom'">
@@ -168,12 +162,10 @@
                 </label>
               </div>
 
-              <button @click="handleShare" :disabled="sharing || (sharePasswordMode === 'custom' && !sharePassword)"
-                class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors shadow-sm">
-                <Icon v-if="sharing" name="mdi:loading" class="w-4 h-4 animate-spin" />
-                <Icon v-else name="mdi:share-variant-outline" class="w-4 h-4" />
+              <Button block :loading="sharing" :disabled="sharePasswordMode === 'custom' && !sharePassword" @click="handleShare">
+                <Icon name="mdi:share-variant-outline" class="w-4 h-4" />
                 Share Note
-              </button>
+              </Button>
             </div>
           </div>
         </Transition>

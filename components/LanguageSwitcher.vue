@@ -21,16 +21,16 @@
                     Select Language
                   </h2>
                 </div>
-                <button @click="closeModal"
-                  class="flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                <Button variant="ghost" color="gray" icon-only @click="closeModal">
                   <Icon name="mdi:close" class="block w-5 h-5" />
-                </button>
+                </Button>
               </div>
 
               <!-- Language Options -->
               <div class="p-4 space-y-2">
-                <button v-for="locale in availableLocales" :key="locale.code" @click="changeLocale(locale.code)"
-                  class="w-full flex items-center justify-between p-4 rounded-xl transition-all duration-200" :class="[
+                <Button v-for="locale in availableLocales" :key="locale.code" @click="changeLocale(locale.code)"
+                  variant="ghost" color="gray" block
+                  class="p-4 rounded-xl h-auto" :class="[
                     currentLocale.code === locale.code
                       ? 'bg-primary-50 dark:bg-gray-800 border-2 border-primary-500 dark:border-primary-400 shadow-sm'
                       : 'bg-gray-50 dark:bg-gray-925 border-2 border-transparent hover:border-gray-300 dark:hover:border-gray-700 hover:shadow-sm'
@@ -67,7 +67,7 @@
                       <Icon name="mdi:check" class="w-5 h-5 text-white dark:text-vscode-bg-dark" />
                     </div>
                   </div>
-                </button>
+                </Button>
               </div>
 
               <!-- Footer -->

@@ -11,29 +11,29 @@
               <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">
                 {{ headerTitle }}
               </h2>
-              <button @click="$emit('close')" class="flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+              <Button variant="ghost" color="gray" icon-only size="sm" @click="$emit('close')">
                 <Icon name="mdi:close" class="block w-5 h-5" />
-              </button>
+              </Button>
             </div>
 
             <!-- ═══ Login / Register ═══ -->
             <template v-if="step === 'auth'">
               <!-- Tab switcher -->
               <div class="flex rounded-lg bg-gray-100 dark:bg-gray-800 p-0.5 mb-4">
-                <button @click="switchMode('login')"
-                  class="flex-1 py-1.5 text-xs font-medium rounded-md transition-colors"
+                <Button variant="ghost" size="xs" @click="switchMode('login')"
+                  class="flex-1"
                   :class="mode === 'login'
                     ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 shadow-sm'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'">
                   Sign In
-                </button>
-                <button @click="switchMode('register')"
-                  class="flex-1 py-1.5 text-xs font-medium rounded-md transition-colors"
+                </Button>
+                <Button variant="ghost" size="xs" @click="switchMode('register')"
+                  class="flex-1"
                   :class="mode === 'register'
                     ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 shadow-sm'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'">
                   Create Account
-                </button>
+                </Button>
               </div>
 
               <p class="text-xs text-gray-500 dark:text-gray-500 mb-4">
@@ -72,16 +72,14 @@
                   <p v-if="passwordMismatch" class="text-xs text-red-600 dark:text-red-400 mt-1">Passwords do not match</p>
                 </div>
 
-                <button type="submit" :disabled="loading"
-                  class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors shadow-sm">
-                  <Icon v-if="loading" name="mdi:loading" class="w-4 h-4 animate-spin" />
+                <Button native-type="submit" :loading="loading" block>
                   {{ mode === 'login' ? 'Sign In' : 'Create Account' }}
-                </button>
+                </Button>
               </form>
 
               <!-- Forgot password link (login only) -->
               <p v-if="mode === 'login'" class="text-center text-xs text-gray-500 dark:text-gray-500 mt-3">
-                <button @click="startRecovery" class="text-primary-600 dark:text-primary-400 hover:underline">Forgot password?</button>
+                <Button variant="link" color="primary" @click="startRecovery">Forgot password?</Button>
               </p>
             </template>
 
@@ -107,15 +105,13 @@
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Email</label>
                   <Input v-model="recoveryEmail" type="email" required placeholder="you@example.com" />
                 </div>
-                <button type="submit" :disabled="loading"
-                  class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
-                  <Icon v-if="loading" name="mdi:loading" class="w-4 h-4 animate-spin" />
+                <Button native-type="submit" :loading="loading" block>
                   Send Recovery Code
-                </button>
+                </Button>
               </form>
 
               <p class="text-center text-xs text-gray-500 dark:text-gray-500 mt-3">
-                <button @click="step = 'auth'; mode = 'login'" class="text-primary-600 dark:text-primary-400 hover:underline">Back to sign in</button>
+                <Button variant="link" color="primary" @click="step = 'auth'; mode = 'login'">Back to sign in</Button>
               </p>
             </template>
 
@@ -136,15 +132,13 @@
                     validation-pattern="^[0-9]{6}$" validation-message="Enter a 6-digit code"
                     placeholder="000000" />
                 </div>
-                <button type="submit" :disabled="loading || otpCode.length !== 6"
-                  class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
-                  <Icon v-if="loading" name="mdi:loading" class="w-4 h-4 animate-spin" />
+                <Button native-type="submit" :disabled="loading || otpCode.length !== 6" :loading="loading" block>
                   Verify Code
-                </button>
+                </Button>
               </form>
 
               <p class="text-center text-xs text-gray-500 dark:text-gray-500 mt-3">
-                <button @click="step = 'recovery-email'" class="text-primary-600 dark:text-primary-400 hover:underline">Use a different email</button>
+                <Button variant="link" color="primary" @click="step = 'recovery-email'">Use a different email</Button>
               </p>
             </template>
 
@@ -176,11 +170,9 @@
                   <Input v-model="confirmNewPassword" type="password" required :minlength="8" placeholder="••••••••" :validate="false" />
                   <p v-if="confirmNewPassword && newPassword !== confirmNewPassword" class="text-xs text-red-600 dark:text-red-400 mt-1">Passwords do not match</p>
                 </div>
-                <button type="submit" :disabled="loading || !newPassword || newPassword.length < 8 || newPassword !== confirmNewPassword"
-                  class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
-                  <Icon v-if="loading" name="mdi:loading" class="w-4 h-4 animate-spin" />
+                <Button native-type="submit" color="red" :disabled="loading || !newPassword || newPassword.length < 8 || newPassword !== confirmNewPassword" :loading="loading" block>
                   Reset Password &amp; Delete Notes
-                </button>
+                </Button>
               </form>
             </template>
 

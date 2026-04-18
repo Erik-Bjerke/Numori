@@ -10,19 +10,19 @@
             <!-- Header -->
             <div class="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
               <div class="flex items-center gap-2 min-w-0">
-                <button v-if="activeSection !== 'main'" @click="goBack"
-                  class="flex items-center gap-1 px-2 py-1 -ml-2 text-sm text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 rounded-lg transition-colors flex-shrink-0">
+                <Button v-if="activeSection !== 'main'" variant="ghost" color="primary" size="sm" @click="goBack"
+                  class="flex-shrink-0 -ml-2">
                   <Icon name="mdi:arrow-left" class="block w-4 h-4" />
                   <span class="hidden sm:inline">Back</span>
-                </button>
+                </Button>
                 <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none truncate">
                   {{ activeSection === 'main' ? 'Profile' : sectionTitle }}
                 </h2>
               </div>
-              <button @click="$emit('close')"
-                class="flex-shrink-0 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+              <Button variant="ghost" color="gray" icon-only @click="$emit('close')"
+                class="flex-shrink-0">
                 <Icon name="mdi:close" class="block w-5 h-5" />
-              </button>
+              </Button>
             </div>
 
             <!-- Body -->
@@ -44,7 +44,7 @@
                 <!-- Profile card -->
                 <div class="relative rounded-xl bg-gradient-to-br from-primary-50 to-primary-100/50 dark:from-primary-900/20 dark:to-primary-800/10 border border-primary-100 dark:border-primary-900/30 px-4 py-5">
                   <div class="flex items-center gap-4">
-                    <button @click="activeSection = 'avatar'" class="relative group flex-shrink-0" title="Change avatar">
+                    <Button variant="ghost" @click="activeSection = 'avatar'" class="relative group flex-shrink-0" title="Change avatar">
                       <div class="w-16 h-16 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden ring-2 ring-primary-200 dark:ring-primary-800 shadow-sm">
                         <img v-if="user?.avatarUrl" :src="user.avatarUrl" class="w-full h-full object-cover" alt="Avatar" />
                         <Icon v-else name="mdi:account" class="w-8 h-8 text-primary-600 dark:text-primary-400" />
@@ -52,16 +52,16 @@
                       <div class="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                         <Icon name="mdi:camera" class="w-4 h-4 text-white" />
                       </div>
-                    </button>
+                    </Button>
                     <div class="flex-1 min-w-0">
-                      <button @click="activeSection = 'edit'" class="flex items-center gap-1.5 group rounded px-1 -mx-1 hover:bg-primary-200/40 dark:hover:bg-primary-800/30 transition-colors" title="Edit profile">
+                      <Button variant="ghost" @click="activeSection = 'edit'" class="flex items-center gap-1.5 group rounded px-1 -mx-1 hover:bg-primary-200/40 dark:hover:bg-primary-800/30" title="Edit profile">
                         <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{{ user?.name || 'No name set' }}</p>
                         <Icon name="mdi:pencil-outline" class="w-3 h-3 text-primary-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-                      </button>
-                      <button @click="activeSection = 'edit'" class="flex items-center gap-1.5 group rounded px-1 -mx-1 hover:bg-primary-200/40 dark:hover:bg-primary-800/30 transition-colors mt-0.5" title="Edit profile">
+                      </Button>
+                      <Button variant="ghost" @click="activeSection = 'edit'" class="flex items-center gap-1.5 group rounded px-1 -mx-1 hover:bg-primary-200/40 dark:hover:bg-primary-800/30 mt-0.5" title="Edit profile">
                         <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ user?.email }}</p>
                         <Icon name="mdi:pencil-outline" class="w-3 h-3 text-primary-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-                      </button>
+                      </Button>
                       <p class="text-[10px] text-gray-400 dark:text-gray-600 mt-1">
                         Member since {{ user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—' }}
                       </p>
@@ -71,100 +71,60 @@
 
                 <!-- Quick stats -->
                 <div class="grid grid-cols-3 gap-2">
-                  <button @click="$emit('show-notes')" class="group flex flex-col items-center gap-1 px-2 py-3 rounded-xl bg-gray-50 dark:bg-gray-900 border border-transparent hover:border-primary-300 dark:hover:border-primary-700 transition-all">
+                  <Button variant="ghost" color="gray" @click="$emit('show-notes')" class="group flex flex-col items-center gap-1 px-2 py-3 rounded-xl bg-gray-50 dark:bg-gray-900 border border-transparent hover:border-primary-300 dark:hover:border-primary-700">
                     <Icon name="mdi:note-multiple-outline" class="w-4 h-4 text-gray-400 group-hover:text-primary-500 transition-colors" />
                     <p class="text-lg font-semibold text-gray-900 dark:text-gray-200 leading-none">{{ user?.stats?.notesCount ?? '—' }}</p>
                     <p class="text-[10px] text-gray-500 dark:text-gray-500 uppercase tracking-wide">Notes</p>
-                  </button>
-                  <button @click="openSharedSection" class="group flex flex-col items-center gap-1 px-2 py-3 rounded-xl bg-gray-50 dark:bg-gray-900 border border-transparent hover:border-primary-300 dark:hover:border-primary-700 transition-all">
+                  </Button>
+                  <Button variant="ghost" color="gray" @click="openSharedSection" class="group flex flex-col items-center gap-1 px-2 py-3 rounded-xl bg-gray-50 dark:bg-gray-900 border border-transparent hover:border-primary-300 dark:hover:border-primary-700">
                     <Icon name="mdi:share-variant-outline" class="w-4 h-4 text-gray-400 group-hover:text-primary-500 transition-colors" />
                     <p class="text-lg font-semibold text-gray-900 dark:text-gray-200 leading-none">{{ user?.stats?.sharedCount ?? '—' }}</p>
                     <p class="text-[10px] text-gray-500 dark:text-gray-500 uppercase tracking-wide">Shared</p>
-                  </button>
-                  <button @click="$emit('sync-now')" class="group flex flex-col items-center gap-1 px-2 py-3 rounded-xl bg-gray-50 dark:bg-gray-900 border border-transparent hover:border-primary-300 dark:hover:border-primary-700 transition-all">
+                  </Button>
+                  <Button variant="ghost" color="gray" @click="$emit('sync-now')" class="group flex flex-col items-center gap-1 px-2 py-3 rounded-xl bg-gray-50 dark:bg-gray-900 border border-transparent hover:border-primary-300 dark:hover:border-primary-700">
                     <Icon name="mdi:cloud-sync-outline" class="w-4 h-4 text-gray-400 group-hover:text-primary-500 transition-colors" />
                     <p class="text-sm font-semibold text-gray-900 dark:text-gray-200 leading-snug break-words capitalize">{{ lastSyncedAt ? formatDate(lastSyncedAt) : '—' }}</p>
                     <p class="text-[10px] text-gray-500 dark:text-gray-500 uppercase tracking-wide">Synced</p>
-                  </button>
+                  </Button>
                 </div>
 
                 <!-- Account section -->
-                <div>
-                  <p class="text-[10px] font-medium text-gray-400 dark:text-gray-600 uppercase tracking-wider px-1 mb-1.5">Account</p>
-                  <div class="rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 divide-y divide-gray-100 dark:divide-gray-800 overflow-hidden">
-                    <button @click="activeSection = 'edit'"
-                      class="w-full flex items-center gap-3 px-3.5 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-200/70 dark:hover:bg-gray-700/50 transition-colors">
-                      <Icon name="mdi:account-edit-outline" class="w-[18px] h-[18px] text-gray-400 flex-shrink-0" />
-                      <span class="flex-1 text-left truncate">Edit Profile</span>
-                      <Icon name="mdi:chevron-right" class="w-4 h-4 text-gray-300 dark:text-gray-600 flex-shrink-0" />
-                    </button>
-                    <button @click="activeSection = 'password'"
-                      class="w-full flex items-center gap-3 px-3.5 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-200/70 dark:hover:bg-gray-700/50 transition-colors">
-                      <Icon name="mdi:lock-outline" class="w-[18px] h-[18px] text-gray-400 flex-shrink-0" />
-                      <span class="flex-1 text-left truncate">Change Password</span>
-                      <Icon name="mdi:chevron-right" class="w-4 h-4 text-gray-300 dark:text-gray-600 flex-shrink-0" />
-                    </button>
-                  </div>
-                </div>
+                <!-- Account section -->
+                <ButtonsList label="Account">
+                  <ButtonsListItem icon="mdi:account-edit-outline" @click="activeSection = 'edit'">Edit Profile</ButtonsListItem>
+                  <ButtonsListItem icon="mdi:lock-outline" @click="activeSection = 'password'">Change Password</ButtonsListItem>
+                </ButtonsList>
 
                 <!-- Security & Privacy section -->
-                <div>
-                  <p class="text-[10px] font-medium text-gray-400 dark:text-gray-600 uppercase tracking-wider px-1 mb-1.5">Security & Privacy</p>
-                  <div class="rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 divide-y divide-gray-100 dark:divide-gray-800 overflow-hidden">
-                    <button @click="activeSection = 'security'"
-                      class="w-full flex items-center gap-3 px-3.5 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-200/70 dark:hover:bg-gray-700/50 transition-colors">
-                      <Icon name="mdi:shield-lock-outline" class="w-[18px] h-[18px] text-gray-400 flex-shrink-0" />
-                      <span class="flex-1 text-left truncate">Security</span>
-                      <Icon name="mdi:chevron-right" class="w-4 h-4 text-gray-300 dark:text-gray-600 flex-shrink-0" />
-                    </button>
-                    <button @click="openSessionsSection"
-                      class="w-full flex items-center gap-3 px-3.5 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-200/70 dark:hover:bg-gray-700/50 transition-colors">
-                      <Icon name="mdi:devices" class="w-[18px] h-[18px] text-gray-400 flex-shrink-0" />
-                      <span class="flex-1 text-left truncate">Active Sessions</span>
-                      <Icon name="mdi:chevron-right" class="w-4 h-4 text-gray-300 dark:text-gray-600 flex-shrink-0" />
-                    </button>
+                <ButtonsList label="Security & Privacy">
+                  <ButtonsListItem icon="mdi:shield-lock-outline" @click="activeSection = 'security'">Security</ButtonsListItem>
+                  <ButtonsListItem icon="mdi:devices" @click="openSessionsSection">Active Sessions</ButtonsListItem>
                     <!-- Privacy toggle inline -->
-                    <div class="px-3.5 py-2.5">
-                      <div class="flex items-center gap-3">
-                        <Icon name="mdi:shield-account-outline" class="w-[18px] h-[18px] text-gray-400 flex-shrink-0" />
-                        <div class="flex-1 min-w-0">
-                          <span class="text-sm text-gray-700 dark:text-gray-300">Privacy protection</span>
-                          <p class="text-[11px] text-gray-400 dark:text-gray-500 leading-tight mt-0.5">
-                            {{ privacyNoTracking ? 'Identity hidden on shared notes' : 'Sharers can see your name & device' }}
-                          </p>
-                        </div>
-                        <button @click="togglePrivacy" :disabled="savingPrivacy"
-                          class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-                          :class="privacyNoTracking ? 'bg-primary-600' : 'bg-gray-300 dark:bg-gray-600'"
-                          role="switch" :aria-checked="privacyNoTracking">
-                          <span class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-                            :class="privacyNoTracking ? 'translate-x-4' : 'translate-x-0'" />
-                        </button>
+                    <ButtonsListItem icon="mdi:shield-account-outline" :chevron="false"
+                      :disabled="savingPrivacy" @click="togglePrivacy">
+                      <div class="flex-1 min-w-0">
+                        <span>Privacy protection</span>
+                        <p class="text-[11px] text-gray-400 dark:text-gray-500 leading-tight mt-0.5">
+                          {{ privacyNoTracking ? 'Identity hidden on shared notes' : 'Sharers can see your name & device' }}
+                        </p>
                       </div>
-                    </div>
-                  </div>
-                </div>
+                      <template #suffix>
+                        <Toggle :model-value="privacyNoTracking" :disabled="savingPrivacy" size="sm" readonly />
+                      </template>
+                    </ButtonsListItem>
+                </ButtonsList>
 
                 <!-- Danger zone -->
-                <div>
-                  <p class="text-[10px] font-medium text-red-400 dark:text-red-600 uppercase tracking-wider px-1 mb-1.5">Danger Zone</p>
-                  <div class="rounded-xl bg-red-50/50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 overflow-hidden">
-                    <button @click="activeSection = 'danger'"
-                      class="w-full flex items-center gap-3 px-3.5 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-200/50 dark:hover:bg-red-800/30 transition-colors">
-                      <Icon name="mdi:alert-outline" class="w-[18px] h-[18px] flex-shrink-0" />
-                      <span class="flex-1 text-left truncate">Delete Data or Account</span>
-                      <Icon name="mdi:chevron-right" class="w-4 h-4 text-red-300 dark:text-red-800 flex-shrink-0" />
-                    </button>
-                  </div>
-                </div>
+                <ButtonsList label="Danger Zone" danger>
+                  <ButtonsListItem icon="mdi:alert-outline" danger @click="activeSection = 'danger'">Delete Data or Account</ButtonsListItem>
+                </ButtonsList>
 
                 <!-- Sign out -->
                 <div class="flex justify-center pt-1 pb-1">
-                  <button @click="$emit('logout'); $emit('close')"
-                    class="flex items-center gap-1.5 px-4 py-2 text-sm text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                  <Button variant="ghost" color="red" @click="$emit('logout'); $emit('close')">
                     <Icon name="mdi:logout-variant" class="w-4 h-4" />
                     Sign out
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -180,24 +140,23 @@
                     <Icon name="mdi:upload" class="w-4 h-4" />
                     Upload Image
                   </FileInput>
-                  <button v-if="user?.avatarUrl" @click="removeAvatar"
-                    class="block mx-auto text-xs text-red-500 hover:text-red-700 dark:text-red-400 transition-colors mt-2">
+                  <Button v-if="user?.avatarUrl" variant="ghost" color="red" size="xs" @click="removeAvatar"
+                    class="block mx-auto mt-2">
                     Remove current avatar
-                  </button>
+                  </Button>
                 </div>
 
                 <div v-else class="space-y-3">
                   <AvatarEditor :image-source="avatarImageSrc" :canvas-size="editorCanvasSize" @update="onAvatarCropped" />
                   <div class="flex gap-2">
-                    <button @click="avatarImageSrc = null"
-                      class="flex-1 px-3 py-2 text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors">
+                    <Button variant="solid" color="gray" @click="avatarImageSrc = null"
+                      class="flex-1">
                       Choose Different
-                    </button>
-                    <button @click="saveAvatar" :disabled="saving"
-                      class="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
-                      <Icon v-if="saving" name="mdi:loading" class="w-4 h-4 animate-spin" />
+                    </Button>
+                    <Button variant="solid" color="primary" :loading="saving" @click="saveAvatar"
+                      class="flex-1">
                       Save Avatar
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -212,11 +171,9 @@
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">Email</label>
                   <Input v-model="editEmail" type="email" placeholder="you@example.com" />
                 </div>
-                <button @click="saveProfile" :disabled="saving"
-                  class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
-                  <Icon v-if="saving" name="mdi:loading" class="w-4 h-4 animate-spin" />
+                <Button variant="solid" color="primary" block :loading="saving" @click="saveProfile">
                   Save Changes
-                </button>
+                </Button>
               </div>
 
               <!-- ═══ Change Password ═══ -->
@@ -251,11 +208,9 @@
                   </div>
                 </div>
 
-                <button @click="savePassword" :disabled="saving || !currentPassword || !newPassword || newPassword !== confirmNewPassword || newPassword.length < 8"
-                  class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
-                  <Icon v-if="saving" name="mdi:loading" class="w-4 h-4 animate-spin" />
+                <Button variant="solid" color="primary" block :loading="saving" :disabled="!currentPassword || !newPassword || newPassword !== confirmNewPassword || newPassword.length < 8" @click="savePassword">
                   Update Password
-                </button>
+                </Button>
               </div>
 
               <!-- ═══ Security ═══ -->
@@ -266,19 +221,15 @@
 
                 <!-- Password recovery toggle -->
                 <div class="px-3 py-3 rounded-lg bg-gray-50 dark:bg-gray-900 space-y-2">
-                  <div class="flex items-center justify-between gap-2">
+                  <Button variant="ghost" block :disabled="savingSecurity"
+                    class="px-0 py-0 justify-between"
+                    @click="togglePasswordRecovery">
                     <div class="flex items-center gap-2 min-w-0">
                       <Icon name="mdi:email-lock-outline" class="w-4 h-4 text-gray-500 flex-shrink-0" />
                       <span class="text-sm text-gray-700 dark:text-gray-300 truncate">Password recovery by email</span>
                     </div>
-                    <button @click="togglePasswordRecovery" :disabled="savingSecurity"
-                      class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-                      :class="passwordRecoveryEnabled ? 'bg-primary-600' : 'bg-gray-300 dark:bg-gray-600'"
-                      role="switch" :aria-checked="passwordRecoveryEnabled">
-                      <span class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-                        :class="passwordRecoveryEnabled ? 'translate-x-4' : 'translate-x-0'" />
-                    </button>
-                  </div>
+                    <Toggle :model-value="passwordRecoveryEnabled" :disabled="savingSecurity" size="sm" readonly />
+                  </Button>
                   <p class="text-xs text-gray-500 dark:text-gray-500">
                     {{ passwordRecoveryEnabled ? 'You can recover your account via email if you forget your password.' : 'Password recovery is disabled. If you forget your password, your account and notes cannot be recovered.' }}
                   </p>
@@ -368,35 +319,27 @@
                       </div>
                     </div>
                     <div class="flex gap-2">
-                      <button @click="confirmingAction = null"
-                        class="flex-1 px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors">
+                      <Button variant="outline" color="gray" @click="confirmingAction = null"
+                        class="flex-1">
                         Cancel
-                      </button>
-                      <button @click="executeConfirmedAction" :disabled="saving"
-                        class="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-white rounded-lg transition-colors"
-                        :class="confirmingAction === 'data'
-                          ? 'bg-amber-600 hover:bg-amber-700 disabled:opacity-50'
-                          : 'bg-red-600 hover:bg-red-700 disabled:opacity-50'">
-                        <Icon v-if="saving" name="mdi:loading" class="w-4 h-4 animate-spin" />
+                      </Button>
+                      <Button variant="solid" :color="confirmingAction === 'data' ? 'amber' : 'red'" :loading="saving" @click="executeConfirmedAction"
+                        class="flex-1">
                         {{ confirmingAction === 'data' ? 'Delete All Data' : 'Delete Account' }}
-                      </button>
+                      </Button>
                     </div>
                 </div>
 
                 <div v-if="!confirmingAction" class="space-y-2">
-                  <button @click="confirmingAction = 'data'" :disabled="saving || !dangerPassword"
-                    class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
-                    <Icon v-if="saving" name="mdi:loading" class="w-4 h-4 animate-spin" />
-                    <Icon v-else name="mdi:database-remove-outline" class="w-4 h-4" />
+                  <Button variant="solid" color="amber" block :loading="saving" :disabled="!dangerPassword" @click="confirmingAction = 'data'">
+                    <Icon v-if="!saving" name="mdi:database-remove-outline" class="w-4 h-4" />
                     Delete All Data
-                  </button>
+                  </Button>
                   <p class="text-xs text-gray-500 dark:text-gray-500">Resets your account as if newly created. All notes, shared notes, and related data are permanently deleted with no possibility of recovery.</p>
-                  <button @click="confirmingAction = 'account'" :disabled="saving || !dangerPassword"
-                    class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
-                    <Icon v-if="saving" name="mdi:loading" class="w-4 h-4 animate-spin" />
-                    <Icon v-else name="mdi:account-remove-outline" class="w-4 h-4" />
+                  <Button variant="solid" color="red" block :loading="saving" :disabled="!dangerPassword" @click="confirmingAction = 'account'">
+                    <Icon v-if="!saving" name="mdi:account-remove-outline" class="w-4 h-4" />
                     Delete Account
-                  </button>
+                  </Button>
                   <p class="text-xs text-gray-500 dark:text-gray-500">Permanently deletes your account and all associated data. This cannot be undone.</p>
                 </div>
               </div>
@@ -408,12 +351,10 @@
                 </div>
                 <template v-else>
                   <!-- Close all other sessions -->
-                  <button v-if="sessions.length > 1" @click="closeOtherSessions" :disabled="savingSessions"
-                    class="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors disabled:opacity-50">
-                    <Icon v-if="savingSessions" name="mdi:loading" class="w-4 h-4 animate-spin" />
-                    <Icon v-else name="mdi:logout-variant" class="w-4 h-4" />
+                  <Button v-if="sessions.length > 1" variant="ghost" color="red" block :loading="savingSessions" @click="closeOtherSessions">
+                    <Icon v-if="!savingSessions" name="mdi:logout-variant" class="w-4 h-4" />
                     Close all other sessions
-                  </button>
+                  </Button>
 
                   <div v-for="s in sessions" :key="s.id"
                     class="px-3 py-2.5 rounded-lg border"
@@ -446,11 +387,11 @@
                           </p>
                         </div>
                       </div>
-                      <button v-if="!s.isCurrent" @click="closeSession(s.id)" :disabled="savingSessions"
-                        class="flex-shrink-0 p-1.5 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors disabled:opacity-50"
+                      <Button v-if="!s.isCurrent" variant="ghost" color="red" size="xs" icon-only :disabled="savingSessions" @click="closeSession(s.id)"
+                        class="flex-shrink-0"
                         title="Close session">
                         <Icon name="mdi:close" class="w-4 h-4" />
-                      </button>
+                      </Button>
                     </div>
                   </div>
 
@@ -487,29 +428,23 @@
                       </p>
                     </div>
                     <div class="flex items-center gap-0.5 flex-shrink-0">
-                      <button v-if="sn.collectAnalytics" @click="openAnalytics(sn.hash)"
-                        class="p-1.5 text-primary-500 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded transition-colors"
+                      <Button v-if="sn.collectAnalytics" variant="ghost" color="primary" size="xs" icon-only @click="openAnalytics(sn.hash)"
                         title="View analytics">
                         <Icon name="mdi:chart-bar" class="w-4 h-4" />
-                      </button>
-                      <button @click="copySharedLink(sn.hash)"
-                        class="p-1.5 text-primary-500 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded transition-colors"
+                      </Button>
+                      <Button variant="ghost" color="primary" size="xs" icon-only @click="copySharedLink(sn.hash)"
                         title="Copy link">
                         <Icon :name="copiedHash === sn.hash ? 'mdi:check' : 'mdi:content-copy'" class="w-4 h-4" />
-                      </button>
-                      <button @click="handleUnshare(sn.hash)" :disabled="!sn.isActive"
-                        class="p-1.5 rounded transition-colors"
-                        :class="sn.isActive
-                          ? 'text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20'
-                          : 'text-gray-300 dark:text-gray-600 cursor-not-allowed'"
+                      </Button>
+                      <Button variant="ghost" color="red" size="xs" icon-only :disabled="!sn.isActive" @click="handleUnshare(sn.hash)"
+                        :class="!sn.isActive ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : ''"
                         :title="sn.isActive ? 'Stop sharing' : 'Already unshared'">
                         <Icon name="mdi:link-variant-off" class="w-4 h-4" />
-                      </button>
-                      <button @click="handlePurge(sn.hash)"
-                        class="p-1.5 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                      </Button>
+                      <Button variant="ghost" color="red" size="xs" icon-only @click="handlePurge(sn.hash)"
                         title="Delete permanently">
                         <Icon name="mdi:delete-outline" class="w-4 h-4" />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </template>

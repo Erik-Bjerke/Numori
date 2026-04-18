@@ -9,9 +9,9 @@
             <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">
               Note Details
             </h2>
-            <button @click="$emit('close')" class="flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+            <Button variant="ghost" color="gray" icon-only @click="$emit('close')">
               <Icon name="mdi:close" class="block w-5 h-5" />
-            </button>
+            </Button>
           </div>
 
           <div class="space-y-4">
@@ -50,10 +50,9 @@
                 <span v-for="(tag, i) in localTags" :key="i"
                   class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
                   {{ tag }}
-                  <button @click="removeTag(i)" type="button"
-                    class="hover:text-primary-900 dark:hover:text-primary-100 transition-colors">
+                  <Button variant="ghost" color="gray" size="xs" icon-only @click="removeTag(i)">
                     <Icon name="mdi:close" class="w-3 h-3" />
-                  </button>
+                  </Button>
                 </span>
               </div>
               <div class="relative">
@@ -62,10 +61,9 @@
                   @keydown.backspace="tagInput === '' && localTags.length && removeTag(localTags.length - 1)"
                   @update:model-value="onTagInput" />
                 <div v-if="tagSuggestions.length" class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-32 overflow-y-auto">
-                  <button v-for="s in tagSuggestions" :key="s" @mousedown.prevent="selectSuggestion(s)"
-                    class="w-full text-left px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                  <Button v-for="s in tagSuggestions" :key="s" variant="menu-item" @mousedown.prevent="selectSuggestion(s)">
                     {{ s }}
-                  </button>
+                  </Button>
                 </div>
               </div>
               <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">
@@ -88,43 +86,36 @@
                   {{ props.shared ? 'This note is shared' : 'Not shared' }}
                 </span>
               </div>
-              <button v-if="props.shared" @click="emit('unshare', props.noteId)"
-                class="text-xs px-2 py-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors">
+              <Button v-if="props.shared" variant="ghost" color="red" size="xs" @click="emit('unshare', props.noteId)">
                 Stop sharing
-              </button>
-              <button v-else @click="emit('share', props.noteId)"
-                class="text-xs px-2 py-1 text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded transition-colors">
+              </Button>
+              <Button v-else variant="ghost" size="xs" @click="emit('share', props.noteId)">
                 Share
-              </button>
+              </Button>
             </div>
             <div v-if="props.shared && props.shareHash" class="flex items-center gap-2 mt-2">
               <Input :model-value="shareUrl" readonly :validate="false" />
-              <button @click="copyShareLink"
-                class="flex-shrink-0 p-1.5 bg-primary-600 hover:bg-primary-700 text-white rounded transition-colors">
+              <Button icon-only size="sm" class="flex-shrink-0" @click="copyShareLink">
                 <Icon :name="copiedLink ? 'mdi:check' : 'mdi:content-copy'" class="w-3.5 h-3.5 block" />
-              </button>
+              </Button>
             </div>
-            <button v-if="props.analyticsHash" @click="emit('open-analytics', props.analyticsHash)"
-              class="w-full flex items-center justify-center gap-1.5 mt-2 px-2 py-1.5 text-xs text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 hover:bg-primary-100 dark:hover:bg-primary-900/30 rounded transition-colors">
+            <Button v-if="props.analyticsHash" variant="ghost" size="xs" block @click="emit('open-analytics', props.analyticsHash)">
               <Icon name="mdi:chart-bar" class="w-3.5 h-3.5" />
               View analytics
-            </button>
+            </Button>
           </div>
 
           <div class="flex justify-between gap-2 mt-6">
-            <button v-if="noteId" @click="handleDelete"
-              class="px-4 py-2 text-error-600 dark:text-error-400 hover:bg-error-50 dark:hover:bg-error-900/20 rounded-lg transition-colors">
+            <Button v-if="noteId" variant="ghost" color="red" @click="handleDelete">
               Delete
-            </button>
+            </Button>
             <div class="flex-1"></div>
-            <button @click="$emit('close')"
-              class="px-4 py-2 text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors">
+            <Button variant="ghost" color="gray" @click="$emit('close')">
               Cancel
-            </button>
-            <button @click="save"
-              class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors shadow-sm hover:shadow-md">
+            </Button>
+            <Button @click="save">
               Save
-            </button>
+            </Button>
           </div>
           </div>
         </Transition>

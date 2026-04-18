@@ -15,9 +15,9 @@
             @click.stop>
       <div class="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700">
         <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">{{ $t('templates.title') }}</h2>
-        <button @click="close" class="flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+        <Button @click="close" variant="ghost" color="gray" icon-only>
           <Icon name="mdi:close" class="block w-5 h-5" />
-        </button>
+        </Button>
       </div>
 
       <!-- Search + Filters -->
@@ -38,39 +38,42 @@
         <!-- Use case filters -->
         <div class="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
           <span class="text-xs text-gray-400 dark:text-gray-500 shrink-0">Use case:</span>
-          <button
+          <Button
             v-for="filter in categoryFilters"
             :key="filter.id"
             @click="toggleChip('category', filter.id)"
-            class="px-2.5 py-1 text-xs font-medium rounded-md border transition-colors whitespace-nowrap shrink-0"
+            variant="outline" size="xs"
+            class="whitespace-nowrap shrink-0"
             :class="activeCategories.has(filter.id)
               ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-800 dark:text-primary-300 border-primary-200 dark:border-primary-800'
               : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-transparent hover:bg-gray-200 dark:hover:bg-gray-750 hover:text-gray-900 dark:hover:text-white'"
           >
             {{ filter.name }}
-          </button>
+          </Button>
         </div>
         <!-- Feature filters -->
         <div class="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
           <span class="text-xs text-gray-400 dark:text-gray-500 shrink-0">Features:</span>
-          <button
+          <Button
             v-for="feat in featureFilters"
             :key="feat.id"
             @click="toggleChip('feature', feat.id)"
-            class="px-2.5 py-1 text-xs font-medium rounded-full border border-dashed transition-colors whitespace-nowrap shrink-0"
+            variant="dashed" size="xs" shape="pill"
+            class="whitespace-nowrap shrink-0"
             :class="activeFeatures.has(feat.id)
               ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-400 dark:border-emerald-700 border-solid'
               : 'bg-transparent text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
           >
             {{ feat.name }}
-          </button>
-          <button
+          </Button>
+          <Button
             v-if="hasActiveFilters"
             @click="clearFilters"
-            class="px-2.5 py-1 text-xs font-medium rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors shrink-0"
+            variant="ghost" color="gray" size="xs" shape="pill"
+            class="shrink-0"
           >
             Clear all
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -87,11 +90,14 @@
             {{ $t('templates.noResults') }}
           </div>
           <div v-else :key="filterKey" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <button v-for="template in filteredTemplates" :key="template.id" @click="insertTemplate(template)"
-              class="text-left p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-primary-500 dark:hover:border-primary-400 hover:bg-gray-50 dark:hover:bg-gray-850 transition-colors">
-              <h3 class="font-semibold text-gray-900 dark:text-gray-400 mb-1">{{ template.name }}</h3>
-              <p class="text-sm text-gray-600 dark:text-gray-400-muted">{{ template.description }}</p>
-            </button>
+            <Button v-for="template in filteredTemplates" :key="template.id" @click="insertTemplate(template)"
+              variant="outline" color="gray" block
+              class="text-left p-4 items-start justify-start">
+              <div>
+                <h3 class="font-semibold text-gray-900 dark:text-gray-400 mb-1">{{ template.name }}</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400-muted">{{ template.description }}</p>
+              </div>
+            </Button>
           </div>
         </Transition>
       </div>

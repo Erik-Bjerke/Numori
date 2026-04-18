@@ -2,24 +2,22 @@
   <div class="flex items-center" :class="containerClass">
     <!-- Undo / Redo (pinned left) -->
     <div class="flex items-center flex-shrink-0">
-      <button @mousedown.prevent @click="$emit('undo')"
-        :disabled="!canUndo"
-        class="p-2 rounded-lg transition-colors leading-none"
+      <Button @mousedown.prevent @click="$emit('undo')"
+        :disabled="!canUndo" variant="ghost" color="gray" icon-only
         :class="canUndo
-          ? 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-200/60 dark:hover:bg-gray-800'
+          ? ''
           : 'text-gray-300 dark:text-gray-700 cursor-default'"
         title="Undo">
         <Icon name="mdi:undo" class="w-5 h-5 block" />
-      </button>
-      <button @mousedown.prevent @click="$emit('redo')"
-        :disabled="!canRedo"
-        class="p-2 rounded-lg transition-colors leading-none"
+      </Button>
+      <Button @mousedown.prevent @click="$emit('redo')"
+        :disabled="!canRedo" variant="ghost" color="gray" icon-only
         :class="canRedo
-          ? 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-200/60 dark:hover:bg-gray-800'
+          ? ''
           : 'text-gray-300 dark:text-gray-700 cursor-default'"
         title="Redo">
         <Icon name="mdi:redo" class="w-5 h-5 block" />
-      </button>
+      </Button>
       <div class="w-px h-5 bg-gray-300/60 dark:bg-gray-700 mx-1"></div>
     </div>
 
@@ -31,36 +29,36 @@
       @mousemove="onDragMove"
       @mouseup="onDragEnd"
       @mouseleave="onDragEnd">
-      <button v-for="btn in buttons" :key="btn.title"
+      <Button v-for="btn in buttons" :key="btn.title"
         @mousedown.prevent
         @click="$emit('apply-format', btn.before, btn.after)"
-        class="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-200/60 dark:hover:bg-gray-800 rounded-lg transition-colors flex-shrink-0 leading-none"
+        variant="ghost" color="gray" icon-only class="flex-shrink-0"
         :title="btn.title">
         <Icon :name="btn.icon" class="w-5 h-5 block" />
-      </button>
+      </Button>
       <!-- Separator -->
       <div class="w-px h-5 bg-gray-300/60 dark:bg-gray-700 mx-1 flex-shrink-0"></div>
       <!-- Indent / Outdent -->
-      <button @mousedown.prevent @click="$emit('indent')"
-        class="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-200/60 dark:hover:bg-gray-800 rounded-lg transition-colors flex-shrink-0 leading-none"
+      <Button @mousedown.prevent @click="$emit('indent')"
+        variant="ghost" color="gray" icon-only class="flex-shrink-0"
         title="Indent (nest)">
         <Icon name="mdi:format-indent-increase" class="w-5 h-5 block" />
-      </button>
-      <button @mousedown.prevent @click="$emit('outdent')"
-        class="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-200/60 dark:hover:bg-gray-800 rounded-lg transition-colors flex-shrink-0 leading-none"
+      </Button>
+      <Button @mousedown.prevent @click="$emit('outdent')"
+        variant="ghost" color="gray" icon-only class="flex-shrink-0"
         title="Outdent (unnest)">
         <Icon name="mdi:format-indent-decrease" class="w-5 h-5 block" />
-      </button>
+      </Button>
     </div>
 
     <!-- Dismiss keyboard (pinned right, optional) -->
     <div v-if="showDismiss" class="flex items-center flex-shrink-0">
       <div class="w-px h-5 bg-gray-300/60 dark:bg-gray-700 mx-1"></div>
-      <button @mousedown.prevent @click="$emit('dismiss-keyboard')"
-        class="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-200/60 dark:hover:bg-gray-800 rounded-lg transition-colors leading-none"
+      <Button @mousedown.prevent @click="$emit('dismiss-keyboard')"
+        variant="ghost" color="gray" icon-only
         title="Dismiss keyboard">
         <Icon name="mdi:keyboard-close" class="w-5 h-5 block" />
-      </button>
+      </Button>
     </div>
   </div>
 </template>

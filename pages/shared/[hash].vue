@@ -45,12 +45,11 @@
         </div>
         <Input v-model="passwordInput" type="password" placeholder="Share password"
           :validate="false" @keyup.enter="decryptWithPassword" />
-        <button @click="decryptWithPassword" :disabled="!passwordInput || decrypting"
-          class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
-          <Icon v-if="decrypting" name="mdi:loading" class="w-4 h-4 animate-spin" />
-          <Icon v-else name="mdi:lock-open-outline" class="w-4 h-4" />
+        <Button @click="decryptWithPassword" :disabled="!passwordInput" :loading="decrypting"
+          variant="solid" color="primary" block>
+          <Icon name="mdi:lock-open-outline" class="w-4 h-4" />
           Decrypt
-        </button>
+        </Button>
       </div>
     </div>
 

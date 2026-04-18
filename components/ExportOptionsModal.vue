@@ -9,9 +9,9 @@
               <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">
                 Export Options
               </h2>
-              <button @click="$emit('close')" class="flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+              <Button variant="ghost" color="gray" icon-only @click="$emit('close')">
                 <Icon name="mdi:close" class="block w-5 h-5" />
-              </button>
+              </Button>
             </div>
 
             <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
@@ -19,14 +19,12 @@
             </p>
 
             <div class="flex justify-end gap-2">
-              <button @click="$emit('confirm', false)"
-                class="px-4 py-2 text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors text-sm">
+              <Button variant="ghost" color="gray" @click="$emit('confirm', false)">
                 Without Results
-              </button>
-              <button @click="$emit('confirm', true)"
-                class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors shadow-sm hover:shadow-md text-sm">
+              </Button>
+              <Button @click="$emit('confirm', true)">
                 With Results
-              </button>
+              </Button>
             </div>
           </div>
         </Transition>

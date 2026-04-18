@@ -2,21 +2,20 @@
   <header class="bg-gray-100 dark:bg-gray-900 flex-shrink-0" :style="{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingLeft: 'env(safe-area-inset-left, 0px)', paddingRight: 'env(safe-area-inset-right, 0px)' }">
     <div class="flex flex-col px-3 py-1.5 gap-0.5">
       <!-- Top row: Centered title -->
-      <button @click="$emit('show-meta')" class="text-center min-w-0 px-1 py-0.5 mb-1 bg-gray-200/50 dark:bg-gray-800/50 rounded-md">
+      <Button @click="$emit('show-meta')" variant="ghost" color="gray" class="text-center min-w-0 px-1 py-0.5 mb-1 bg-gray-200/50 dark:bg-gray-800/50 rounded-md">
         <h1 class="text-sm font-semibold leading-tight text-gray-900 dark:text-gray-400 truncate">
           {{ currentNote?.title || 'Numori' }}
         </h1>
-      </button>
+      </Button>
 
       <!-- Bottom row: All controls -->
       <div class="flex items-center gap-1">
         <!-- Left: Sidebar toggle + dropdowns -->
         <div class="flex items-center gap-0.5">
-          <button @click="$emit('toggle-sidebar')"
-            class="p-2 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-200/60 dark:hover:bg-gray-800 transition-colors leading-none"
+          <Button @click="$emit('toggle-sidebar')" variant="ghost" color="gray" icon-only
             title="Toggle notes list">
             <Icon name="mdi:menu" class="w-4.5 h-4.5 block" />
-          </button>
+          </Button>
           <FileDropdown :has-note="!!currentNote" :mod-label="modLabel" :selection-count="selectionCount"
             @new-note="$emit('file-new')"
             @open-file="$emit('file-open')"
@@ -59,40 +58,36 @@
         <div class="flex items-center gap-0.5">
           <!-- Inline results mode group -->
           <div class="inline-flex items-center bg-gray-200/50 dark:bg-gray-800 rounded-lg" role="group">
-            <button @click="$emit('update:inline-mode', 'left')"
-              class="p-2 rounded-lg transition-all leading-none"
+            <Button @click="$emit('update:inline-mode', 'left')" variant="ghost" icon-only
               :class="inlineMode === 'left'
                 ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
                 : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
               title="Results on left">
               <Icon name="mdi:dock-left" class="w-5 h-5 block" />
-            </button>
-            <button @click="$emit('update:inline-mode', 'off')"
-              class="p-2 rounded-lg transition-all leading-none"
+            </Button>
+            <Button @click="$emit('update:inline-mode', 'off')" variant="ghost" icon-only
               :class="inlineMode === 'off'
                 ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
                 : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
               title="Results off">
               <Icon name="mdi:eye-off-outline" class="w-5 h-5 block" />
-            </button>
-            <button @click="$emit('update:inline-mode', 'right')"
-              class="p-2 rounded-lg transition-all leading-none"
+            </Button>
+            <Button @click="$emit('update:inline-mode', 'right')" variant="ghost" icon-only
               :class="inlineMode === 'right'
                 ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
                 : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'"
               title="Results on right">
               <Icon name="mdi:dock-right" class="w-5 h-5 block" />
-            </button>
+            </Button>
           </div>
 
           <div class="w-px h-5 bg-gray-300/60 dark:bg-gray-700 mx-0.5"></div>
 
           <!-- Focus mode -->
-          <button @click="$emit('toggle-focus')"
-            class="p-2 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-200/60 dark:hover:bg-gray-800 transition-colors leading-none"
+          <Button @click="$emit('toggle-focus')" variant="ghost" color="gray" icon-only
             title="Focus mode">
             <Icon name="mdi:fullscreen" class="w-5 h-5 block" />
-          </button>
+          </Button>
         </div>
       </div>
     </div>

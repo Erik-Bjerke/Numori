@@ -11,9 +11,10 @@
 
             <!-- Progress dots -->
             <div class="flex justify-center gap-2 pt-5 pb-2">
-              <button v-for="i in totalSteps" :key="i"
+              <Button v-for="i in totalSteps" :key="i"
                 @click="step = i"
-                class="w-2 h-2 rounded-full transition-all duration-200"
+                variant="ghost" size="xs"
+                class="p-0 w-2 h-2 rounded-full transition-all duration-200"
                 :class="i === step ? 'bg-primary-500 w-6' : i < step ? 'bg-primary-300 dark:bg-primary-700' : 'bg-gray-300 dark:bg-gray-700'" />
             </div>
 
@@ -57,22 +58,24 @@
                 <p class="text-sm text-gray-600 dark:text-gray-400 mb-5">Pick a theme that suits you.</p>
 
                 <div class="grid grid-cols-2 gap-3 w-full max-w-xs">
-                  <button @click="setTheme('light')"
+                  <Button @click="setTheme('light')"
+                    variant="outline" color="gray"
                     class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-150"
                     :class="currentTheme === 'light'
                       ? 'border-primary-500 bg-primary-50 dark:bg-gray-800'
                       : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'">
                     <Icon name="mdi:weather-sunny" class="w-8 h-8 text-amber-500" />
                     <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Light</span>
-                  </button>
-                  <button @click="setTheme('dark')"
+                  </Button>
+                  <Button @click="setTheme('dark')"
+                    variant="outline" color="gray"
                     class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-150"
                     :class="currentTheme === 'dark'
                       ? 'border-primary-500 bg-primary-50 dark:bg-gray-800'
                       : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'">
                     <Icon name="mdi:weather-night" class="w-8 h-8 text-indigo-500" />
                     <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Dark</span>
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -89,14 +92,15 @@
                   <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">Precision Mode</label>
                     <div class="grid grid-cols-3 gap-2">
-                      <button v-for="(label, key) in precisionModeLabels" :key="key"
+                      <Button v-for="(label, key) in precisionModeLabels" :key="key"
                         @click="setPrecisionMode(key)"
-                        class="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 border-2"
+                        variant="outline" color="gray"
+                        class="border-2 transition-all duration-150"
                         :class="preferences.precisionMode === key
                           ? 'bg-primary-50 dark:bg-gray-800 border-primary-500 dark:border-primary-400 text-primary-700 dark:text-primary-400'
                           : 'bg-gray-50 dark:bg-gray-925 border-transparent hover:border-gray-300 dark:hover:border-gray-700 text-gray-700 dark:text-gray-400'">
                         {{ label }}
-                      </button>
+                      </Button>
                     </div>
                   </div>
 
@@ -116,14 +120,15 @@
                   <div v-if="preferences.precisionMode !== 'auto'">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">Rounding</label>
                     <div class="grid grid-cols-2 gap-2">
-                      <button v-for="(label, key) in roundingModeLabels" :key="key"
+                      <Button v-for="(label, key) in roundingModeLabels" :key="key"
                         @click="setRoundingMode(key)"
-                        class="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 border-2"
+                        variant="outline" color="gray"
+                        class="border-2 transition-all duration-150"
                         :class="preferences.roundingMode === key
                           ? 'bg-primary-50 dark:bg-gray-800 border-primary-500 dark:border-primary-400 text-primary-700 dark:text-primary-400'
                           : 'bg-gray-50 dark:bg-gray-925 border-transparent hover:border-gray-300 dark:hover:border-gray-700 text-gray-700 dark:text-gray-400'">
                         {{ label }}
-                      </button>
+                      </Button>
                     </div>
                   </div>
 
@@ -151,14 +156,15 @@
                   <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">Region Preset</label>
                     <div class="grid grid-cols-3 gap-2">
-                      <button v-for="(label, key) in presetLabels" :key="key"
+                      <Button v-for="(label, key) in presetLabels" :key="key"
                         @click="selectPreset(key)"
-                        class="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 border-2"
+                        variant="outline" color="gray"
+                        class="border-2 transition-all duration-150"
                         :class="selectedPreset === key
                           ? 'bg-primary-50 dark:bg-gray-800 border-primary-500 dark:border-primary-400 text-primary-700 dark:text-primary-400'
                           : 'bg-gray-50 dark:bg-gray-925 border-transparent hover:border-gray-300 dark:hover:border-gray-700 text-gray-700 dark:text-gray-400'">
                         {{ label }}
-                      </button>
+                      </Button>
                     </div>
                   </div>
 
@@ -178,19 +184,19 @@
 
             <!-- Footer navigation -->
             <div class="px-6 pb-5 flex items-center" :class="step === 1 ? 'justify-end' : 'justify-between'">
-              <button v-if="step > 1" @click="step--"
-                class="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+              <Button v-if="step > 1" @click="step--"
+                variant="ghost" color="gray">
                 Back
-              </button>
+              </Button>
               <div class="flex items-center gap-3">
-                <button v-if="step < totalSteps" @click="skip"
-                  class="px-4 py-2 text-sm text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+                <Button v-if="step < totalSteps" @click="skip"
+                  variant="ghost" color="gray">
                   Skip
-                </button>
-                <button @click="next"
-                  class="px-5 py-2 text-sm font-medium rounded-lg transition-colors bg-primary-600 hover:bg-primary-700 text-white">
+                </Button>
+                <Button @click="next"
+                  variant="solid" color="primary">
                   {{ step === totalSteps ? 'Get Started' : 'Next' }}
-                </button>
+                </Button>
               </div>
             </div>
           </div>

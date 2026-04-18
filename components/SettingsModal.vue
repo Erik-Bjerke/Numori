@@ -12,9 +12,9 @@
             <!-- Header -->
             <div class="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
               <div class="flex items-center gap-2">
-                <button @click="showIndex = !showIndex" class="flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors" :title="showIndex ? 'Hide index' : 'Show index'">
+                <Button variant="ghost" color="gray" icon-only @click="showIndex = !showIndex" :title="showIndex ? 'Hide index' : 'Show index'">
                   <Icon name="mdi:table-of-contents" class="block w-5 h-5" />
-                </button>
+                </Button>
                 <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">Settings</h2>
               </div>
               <div class="flex items-center gap-2">
@@ -22,13 +22,13 @@
                   <Icon name="mdi:magnify" class="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                   <Input v-model="searchQuery" type="text" placeholder="Search settings..." :validate="false"
                     @keydown.escape="searchQuery = ''" />
-                  <button v-if="searchQuery" @click="searchQuery = ''" class="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                  <Button v-if="searchQuery" variant="ghost" color="gray" icon-only size="xs" @click="searchQuery = ''" class="absolute right-1.5 top-1/2 -translate-y-1/2">
                     <Icon name="mdi:close" class="block w-4 h-4" />
-                  </button>
+                  </Button>
                 </div>
-                <button @click="closeModal" class="flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                <Button variant="ghost" color="gray" icon-only @click="closeModal">
                   <Icon name="mdi:close" class="block w-5 h-5" />
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -44,10 +44,11 @@
                 <nav v-if="showIndex" class="absolute md:relative z-20 w-64 md:w-56 flex-shrink-0 h-full bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 overflow-y-auto">
                   <ul class="py-3 px-3 space-y-0.5">
                     <li v-for="section in filteredSections" :key="section.id">
-                      <button @click="scrollTo(section.id)" class="w-full text-left px-3 py-2 text-sm rounded-lg transition-colors"
+                      <Button @click="scrollTo(section.id)" variant="ghost" color="gray" block
+                        class="justify-start text-left text-sm"
                         :class="activeSection === section.id ? 'bg-primary-50 dark:bg-gray-800 text-primary-700 dark:text-primary-400 font-medium' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-850 hover:text-gray-900 dark:hover:text-white'">
                         {{ section.label }}
-                      </button>
+                      </Button>
                     </li>
                   </ul>
                 </nav>
@@ -75,13 +76,14 @@
                       <div>
                         <label :class="labelClass">Preset</label>
                         <div class="grid grid-cols-3 gap-2">
-                          <button v-for="(_preset, name) in presets" :key="name" @click="selectPreset(name)"
-                            class="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 border-2"
+                          <Button v-for="(_preset, name) in presets" :key="name" @click="selectPreset(name)"
+                            variant="ghost" color="gray"
+                            class="rounded-lg text-sm font-medium border-2"
                             :class="activePreset === name
                               ? 'bg-primary-50 dark:bg-gray-800 border-primary-500 dark:border-primary-400 text-primary-700 dark:text-primary-400'
                               : 'bg-gray-50 dark:bg-gray-925 border-transparent hover:border-gray-300 dark:hover:border-gray-700 text-gray-700 dark:text-gray-400'">
                             {{ presetLabels[name] || name }}
-                          </button>
+                          </Button>
                         </div>
                         <p v-if="activePreset === 'Custom'" class="mt-1 text-xs text-gray-500 dark:text-gray-400-muted">Custom settings — doesn't match any preset</p>
                       </div>
@@ -195,9 +197,7 @@
                           <label :class="labelInlineClass">Font Ligatures</label>
                           <p :class="hintClass">Enable ligatures for supported fonts (e.g. Fira Code)</p>
                         </div>
-                        <button @click="preferences.editorLigatures = !preferences.editorLigatures; onSettingChange()" :class="toggleClass(preferences.editorLigatures)">
-                          <span :class="toggleDot(preferences.editorLigatures)" />
-                        </button>
+                        <Toggle v-model="preferences.editorLigatures" @update:model-value="onSettingChange()" />
                       </div>
                     </div>
                   </section>
@@ -235,18 +235,14 @@
                             <label :class="labelInlineClass">Word Wrap</label>
                             <p :class="hintClass">Wrap long lines to fit the editor width</p>
                           </div>
-                          <button @click="preferences.editorWordWrap = !preferences.editorWordWrap; onSettingChange()" :class="toggleClass(preferences.editorWordWrap)">
-                            <span :class="toggleDot(preferences.editorWordWrap)" />
-                          </button>
+                          <Toggle v-model="preferences.editorWordWrap" @update:model-value="onSettingChange()" />
                         </div>
                         <div class="flex items-center justify-between">
                           <div>
                             <label :class="labelInlineClass">Code Folding</label>
                             <p :class="hintClass">Allow collapsing code regions</p>
                           </div>
-                          <button @click="preferences.editorFolding = !preferences.editorFolding; onSettingChange()" :class="toggleClass(preferences.editorFolding)">
-                            <span :class="toggleDot(preferences.editorFolding)" />
-                          </button>
+                          <Toggle v-model="preferences.editorFolding" @update:model-value="onSettingChange()" />
                         </div>
                       </div>
                     </div>
@@ -275,9 +271,7 @@
                             <label :class="labelInlineClass">Scroll Past End</label>
                             <p :class="hintClass">Allow scrolling beyond the last line of the document</p>
                           </div>
-                          <button @click="preferences.editorScrollPastEnd = !preferences.editorScrollPastEnd; onSettingChange()" :class="toggleClass(preferences.editorScrollPastEnd)">
-                            <span :class="toggleDot(preferences.editorScrollPastEnd)" />
-                          </button>
+                          <Toggle v-model="preferences.editorScrollPastEnd" @update:model-value="onSettingChange()" />
                         </div>
                       </div>
                     </div>
@@ -349,18 +343,14 @@
                             <label :class="labelInlineClass">Auto-copy Results</label>
                             <p :class="hintClass">Copy result to clipboard when clicked</p>
                           </div>
-                          <button @click="preferences.autoCopyResult = !preferences.autoCopyResult; onSettingChange()" :class="toggleClass(preferences.autoCopyResult)">
-                            <span :class="toggleDot(preferences.autoCopyResult)" />
-                          </button>
+                          <Toggle v-model="preferences.autoCopyResult" @update:model-value="onSettingChange()" />
                         </div>
                         <div class="flex items-center justify-between">
                           <div>
                             <label :class="labelInlineClass">Show Results in Code Blocks</label>
                             <p :class="hintClass">Evaluate and display results for lines inside fenced code blocks</p>
                           </div>
-                          <button @click="preferences.showResultsInCodeBlocks = !preferences.showResultsInCodeBlocks; onSettingChange()" :class="toggleClass(preferences.showResultsInCodeBlocks)">
-                            <span :class="toggleDot(preferences.showResultsInCodeBlocks)" />
-                          </button>
+                          <Toggle v-model="preferences.showResultsInCodeBlocks" @update:model-value="onSettingChange()" />
                         </div>
                         <div v-if="preferences.autoCopyResult">
                           <label :class="labelClass">Copy Animation</label>
@@ -392,10 +382,9 @@
                           <label :class="labelInlineClass">Welcome Wizard</label>
                           <p :class="hintClass">Show the first-time setup wizard again</p>
                         </div>
-                        <button @click="emit('relaunch-wizard')"
-                          class="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                        <Button @click="emit('relaunch-wizard')" variant="outline" color="gray" size="sm">
                           Relaunch
-                        </button>
+                        </Button>
                       </div>
                       <div>
                         <label :class="labelClass">Update check interval</label>
@@ -418,9 +407,9 @@
 
             <!-- Footer -->
             <div class="flex-shrink-0 p-4 bg-gray-50 dark:bg-gray-925 border-t border-gray-200 dark:border-gray-800 flex justify-between items-center">
-              <button @click="resetAll" class="text-sm text-gray-500 dark:text-gray-400-muted hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+              <Button @click="resetAll" variant="text" color="gray" size="sm">
                 Reset to defaults
-              </button>
+              </Button>
               <p class="text-xs text-gray-500 dark:text-gray-400-muted">Saved automatically</p>
             </div>
           </div>
@@ -465,15 +454,6 @@ const sectionClass = 'pb-8 border-b border-gray-200 dark:border-gray-800 last:bo
 const labelClass = 'block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1'
 const labelInlineClass = 'block text-sm font-medium text-gray-700 dark:text-gray-400'
 const hintClass = 'text-xs text-gray-500 dark:text-gray-500 mt-0.5'
-
-const toggleClass = (active) => [
-  'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-  active ? 'bg-primary-500' : 'bg-gray-300 dark:bg-gray-700'
-]
-const toggleDot = (active) => [
-  'inline-block h-4 w-4 transform rounded-full bg-white transition-transform',
-  active ? 'translate-x-6' : 'translate-x-1'
-]
 
 const sections = [
   { id: 'locales', label: 'Locales', keywords: 'locale language preset volume fuel economy distance temperature date time number format region' },

@@ -7,25 +7,24 @@
           <div v-if="isOpen" class="bg-white dark:bg-gray-925 rounded-lg max-w-sm w-full p-4">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">Add to Group</h2>
-              <button @click="$emit('close')" class="flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+              <Button variant="ghost" color="gray" icon-only size="sm" @click="$emit('close')">
                 <Icon name="mdi:close" class="block w-5 h-5" />
-              </button>
+              </Button>
             </div>
 
             <div class="space-y-1 max-h-60 overflow-y-auto">
               <!-- Create new group option -->
-              <button @click="$emit('create-new')"
-                class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors">
+              <Button variant="ghost" color="primary" block @click="$emit('create-new')">
                 <Icon name="mdi:folder-plus-outline" class="w-4.5 h-4.5 flex-shrink-0" />
                 Create new group
-              </button>
+              </Button>
 
               <div v-if="groups.length" class="my-2 border-t border-gray-200 dark:border-gray-700" />
 
               <!-- Existing groups -->
-              <button v-for="group in groups" :key="group.id"
+              <Button v-for="group in groups" :key="group.id"
+                variant="ghost" block
                 @click="$emit('select', group.id)"
-                class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-colors"
                 :class="currentGroupId === group.id
                   ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'">
@@ -33,24 +32,22 @@
                   :class="currentGroupId === group.id ? 'text-primary-500' : 'text-gray-400'" />
                 <span class="truncate">{{ group.name }}</span>
                 <Icon v-if="currentGroupId === group.id" name="mdi:check" class="w-4 h-4 ml-auto text-primary-500 flex-shrink-0" />
-              </button>
+              </Button>
 
               <!-- Remove from group option -->
               <template v-if="currentGroupId">
                 <div class="my-2 border-t border-gray-200 dark:border-gray-700" />
-                <button @click="$emit('select', null)"
-                  class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                <Button variant="ghost" color="gray" block @click="$emit('select', null)">
                   <Icon name="mdi:folder-remove-outline" class="w-4.5 h-4.5 flex-shrink-0" />
                   Remove from group
-                </button>
+                </Button>
               </template>
             </div>
 
             <div class="flex justify-end mt-4">
-              <button @click="$emit('close')"
-                class="px-4 py-2 text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors">
+              <Button variant="ghost" color="gray" @click="$emit('close')">
                 Cancel
-              </button>
+              </Button>
             </div>
           </div>
         </Transition>

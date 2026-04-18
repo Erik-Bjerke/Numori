@@ -13,30 +13,27 @@
       role="alert">
 
       <!-- Dismiss (top-right corner) -->
-      <button @click="$emit('dismiss')"
-        class="absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+      <Button @click="$emit('dismiss')" variant="ghost" color="gray" icon-only class="absolute top-2 right-2"
         title="Dismiss">
         <Icon name="mdi:close" class="w-4 h-4" />
-      </button>
+      </Button>
 
       <!-- Web: horizontal row -->
       <template v-if="!isNative">
         <Icon name="mdi:update" class="w-5 h-5 flex-shrink-0 text-primary-600 dark:text-primary-400" />
         <p class="text-sm text-gray-700 dark:text-gray-300 flex-1">A new version is available.</p>
-        <button @click="$emit('apply')"
-          class="px-3 py-1.5 text-xs font-medium rounded-lg bg-primary-600 hover:bg-primary-700 text-white transition-colors flex-shrink-0">
+        <Button @click="$emit('apply')" variant="solid" color="primary" size="xs" class="flex-shrink-0">
           Reload
-        </button>
+        </Button>
       </template>
 
       <!-- Native: vertical stack -->
       <template v-else>
         <Icon name="mdi:update" class="w-6 h-6 text-primary-600 dark:text-primary-400" />
         <p class="text-sm text-gray-700 dark:text-gray-300 text-center">A new version is available in the store.</p>
-        <button @click="$emit('apply')"
-          class="w-full px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 hover:bg-primary-700 text-white transition-colors">
+        <Button @click="$emit('apply')" variant="solid" color="primary" block>
           Update
-        </button>
+        </Button>
       </template>
     </div>
   </Transition>

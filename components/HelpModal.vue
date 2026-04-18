@@ -16,11 +16,10 @@
       <!-- Header -->
       <div class="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-800 flex-shrink-0 gap-2">
         <div class="flex items-center gap-2 flex-shrink-0">
-          <button @click="showIndex = !showIndex"
-            class="flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+          <Button variant="ghost" color="gray" icon-only @click="showIndex = !showIndex"
             :title="showIndex ? 'Hide index' : 'Show index'">
             <Icon name="mdi:table-of-contents" class="block w-5 h-5" />
-          </button>
+          </Button>
           <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none hidden sm:block">{{ $t('help.title') }}</h2>
         </div>
         <div class="flex items-center gap-2 min-w-0">
@@ -34,17 +33,18 @@
               :validate="false"
               @keydown.escape="searchQuery = ''"
             />
-            <button
+            <Button
               v-if="searchQuery"
+              variant="ghost" color="gray" icon-only size="xs"
               @click="searchQuery = ''"
-              class="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+              class="absolute right-1.5 top-1/2 -translate-y-1/2"
             >
               <Icon name="mdi:close" class="block w-4 h-4" />
-            </button>
+            </Button>
           </div>
-          <button @click="close" class="flex-shrink-0 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+          <Button variant="ghost" color="gray" icon-only @click="close" class="flex-shrink-0">
             <Icon name="mdi:close" class="block w-5 h-5" />
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -65,13 +65,13 @@
             class="absolute md:relative z-20 w-64 md:w-56 flex-shrink-0 h-full bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 overflow-y-auto">
             <ul class="py-3 px-3 space-y-0.5">
               <li v-for="section in filteredSections" :key="section.id">
-                <button @click="scrollTo(section.id)"
-                  class="w-full text-left px-3 py-2 text-sm rounded-lg transition-colors"
+                <Button @click="scrollTo(section.id)" variant="ghost" block
+                  class="text-left px-3 py-2"
                   :class="activeSection === section.id
                     ? 'bg-primary-50 dark:bg-gray-800 text-primary-700 dark:text-primary-400 font-medium'
                     : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-850 hover:text-gray-900 dark:hover:text-white'">
                   {{ section.label }}
-                </button>
+                </Button>
               </li>
             </ul>
           </nav>
@@ -908,9 +908,6 @@ const isSectionVisible = (id) => {
 }
 
 watch(searchQuery, () => {
-  if (contentRef.value) {
-    contentRef.value.scrollTop = 0
-  }
   nextTick(() => updateScrollPadding())
 })
 
@@ -951,7 +948,6 @@ onMounted(() => {
 const close = () => {
   activeSection.value = 'basics'
   searchQuery.value = ''
-  if (contentRef.value) contentRef.value.scrollTop = 0
   emit('close')
 }
 </script>

@@ -43,43 +43,28 @@
       </ClientOnly>
 
       <!-- Link action popup -->
-      <Transition
-        enter-active-class="transition duration-100 ease-out"
-        enter-from-class="opacity-0 scale-95"
-        enter-to-class="opacity-100 scale-100"
-        leave-active-class="transition duration-75 ease-in"
-        leave-from-class="opacity-100 scale-100"
-        leave-to-class="opacity-0 scale-95">
-        <div v-if="linkPopup.show"
-          class="absolute z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 w-56"
-          :style="{ left: linkPopup.x + 'px', top: (linkPopup.y + 20) + 'px' }">
-          <div v-if="linkPopup.isExternal" class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-amber-600 dark:text-amber-400">
-            <Icon name="mdi:alert-outline" class="w-3.5 h-3.5 block flex-shrink-0" />
-            <span>Be careful, external link</span>
-          </div>
-          <button @click="openLink"
-            class="w-full flex items-center gap-2.5 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors">
-            <Icon name="mdi:open-in-new" class="w-4 h-4 block flex-shrink-0" />
-            <span>Open Link</span>
-          </button>
-          <button @click="copyLinkUrl"
-            class="w-full flex items-center gap-2.5 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors">
-            <Icon name="mdi:content-copy" class="w-4 h-4 block flex-shrink-0" />
-            <span>Copy Link</span>
-          </button>
-          <button @click="copyLinkName"
-            class="w-full flex items-center gap-2.5 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors">
-            <Icon name="mdi:format-text" class="w-4 h-4 block flex-shrink-0" />
-            <span>Copy Link Name</span>
-          </button>
-          <div class="px-3 py-1 text-xs text-gray-400 dark:text-gray-500 truncate border-t border-gray-100 dark:border-gray-700 mt-1 pt-1">
-            {{ linkPopup.url }}
-          </div>
+      <Popup :show="linkPopup.show" :x="linkPopup.x" :y="linkPopup.y" :offset-y="20"
+        @close="closeLinkPopup">
+        <div v-if="linkPopup.isExternal" class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-amber-600 dark:text-amber-400">
+          <Icon name="mdi:alert-outline" class="w-3.5 h-3.5 block flex-shrink-0" />
+          <span>Be careful, external link</span>
         </div>
-      </Transition>
-
-      <!-- Backdrop to close link popup -->
-      <div v-if="linkPopup.show" class="fixed inset-0 z-40" @click="closeLinkPopup" />
+        <Button @click="openLink" variant="menu-item">
+          <Icon name="mdi:open-in-new" class="w-4 h-4 block flex-shrink-0" />
+          <span>Open Link</span>
+        </Button>
+        <Button @click="copyLinkUrl" variant="menu-item">
+          <Icon name="mdi:content-copy" class="w-4 h-4 block flex-shrink-0" />
+          <span>Copy Link</span>
+        </Button>
+        <Button @click="copyLinkName" variant="menu-item">
+          <Icon name="mdi:format-text" class="w-4 h-4 block flex-shrink-0" />
+          <span>Copy Link Name</span>
+        </Button>
+        <div class="px-3 py-1 text-xs text-gray-400 dark:text-gray-500 truncate border-t border-gray-100 dark:border-gray-700 mt-1 pt-1">
+          {{ linkPopup.url }}
+        </div>
+      </Popup>
     </div>
   </div>
 </template>

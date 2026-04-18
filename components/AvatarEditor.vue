@@ -40,15 +40,15 @@
 
       <!-- Quick rotate & reset buttons -->
       <div class="flex items-center justify-center gap-2">
-        <button @click="rotateBy(-90)" class="px-2 py-1 text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors">
+        <Button variant="solid" color="gray" size="xs" @click="rotateBy(-90)">
           -90°
-        </button>
-        <button @click="resetAll" class="px-2 py-1 text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors">
+        </Button>
+        <Button variant="solid" color="gray" size="xs" @click="resetAll">
           Reset
-        </button>
-        <button @click="rotateBy(90)" class="px-2 py-1 text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors">
+        </Button>
+        <Button variant="solid" color="gray" size="xs" @click="rotateBy(90)">
           +90°
-        </button>
+        </Button>
       </div>
     </div>
   </div>

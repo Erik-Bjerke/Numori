@@ -2,6 +2,20 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: false },
+
+  // Workaround for https://github.com/nuxt/nuxt/issues/34812
+  // Remove the @nuxt/nitro-server duplicate useAppConfig auto-import
+  // (safe to remove once the upstream fix lands)
+  hooks: {
+    'nitro:config'(nitroConfig) {
+      if (nitroConfig.imports?.imports) {
+        nitroConfig.imports.imports = nitroConfig.imports.imports.filter(
+          (i: any) => !(i?.name === 'useAppConfig' && String(i?.from || '').includes('nitro-server'))
+        )
+      }
+    },
+  },
+
   app: {
     head: {
       title: 'Numori — notes that calculate',

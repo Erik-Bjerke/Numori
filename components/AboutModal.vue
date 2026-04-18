@@ -13,9 +13,9 @@
             <!-- Header -->
             <div class="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
               <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">About Numori</h2>
-              <button @click="$emit('close')" class="flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+              <Button variant="ghost" color="gray" icon-only size="sm" @click="$emit('close')">
                 <Icon name="mdi:close" class="block w-5 h-5" />
-              </button>
+              </Button>
             </div>
 
             <!-- Body -->
@@ -32,14 +32,10 @@
                   GitHub
                 </a>
                 <div class="pt-1">
-                  <button @click="handleCheckUpdate" :disabled="checking"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors"
-                    :class="checking
-                      ? 'border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 cursor-wait'
-                      : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'">
-                    <Icon :name="checking ? 'mdi:loading' : 'mdi:update'" class="w-3.5 h-3.5 block" :class="{ 'animate-spin': checking }" />
+                  <Button variant="outline" color="gray" size="sm" @click="handleCheckUpdate" :disabled="checking" :loading="checking">
+                    <Icon v-if="!checking" name="mdi:update" class="w-3.5 h-3.5 block" />
                     {{ checking ? 'Checking...' : 'Check for updates' }}
-                  </button>
+                  </Button>
                   <p v-if="checkResult" class="mt-1.5 text-xs" :class="checkResultClass">{{ checkResult }}</p>
                 </div>
               </div>
@@ -96,10 +92,9 @@
 
             <!-- Footer -->
             <div class="px-4 sm:px-5 py-3 border-t border-gray-200 dark:border-gray-800 flex-shrink-0 text-center">
-              <button @click="$emit('close')"
-                class="px-4 py-1.5 text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors">
+              <Button variant="solid" color="gray" size="sm" @click="$emit('close')">
                 Close
-              </button>
+              </Button>
             </div>
           </div>
         </Transition>

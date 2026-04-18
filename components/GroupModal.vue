@@ -9,9 +9,9 @@
               <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">
                 {{ editingGroupId ? 'Edit Group' : 'New Group' }}
               </h2>
-              <button @click="$emit('close')" class="flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+              <Button variant="ghost" color="gray" icon-only size="sm" @click="$emit('close')">
                 <Icon name="mdi:close" class="block w-5 h-5" />
-              </button>
+              </Button>
             </div>
 
             <div class="space-y-4">
@@ -29,14 +29,12 @@
             </div>
 
             <div class="flex justify-end gap-2 mt-6">
-              <button @click="$emit('close')"
-                class="px-4 py-2 text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-850 rounded-lg transition-colors">
+              <Button variant="ghost" color="gray" @click="$emit('close')">
                 Cancel
-              </button>
-              <button @click="save" :disabled="!localName.trim()"
-                class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors shadow-sm hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed">
+              </Button>
+              <Button @click="save" :disabled="!localName.trim()">
                 {{ editingGroupId ? 'Save' : 'Create' }}
-              </button>
+              </Button>
             </div>
           </div>
         </Transition>

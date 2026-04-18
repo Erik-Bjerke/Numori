@@ -45,11 +45,11 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@capacitor/android": "^8.3.0",
+    "@capacitor/android": "^8.3.1",
     "@capacitor/app": "^8.1.0",
-    "@capacitor/core": "^8.3.0",
+    "@capacitor/core": "^8.3.1",
     "@capacitor/filesystem": "^8.1.2",
-    "@capacitor/ios": "^8.3.0",
+    "@capacitor/ios": "^8.3.1",
     "@capacitor/network": "^8.0.1",
     "@capacitor/share": "^8.0.1",
     "@capacitor/status-bar": "^8.0.2",
@@ -67,17 +67,18 @@
     "bcryptjs": "^3.0.3",
     "dexie": "^4.4.2",
     "highlight.js": "^11.11.1",
-    "nodemailer": "^8.0.4",
+    "nodemailer": "^8.0.5",
     "nuxt": "^4.4.2",
     "nuxt-codemirror": "^0.0.20",
     "nuxt-i18n-micro": "^3.17.0",
     "pg": "^8.20.0",
+    "tailwind-merge": "^3.5.0",
     "vue": "^3.5.32",
     "vue-router": "^5.0.4"
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
-    "@capacitor/cli": "^8.3.0",
-    "vitest": "^4.1.2"
+    "@capacitor/cli": "^8.3.1",
+    "vitest": "^4.1.4"
   }
 }

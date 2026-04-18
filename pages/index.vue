@@ -179,16 +179,14 @@
 
             <!-- Action buttons -->
             <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <button @click="createNote"
-                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm hover:shadow-md">
+              <Button @click="createNote" size="lg" class="w-full sm:w-auto">
                 <Icon name="mdi:plus" class="w-5 h-5" />
                 Create new note
-              </button>
-              <button @click="showSidebar = true"
-                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+              </Button>
+              <Button @click="showSidebar = true" variant="outline" color="white" size="lg" class="w-full sm:w-auto">
                 <Icon name="mdi:menu" class="w-5 h-5" />
                 Browse notes
-              </button>
+              </Button>
             </div>
 
             <!-- Note count hint -->
@@ -351,12 +349,13 @@
     <ToastNotification :toasts="toast.toasts.value" />
 
     <!-- Focus mode exit button -->
-    <button v-if="focusMode" @click="focusMode = false"
-      class="fixed z-50 pl-2.5 pb-2.5 rounded-bl-xl text-gray-400 dark:text-gray-500 hover:bg-black/15 dark:hover:bg-white/15 hover:text-gray-700 dark:hover:text-gray-200 transition-colors focus-exit-enter"
+    <Button v-if="focusMode" @click="focusMode = false"
+      variant="ghost" color="gray" icon-only
+      class="fixed z-50 pl-2.5 pb-2.5 rounded-bl-xl focus-exit-enter"
       :style="{ top: 'env(safe-area-inset-top, 0px)', right: 'env(safe-area-inset-right, 0px)', paddingRight: '4px', paddingTop: '4px' }"
       title="Exit focus mode">
       <Icon name="mdi:fullscreen-exit" class="w-4 h-4 block" />
-    </button>
+    </Button>
   </div>
 </template>
 

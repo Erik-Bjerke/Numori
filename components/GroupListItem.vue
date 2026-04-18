@@ -23,11 +23,10 @@
       </span>
       <!-- Three-dots menu -->
       <div class="relative flex-shrink-0" ref="menuRef" tabindex="-1" @focusout="onFocusOut">
-        <button @click.stop="toggleMenu"
-          class="p-1.5 -m-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors rounded-lg"
+        <Button @click.stop="toggleMenu" variant="ghost" color="gray" icon-only class="-m-1"
           title="Group actions">
           <Icon name="mdi:dots-vertical" class="w-4 h-4" />
-        </button>
+        </Button>
         <Transition
           enter-active-class="transition-all duration-150 ease-out"
           enter-from-class="opacity-0 scale-95"
@@ -38,17 +37,15 @@
           <div v-show="menuOpen"
             class="absolute right-0 z-50 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1"
             :class="dropUp ? 'bottom-full mb-1' : 'top-full mt-1'">
-            <button @click.stop="handleAction('edit')"
-              class="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+            <Button @click.stop="handleAction('edit')" variant="menu-item">
               <Icon name="mdi:pencil-outline" class="w-4 h-4" />
               Edit Group
-            </button>
+            </Button>
             <div class="my-1 border-t border-gray-200 dark:border-gray-700" />
-            <button @click.stop="handleAction('delete')"
-              class="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+            <Button @click.stop="handleAction('delete')" variant="menu-item" color="red">
               <Icon name="mdi:trash-can-outline" class="w-4 h-4" />
               Delete Group
-            </button>
+            </Button>
           </div>
         </Transition>
       </div>

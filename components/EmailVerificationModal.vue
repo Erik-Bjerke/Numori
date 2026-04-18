@@ -8,9 +8,9 @@
 
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">Verify Email</h2>
-              <button @click="$emit('close')" class="flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+              <Button variant="ghost" color="gray" icon-only @click="$emit('close')">
                 <Icon name="mdi:close" class="block w-5 h-5" />
-              </button>
+              </Button>
             </div>
 
             <p class="text-xs text-gray-500 dark:text-gray-500 mb-4">
@@ -32,19 +32,16 @@
                   validation-pattern="^[0-9]{6}$" validation-message="Enter a 6-digit code"
                   placeholder="000000" />
               </div>
-              <button type="submit" :disabled="loading || code.length !== 6"
-                class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
-                <Icon v-if="loading" name="mdi:loading" class="w-4 h-4 animate-spin" />
+              <Button native-type="submit" block :loading="loading" :disabled="loading || code.length !== 6">
                 Verify
-              </button>
+              </Button>
             </form>
 
             <p class="text-center text-xs text-gray-500 dark:text-gray-500 mt-3">
               Didn't receive a code?
-              <button @click="handleResend" :disabled="loading || resendCooldown > 0"
-                class="text-primary-600 dark:text-primary-400 hover:underline disabled:opacity-50 disabled:no-underline">
+              <Button variant="link" color="primary" @click="handleResend" :disabled="loading || resendCooldown > 0">
                 {{ resendCooldown > 0 ? `Resend (${resendCooldown}s)` : 'Resend code' }}
-              </button>
+              </Button>
             </p>
           </div>
         </Transition>

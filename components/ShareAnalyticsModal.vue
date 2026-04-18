@@ -10,27 +10,28 @@
             <div class="flex items-center justify-between px-5 py-3 border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
               <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-400 leading-none">Share Analytics</h2>
               <div class="flex items-center gap-1">
-                <button @click="refresh" :disabled="loading"
-                  class="flex items-center p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors rounded"
+                <Button @click="refresh" :disabled="loading"
+                  variant="ghost" color="gray" icon-only
                   title="Refresh">
                   <Icon name="mdi:refresh" class="block w-5 h-5" :class="{ 'animate-spin': loading }" />
-                </button>
-                <button @click="$emit('close')" class="flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                </Button>
+                <Button @click="$emit('close')" variant="ghost" color="gray" icon-only>
                   <Icon name="mdi:close" class="block w-5 h-5" />
-                </button>
+                </Button>
               </div>
             </div>
 
             <!-- Tabs -->
             <div class="flex border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
-              <button v-for="tab in tabs" :key="tab.id" @click="activeTab = tab.id"
-                class="flex-1 px-4 py-2.5 text-xs font-medium transition-colors relative"
+              <Button v-for="tab in tabs" :key="tab.id" @click="activeTab = tab.id"
+                variant="ghost"
+                class="flex-1 relative"
                 :class="activeTab === tab.id
                   ? 'text-primary-600 dark:text-primary-400'
                   : 'text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'">
                 {{ tab.label }}
                 <div v-if="activeTab === tab.id" class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 dark:bg-primary-400" />
-              </button>
+              </Button>
             </div>
 
             <!-- Body -->
@@ -117,14 +118,14 @@
                       <span class="text-xs text-gray-500 dark:text-gray-500">Show raw data</span>
                     </label>
                     <div class="flex items-center gap-2">
-                      <button v-if="selectedIds.size > 0" @click="deleteSelected"
-                        class="text-xs px-2 py-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors">
+                      <Button v-if="selectedIds.size > 0" @click="deleteSelected"
+                        variant="ghost" color="red" size="xs">
                         Delete selected ({{ selectedIds.size }})
-                      </button>
-                      <button v-if="data.totalRecords > 0" @click="deleteAll"
-                        class="text-xs px-2 py-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors">
+                      </Button>
+                      <Button v-if="data.totalRecords > 0" @click="deleteAll"
+                        variant="ghost" color="red" size="xs">
                         Delete all
-                      </button>
+                      </Button>
                     </div>
                   </div>
 
@@ -216,22 +217,22 @@
                       Page {{ data.page }} of {{ data.totalPages }} ({{ data.totalRecords }} records)
                     </span>
                     <div class="flex items-center gap-1">
-                      <button @click="goToPage(1)" :disabled="data.page <= 1"
-                        class="p-1 rounded text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+                      <Button @click="goToPage(1)" :disabled="data.page <= 1"
+                        variant="ghost" color="gray" icon-only size="xs">
                         <Icon name="mdi:chevron-double-left" class="w-4 h-4" />
-                      </button>
-                      <button @click="goToPage(data.page - 1)" :disabled="data.page <= 1"
-                        class="p-1 rounded text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+                      </Button>
+                      <Button @click="goToPage(data.page - 1)" :disabled="data.page <= 1"
+                        variant="ghost" color="gray" icon-only size="xs">
                         <Icon name="mdi:chevron-left" class="w-4 h-4" />
-                      </button>
-                      <button @click="goToPage(data.page + 1)" :disabled="data.page >= data.totalPages"
-                        class="p-1 rounded text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+                      </Button>
+                      <Button @click="goToPage(data.page + 1)" :disabled="data.page >= data.totalPages"
+                        variant="ghost" color="gray" icon-only size="xs">
                         <Icon name="mdi:chevron-right" class="w-4 h-4" />
-                      </button>
-                      <button @click="goToPage(data.totalPages)" :disabled="data.page >= data.totalPages"
-                        class="p-1 rounded text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+                      </Button>
+                      <Button @click="goToPage(data.totalPages)" :disabled="data.page >= data.totalPages"
+                        variant="ghost" color="gray" icon-only size="xs">
                         <Icon name="mdi:chevron-double-right" class="w-4 h-4" />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </div>

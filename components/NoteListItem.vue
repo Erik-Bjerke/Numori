@@ -59,93 +59,58 @@
       </div>
 
       <!-- Three-dots menu -->
-      <div v-if="!selectMode" class="relative flex-shrink-0 self-center" ref="menuRef"
-        tabindex="-1" @focusout="onFocusOut">
-        <button @click.stop="toggleMenu"
-          class="p-2.5 -m-1.5 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors rounded-lg"
-          title="Actions">
-          <Icon name="mdi:dots-vertical" class="w-5 h-5" />
-        </button>
-        <Transition
-          enter-active-class="transition-all duration-150 ease-out"
-          enter-from-class="opacity-0 scale-95"
-          enter-to-class="opacity-100 scale-100"
-          leave-active-class="transition-all duration-100 ease-in"
-          leave-from-class="opacity-100 scale-100"
-          leave-to-class="opacity-0 scale-95">
-          <div v-show="menuOpen"
-            class="absolute right-0 z-50 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1"
-            :class="dropUp ? 'bottom-full mb-1' : 'top-full mt-1'">
-            <button @click.stop="handleAction('duplicate')"
-              class="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-              <Icon name="mdi:content-duplicate" class="w-4 h-4" />
-              Duplicate
-            </button>
-            <button @click.stop="handleAction('copy-to-clipboard')"
-              class="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-              <Icon name="mdi:clipboard-text-outline" class="w-4 h-4" />
-              Copy to clipboard
-            </button>
-            <button @click.stop="handleAction('export')"
-              class="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-              <Icon name="mdi:file-export-outline" class="w-4 h-4" />
-              Export
-            </button>
-            <button @click.stop="handleAction('print')"
-              class="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-              <Icon name="mdi:printer-outline" class="w-4 h-4" />
-              Print
-            </button>
-            <div class="my-1 border-t border-gray-200 dark:border-gray-700" />
-            <button @click.stop="handleAction('share')"
-              class="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-              <Icon name="mdi:share-variant-outline" class="w-4 h-4" />
-              {{ shared ? 'Sharing details' : 'Share' }}
-            </button>
-            <button v-if="shared" @click.stop="handleCopyLink"
-              class="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-              <Icon :name="copied ? 'mdi:check' : 'mdi:content-copy'" class="w-4 h-4" />
-              {{ copied ? 'Copied' : 'Copy link' }}
-            </button>
-            <button v-if="shared" @click.stop="handleAction('unshare')"
-              class="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-              <Icon name="mdi:link-variant-off" class="w-4 h-4" />
-              Stop sharing
-            </button>
-            <button v-if="analyticsHash" @click.stop="handleAction('analytics')"
-              class="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-              <Icon name="mdi:chart-bar" class="w-4 h-4" />
-              View analytics
-            </button>
-            <div class="my-1 border-t border-gray-200 dark:border-gray-700" />
-            <button v-if="note.archived" @click.stop="handleAction('unarchive')"
-              class="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-              <Icon name="mdi:package-up" class="w-4 h-4" />
-              Unarchive
-            </button>
-            <button v-else @click.stop="handleAction('archive')"
-              class="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-              <Icon name="mdi:archive-outline" class="w-4 h-4" />
-              Archive
-            </button>
-            <button @click.stop="handleAction('properties')"
-              class="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-              <Icon name="mdi:information-outline" class="w-4 h-4" />
-              Properties
-            </button>
-            <button @click.stop="handleAction('add-to-group')"
-              class="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-              <Icon name="mdi:folder-plus-outline" class="w-4 h-4" />
-              Add to group
-            </button>
-            <div class="my-1 border-t border-gray-200 dark:border-gray-700" />
-            <button @click.stop="handleAction('delete')"
-              class="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-              <Icon name="mdi:trash-can-outline" class="w-4 h-4" />
-              Delete
-            </button>
-          </div>
-        </Transition>
+      <div v-if="!selectMode" class="flex-shrink-0 self-center">
+        <Dropdown ref="menuDropdownRef" width="w-48" align="right" :drop="dropUp ? 'up' : 'down'"
+          @open="onMenuOpen">
+          <template #trigger="{ toggle }">
+            <Button @click.stop="toggle" variant="ghost" color="gray" icon-only title="Actions">
+              <Icon name="mdi:dots-vertical" class="w-5 h-5" />
+            </Button>
+          </template>
+
+          <Button @click.stop="handleAction('duplicate')" variant="menu-item">
+            <Icon name="mdi:content-duplicate" class="w-4 h-4" /> Duplicate
+          </Button>
+          <Button @click.stop="handleAction('copy-to-clipboard')" variant="menu-item">
+            <Icon name="mdi:clipboard-text-outline" class="w-4 h-4" /> Copy to clipboard
+          </Button>
+          <Button @click.stop="handleAction('export')" variant="menu-item">
+            <Icon name="mdi:file-export-outline" class="w-4 h-4" /> Export
+          </Button>
+          <Button @click.stop="handleAction('print')" variant="menu-item">
+            <Icon name="mdi:printer-outline" class="w-4 h-4" /> Print
+          </Button>
+          <div class="my-1 border-t border-gray-200 dark:border-gray-700" />
+          <Button @click.stop="handleAction('share')" variant="menu-item">
+            <Icon name="mdi:share-variant-outline" class="w-4 h-4" /> {{ shared ? 'Sharing details' : 'Share' }}
+          </Button>
+          <Button v-if="shared" @click.stop="handleCopyLink" variant="menu-item">
+            <Icon :name="copied ? 'mdi:check' : 'mdi:content-copy'" class="w-4 h-4" /> {{ copied ? 'Copied' : 'Copy link' }}
+          </Button>
+          <Button v-if="shared" @click.stop="handleAction('unshare')" variant="menu-item" color="red">
+            <Icon name="mdi:link-variant-off" class="w-4 h-4" /> Stop sharing
+          </Button>
+          <Button v-if="analyticsHash" @click.stop="handleAction('analytics')" variant="menu-item">
+            <Icon name="mdi:chart-bar" class="w-4 h-4" /> View analytics
+          </Button>
+          <div class="my-1 border-t border-gray-200 dark:border-gray-700" />
+          <Button v-if="note.archived" @click.stop="handleAction('unarchive')" variant="menu-item">
+            <Icon name="mdi:package-up" class="w-4 h-4" /> Unarchive
+          </Button>
+          <Button v-else @click.stop="handleAction('archive')" variant="menu-item">
+            <Icon name="mdi:archive-outline" class="w-4 h-4" /> Archive
+          </Button>
+          <Button @click.stop="handleAction('properties')" variant="menu-item">
+            <Icon name="mdi:information-outline" class="w-4 h-4" /> Properties
+          </Button>
+          <Button @click.stop="handleAction('add-to-group')" variant="menu-item">
+            <Icon name="mdi:folder-plus-outline" class="w-4 h-4" /> Add to group
+          </Button>
+          <div class="my-1 border-t border-gray-200 dark:border-gray-700" />
+          <Button @click.stop="handleAction('delete')" variant="menu-item" color="red">
+            <Icon name="mdi:trash-can-outline" class="w-4 h-4" /> Delete
+          </Button>
+        </Dropdown>
       </div>
     </div>
     </div>
@@ -170,8 +135,7 @@ const emit = defineEmits(['select', 'delete', 'toggle-select', 'share', 'unshare
 const { copy: clipboardCopy } = useClipboard()
 const { apiUrl } = useApi()
 
-const menuOpen = ref(false)
-const menuRef = ref(null)
+const menuDropdownRef = ref(null)
 const dropUp = ref(false)
 const copied = ref(false)
 const menuId = Math.random().toString(36).slice(2)
@@ -184,28 +148,23 @@ const handleClick = () => {
   }
 }
 
-const toggleMenu = () => {
-  const willOpen = !menuOpen.value
-  if (willOpen) {
-    document.dispatchEvent(new CustomEvent('close-all-menus', { detail: { sourceId: menuId } }))
-    // Determine if menu should drop up to avoid overflowing the viewport
-    if (menuRef.value) {
-      const rect = menuRef.value.getBoundingClientRect()
-      const estimatedMenuHeight = 360 // approximate max height of the dropdown
-      dropUp.value = rect.bottom + estimatedMenuHeight > window.innerHeight
-    }
+const onMenuOpen = () => {
+  document.dispatchEvent(new CustomEvent('close-all-menus', { detail: { sourceId: menuId } }))
+  const el = menuDropdownRef.value?.$el
+  if (el) {
+    const rect = el.getBoundingClientRect()
+    dropUp.value = rect.bottom + 360 > window.innerHeight
   }
-  menuOpen.value = willOpen
 }
 
 const onCloseAllMenus = (e) => {
   if (e.detail?.sourceId !== menuId) {
-    menuOpen.value = false
+    menuDropdownRef.value?.close()
   }
 }
 
 const handleAction = (action) => {
-  menuOpen.value = false
+  menuDropdownRef.value?.close()
   if (action === 'share') emit('share', props.note.id)
   else if (action === 'unshare') emit('unshare', props.note.id)
   else if (action === 'delete') emit('delete', props.note.id)
@@ -224,29 +183,13 @@ const handleCopyLink = async () => {
   if (!props.shareHash) return
   await clipboardCopy(apiUrl(`/shared/${props.shareHash}`))
   copied.value = true
-  setTimeout(() => { copied.value = false; menuOpen.value = false }, 1000)
-}
-
-// Close menu when focus leaves the container
-const onFocusOut = (e) => {
-  if (menuRef.value && !menuRef.value.contains(e.relatedTarget)) {
-    menuOpen.value = false
-  }
-}
-
-// Close menu on outside click
-const onClickOutside = (e) => {
-  if (menuRef.value && !menuRef.value.contains(e.target)) {
-    menuOpen.value = false
-  }
+  setTimeout(() => { copied.value = false; menuDropdownRef.value?.close() }, 1000)
 }
 
 onMounted(() => {
-  document.addEventListener('click', onClickOutside)
   document.addEventListener('close-all-menus', onCloseAllMenus)
 })
 onBeforeUnmount(() => {
-  document.removeEventListener('click', onClickOutside)
   document.removeEventListener('close-all-menus', onCloseAllMenus)
 })
 
