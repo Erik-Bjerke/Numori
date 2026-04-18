@@ -356,35 +356,34 @@
             variant="ghost"
             block
             class="px-0 py-0 justify-between"
-            @click="toggleAppLock"
+            @click="draft.enabled = !draft.enabled"
           >
             <div class="flex items-center gap-2 min-w-0">
               <Icon name="mdi:lock-outline" class="w-4 h-4 text-gray-500 flex-shrink-0" />
               <span class="text-sm text-gray-700 dark:text-gray-300 truncate">App Lock</span>
             </div>
-            <UiToggle :model-value="appLockSettings.enabled" size="sm" readonly />
+            <UiToggle :model-value="draft.enabled" size="sm" readonly />
           </UiButton>
           <p class="text-xs text-gray-500 dark:text-gray-500">
-            {{ appLockSettings.enabled ? 'App is protected. Unlock required after timeout.' : 'Protect the app with a PIN, password, or biometrics.' }}
+            {{ draft.enabled ? 'App is protected. Unlock required after timeout.' : 'Protect the app with a PIN, password, or biometrics.' }}
           </p>
 
           <!-- App Lock configuration (shown when enabled) -->
-          <template v-if="appLockSettings.enabled">
+          <template v-if="draft.enabled">
             <!-- Lock method -->
             <div class="flex items-center justify-between gap-2">
               <span class="text-xs text-gray-600 dark:text-gray-400">Lock method</span>
               <UiSelect
-                :model-value="appLockSettings.method"
+                v-model="draft.method"
                 :block="false"
                 size="sm"
                 aria-label="Lock method"
                 :options="appLockMethodOptions"
-                @update:model-value="onAppLockMethodChange($event)"
               />
             </div>
 
             <!-- Available biometric types (shown when method is biometrics) -->
-            <div v-if="appLockSettings.method === 'biometrics' && appLockAvailableBiometrics.length > 1" class="space-y-1.5">
+            <div v-if="draft.method === 'biometrics' && appLockAvailableBiometrics.length > 1" class="space-y-1.5">
               <span class="text-xs text-gray-600 dark:text-gray-400">Biometric methods</span>
               <div class="flex flex-wrap gap-1.5">
                 <UiButton
@@ -394,11 +393,11 @@
                   shape="pill"
                   size="xs"
                   :class="
-                    appLockSettings.selectedBiometrics.includes(bio.id)
+                    draft.selectedBiometrics.includes(bio.id)
                       ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
                       : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
                   "
-                  @click="toggleBiometricType(bio.id)"
+                  @click="toggleDraftBiometric(bio.id)"
                 >
                   <Icon :name="bio.icon" class="w-3.5 h-3.5" />
                   {{ bio.label }}
@@ -406,75 +405,62 @@
               </div>
             </div>
 
-            <!-- PIN setup (when method is pin or biometrics fallback is pin) -->
-            <div v-if="showPinFields" class="space-y-1.5">
+            <!-- PIN setup -->
+            <div v-if="draftShowPin" class="space-y-1.5">
               <label class="text-xs text-gray-600 dark:text-gray-400">
-                {{ appLockSettings.method === 'biometrics' ? 'Fallback PIN' : 'PIN' }}
+                {{ draft.method === 'biometrics' ? 'Fallback PIN' : 'PIN' }}
                 <span class="text-gray-400">(4 digits)</span>
               </label>
               <UiInput
-                :model-value="appLockPin"
+                :model-value="draft.pin"
                 type="password"
                 placeholder="Enter 4-digit PIN"
                 maxlength="4"
                 inputmode="numeric"
                 :validate="false"
-                @update:model-value="appLockPin = $event.replace(/\D/g, '').slice(0, 4)"
+                @update:model-value="draft.pin = $event.replace(/\D/g, '').slice(0, 4)"
               />
               <UiInput
-                :model-value="appLockPinConfirm"
+                :model-value="draft.pinConfirm"
                 type="password"
                 placeholder="Confirm PIN"
                 maxlength="4"
                 inputmode="numeric"
                 :validate="false"
-                @update:model-value="appLockPinConfirm = $event.replace(/\D/g, '').slice(0, 4)"
+                @update:model-value="draft.pinConfirm = $event.replace(/\D/g, '').slice(0, 4)"
               />
-              <p v-if="appLockPinConfirm && appLockPin !== appLockPinConfirm" class="text-xs text-red-600 dark:text-red-400">
+              <p v-if="draft.pinConfirm && draft.pin !== draft.pinConfirm" class="text-xs text-red-600 dark:text-red-400">
                 PINs do not match
               </p>
             </div>
 
-            <!-- Password setup (when method is password or biometrics fallback is password) -->
-            <div v-if="showPasswordFields" class="space-y-1.5">
+            <!-- Password setup -->
+            <div v-if="draftShowPassword" class="space-y-1.5">
               <label class="text-xs text-gray-600 dark:text-gray-400">
-                {{ appLockSettings.method === 'biometrics' ? 'Fallback password' : 'Lock password' }}
+                {{ draft.method === 'biometrics' ? 'Fallback password' : 'Lock password' }}
               </label>
               <UiInput
-                v-model="appLockPassword"
+                v-model="draft.password"
                 type="password"
                 placeholder="Enter lock password"
                 :validate="false"
               />
               <UiInput
-                v-model="appLockPasswordConfirm"
+                v-model="draft.passwordConfirm"
                 type="password"
                 placeholder="Confirm password"
                 :validate="false"
               />
-              <p v-if="appLockPasswordConfirm && appLockPassword !== appLockPasswordConfirm" class="text-xs text-red-600 dark:text-red-400">
+              <p v-if="draft.passwordConfirm && draft.password !== draft.passwordConfirm" class="text-xs text-red-600 dark:text-red-400">
                 Passwords do not match
               </p>
             </div>
 
-            <!-- Save credential button -->
-            <UiButton
-              v-if="showPinFields || showPasswordFields"
-              variant="solid"
-              color="primary"
-              block
-              size="sm"
-              :disabled="!canSaveCredential"
-              @click="saveAppLockCredential"
-            >
-              Save {{ showPinFields ? 'PIN' : 'Password' }}
-            </UiButton>
-
             <!-- Biometrics fallback selector -->
-            <div v-if="appLockSettings.method === 'biometrics'" class="flex items-center justify-between gap-2">
+            <div v-if="draft.method === 'biometrics'" class="flex items-center justify-between gap-2">
               <span class="text-xs text-gray-600 dark:text-gray-400">Biometrics fallback</span>
               <UiSelect
-                :model-value="appLockSettings.biometricsFallback"
+                v-model="draft.biometricsFallback"
                 :block="false"
                 size="sm"
                 aria-label="Biometrics fallback"
@@ -482,13 +468,12 @@
                   { value: 'pin', label: 'PIN' },
                   { value: 'password', label: 'Password' },
                 ]"
-                @update:model-value="updateAppLockSetting('biometricsFallback', $event)"
               />
             </div>
 
             <!-- Biometrics not enrolled warning -->
             <UiAlert
-              v-if="appLockSettings.method === 'biometrics' && biometricError"
+              v-if="draft.method === 'biometrics' && biometricError"
               color="amber"
               icon="mdi:fingerprint-off"
               bordered
@@ -503,7 +488,7 @@
             <div class="flex items-center justify-between gap-2">
               <span class="text-xs text-gray-600 dark:text-gray-400">Lock after</span>
               <UiSelect
-                :model-value="appLockSettings.timeout"
+                v-model="draft.timeout"
                 :block="false"
                 size="sm"
                 aria-label="Lock timeout"
@@ -514,9 +499,20 @@
                   { value: 900, label: '15 minutes' },
                   { value: 1800, label: '30 minutes' },
                 ]"
-                @update:model-value="updateAppLockSetting('timeout', $event)"
               />
             </div>
+
+            <!-- Save button -->
+            <UiButton
+              variant="solid"
+              color="primary"
+              block
+              size="sm"
+              :disabled="!canSaveAppLock"
+              @click="saveAppLock"
+            >
+              Save
+            </UiButton>
           </template>
         </div>
 
@@ -895,16 +891,37 @@ const savingSessions = ref(false)
 const {
   settings: appLockSettings,
   availableBiometrics: appLockAvailableBiometrics,
-  biometricsEnrolled,
   biometricError,
-  updateSettings: updateAppLockSettings,
+  updateSettings: commitAppLock,
   disable: disableAppLock,
   detectBiometrics,
 } = useAppLock()
-const appLockPin = ref('')
-const appLockPinConfirm = ref('')
-const appLockPassword = ref('')
-const appLockPasswordConfirm = ref('')
+
+// ── Draft state: all edits happen here, nothing persists until Save ──
+const draft = reactive({
+  enabled: false,
+  method: 'pin',
+  pin: '',
+  pinConfirm: '',
+  password: '',
+  passwordConfirm: '',
+  timeout: 0,
+  biometricsFallback: 'pin',
+  selectedBiometrics: [],
+})
+
+/** Reset draft from the persisted settings */
+const resetDraft = () => {
+  draft.enabled = appLockSettings.enabled
+  draft.method = appLockSettings.method
+  draft.pin = ''
+  draft.pinConfirm = ''
+  draft.password = ''
+  draft.passwordConfirm = ''
+  draft.timeout = appLockSettings.timeout
+  draft.biometricsFallback = appLockSettings.biometricsFallback
+  draft.selectedBiometrics = [...(appLockSettings.selectedBiometrics || [])]
+}
 
 const appLockMethodOptions = computed(() => {
   const opts = [
@@ -917,105 +934,103 @@ const appLockMethodOptions = computed(() => {
   return opts
 })
 
-// Whether PIN or password fields should be visible
-const showPinFields = computed(() => {
-  if (!appLockSettings.enabled) return false
-  if (appLockSettings.method === 'pin') return true
-  if (appLockSettings.method === 'biometrics' && appLockSettings.biometricsFallback === 'pin') return true
+const draftShowPin = computed(() => {
+  if (draft.method === 'pin') return true
+  if (draft.method === 'biometrics' && draft.biometricsFallback === 'pin') return true
   return false
 })
 
-const showPasswordFields = computed(() => {
-  if (!appLockSettings.enabled) return false
-  if (appLockSettings.method === 'password') return true
-  if (appLockSettings.method === 'biometrics' && appLockSettings.biometricsFallback === 'password') return true
+const draftShowPassword = computed(() => {
+  if (draft.method === 'password') return true
+  if (draft.method === 'biometrics' && draft.biometricsFallback === 'password') return true
   return false
 })
 
-// Whether the credential has been saved (PIN or password is set in settings)
-const appLockCredentialSaved = computed(() => {
-  if (showPinFields.value) return appLockSettings.pin?.length === 4
-  if (showPasswordFields.value) return appLockSettings.password?.length >= 1
-  // Biometrics-only with no fallback fields visible — always "saved"
+/** Whether the draft has any change compared to persisted settings */
+const draftHasChanges = computed(() => {
+  if (draft.enabled !== appLockSettings.enabled) return true
+  if (!draft.enabled) return false
+  if (draft.method !== appLockSettings.method) return true
+  if (draft.timeout !== appLockSettings.timeout) return true
+  if (draft.biometricsFallback !== appLockSettings.biometricsFallback) return true
+  if (JSON.stringify(draft.selectedBiometrics) !== JSON.stringify(appLockSettings.selectedBiometrics || [])) return true
+  // PIN/password changes: new value entered that differs from saved
+  if (draftShowPin.value && draft.pin.length === 4 && draft.pin !== appLockSettings.pin) return true
+  if (draftShowPassword.value && draft.password.length >= 1 && draft.password !== appLockSettings.password) return true
+  return false
+})
+
+/** Whether the draft is valid and can be saved */
+const canSaveAppLock = computed(() => {
+  if (!draftHasChanges.value) return false
+  // Disabling — always valid
+  if (!draft.enabled) return true
+  // PIN method: need valid confirmed PIN (either new or already saved)
+  if (draftShowPin.value) {
+    const hasExistingPin = appLockSettings.pin?.length === 4
+    const hasNewPin = draft.pin.length === 4 && draft.pin === draft.pinConfirm
+    if (!hasExistingPin && !hasNewPin) return false
+  }
+  // Password method: need valid confirmed password (either new or already saved)
+  if (draftShowPassword.value) {
+    const hasExistingPassword = appLockSettings.password?.length >= 1
+    const hasNewPassword = draft.password.length >= 1 && draft.password === draft.passwordConfirm
+    if (!hasExistingPassword && !hasNewPassword) return false
+  }
   return true
 })
 
-// Validation for the save button
-const canSaveCredential = computed(() => {
-  if (showPinFields.value) {
-    return appLockPin.value.length === 4
-      && appLockPin.value === appLockPinConfirm.value
+const toggleDraftBiometric = (id) => {
+  const idx = draft.selectedBiometrics.indexOf(id)
+  if (idx >= 0) {
+    if (draft.selectedBiometrics.length <= 1) return
+    draft.selectedBiometrics.splice(idx, 1)
+  } else {
+    draft.selectedBiometrics.push(id)
   }
-  if (showPasswordFields.value) {
-    return appLockPassword.value.length >= 1
-      && appLockPassword.value === appLockPasswordConfirm.value
+}
+
+// When method changes in draft, auto-select all biometrics
+watch(() => draft.method, (method) => {
+  if (method === 'biometrics') {
+    draft.selectedBiometrics = appLockAvailableBiometrics.value.map((b) => b.id)
   }
-  return false
+  // Clear credential fields on method change
+  draft.pin = ''
+  draft.pinConfirm = ''
+  draft.password = ''
+  draft.passwordConfirm = ''
 })
 
-const toggleAppLock = async () => {
-  if (appLockSettings.enabled) {
+const saveAppLock = async () => {
+  if (!canSaveAppLock.value) return
+
+  if (!draft.enabled) {
     await disableAppLock()
-    appLockPin.value = ''
-    appLockPinConfirm.value = ''
-    appLockPassword.value = ''
-    appLockPasswordConfirm.value = ''
     showFeedback('App Lock disabled')
-  } else {
-    await updateAppLockSettings({ enabled: true, method: 'pin' })
-    appLockPin.value = ''
-    appLockPinConfirm.value = ''
+    resetDraft()
+    return
   }
-}
 
-const onAppLockMethodChange = async (method) => {
-  appLockPin.value = ''
-  appLockPinConfirm.value = ''
-  appLockPassword.value = ''
-  appLockPasswordConfirm.value = ''
-  const patch = { method, pin: '', password: '' }
-  if (method === 'biometrics') {
-    patch.selectedBiometrics = appLockAvailableBiometrics.value.map((b) => b.id)
+  const patch = {
+    enabled: true,
+    method: draft.method,
+    timeout: draft.timeout,
+    biometricsFallback: draft.biometricsFallback,
+    selectedBiometrics: [...draft.selectedBiometrics],
   }
-  await updateAppLockSettings(patch)
-}
 
-const saveAppLockCredential = async () => {
-  if (showPinFields.value && canSaveCredential.value) {
-    await updateAppLockSettings({ pin: appLockPin.value })
-    showFeedback('PIN saved')
-  } else if (showPasswordFields.value && canSaveCredential.value) {
-    await updateAppLockSettings({ password: appLockPassword.value })
-    showFeedback('Password saved')
+  // Only update PIN/password if user entered a new one
+  if (draftShowPin.value && draft.pin.length === 4 && draft.pin === draft.pinConfirm) {
+    patch.pin = draft.pin
   }
-}
-
-const toggleBiometricType = async (id) => {
-  const current = [...(appLockSettings.selectedBiometrics || [])]
-  const idx = current.indexOf(id)
-  if (idx >= 0) {
-    if (current.length <= 1) return
-    current.splice(idx, 1)
-  } else {
-    current.push(id)
+  if (draftShowPassword.value && draft.password.length >= 1 && draft.password === draft.passwordConfirm) {
+    patch.password = draft.password
   }
-  await updateAppLockSettings({ selectedBiometrics: current })
-}
 
-const updateAppLockSetting = async (key, value) => {
-  await updateAppLockSettings({ [key]: value })
-}
-
-/**
- * If the user leaves the security section (or closes the modal) without
- * saving a credential on first setup, disable app lock entirely.
- */
-const checkUnsavedAppLock = () => {
-  if (appLockSettings.enabled && !appLockCredentialSaved.value) {
-    // Biometrics method doesn't require a credential if biometrics are enrolled
-    if (appLockSettings.method === 'biometrics' && biometricsEnrolled.value) return
-    disableAppLock()
-  }
+  await commitAppLock(patch)
+  showFeedback('App Lock settings saved')
+  resetDraft()
 }
 
 // Detect biometrics on mount and poll while on security section
@@ -1027,10 +1042,10 @@ onMounted(async () => {
 
 watch(activeSection, (section, oldSection) => {
   if (section === 'security') {
+    resetDraft()
     biometricPollTimer = setInterval(() => detectBiometrics(), 5000)
   } else if (oldSection === 'security') {
     if (biometricPollTimer) { clearInterval(biometricPollTimer); biometricPollTimer = null }
-    checkUnsavedAppLock()
   }
 })
 
@@ -1051,10 +1066,7 @@ watch(
       activeSection.value = 'main'
       feedback.value = null
       editName.value = props.user?.name || ''
-      appLockPin.value = ''
-      appLockPinConfirm.value = ''
-      appLockPassword.value = ''
-      appLockPasswordConfirm.value = ''
+      resetDraft()
       editEmail.value = props.user?.email || ''
       avatarImageSrc.value = null
       croppedAvatarDataUrl.value = null
@@ -1064,8 +1076,6 @@ watch(
       dangerPassword.value = ''
       confirmingAction.value = null
     } else {
-      // Modal closing — check for unsaved app lock
-      checkUnsavedAppLock()
       if (biometricPollTimer) { clearInterval(biometricPollTimer); biometricPollTimer = null }
     }
   },

@@ -78,8 +78,8 @@ export const useAppLock = () => {
    * Waits for auth to be ready since restore() is async.
    */
   const loadFromServer = async () => {
-    // If user isn't loaded yet, wait for auth.restore() to finish
-    if (auth.isLoggedIn.value && !auth.user.value) {
+    // Wait for auth.restore() to finish loading the user profile
+    if (!auth.user.value) {
       await new Promise((resolve) => {
         const stop = watch(
           () => auth.user.value,
@@ -91,7 +91,6 @@ export const useAppLock = () => {
           },
           { immediate: true },
         )
-        // Timeout after 5s
         setTimeout(() => {
           stop()
           resolve()
