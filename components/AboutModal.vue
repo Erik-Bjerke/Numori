@@ -74,34 +74,6 @@
         </UiButton>
       </div>
 
-      <!-- Author card -->
-      <div
-        class="rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-4 space-y-2"
-      >
-        <div class="flex items-center gap-2">
-          <Icon name="mdi:account-outline" class="w-4 h-4 text-gray-400" />
-          <p class="text-xs font-semibold text-gray-900 dark:text-gray-300 uppercase tracking-wider">
-            Author
-          </p>
-        </div>
-        <p class="text-sm text-gray-700 dark:text-gray-400">
-          Erik Bjerke — TheProcedural Software Ltd
-        </p>
-        <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <a
-            v-for="link in authorLinks"
-            :key="link.href"
-            :href="link.href"
-            :target="link.external ? '_blank' : undefined"
-            :rel="link.external ? 'noopener noreferrer' : undefined"
-            class="inline-flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400 hover:underline"
-          >
-            <Icon :name="link.icon" class="w-3 h-3" />
-            {{ link.label }}
-          </a>
-        </div>
-      </div>
-
       <!-- Donate / Support -->
       <div
         class="rounded-xl bg-gradient-to-br from-pink-50 to-amber-50 dark:from-pink-900/10 dark:to-amber-900/10 border border-pink-100 dark:border-pink-900/30 overflow-hidden"
@@ -155,34 +127,65 @@
         </Transition>
       </div>
 
-      <!-- Download for other platforms (web only) -->
+      <!-- Author card -->
       <div
-        v-if="!isNative"
+        class="rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-4 space-y-2"
+      >
+        <div class="flex items-center gap-2">
+          <Icon name="mdi:account-outline" class="w-4 h-4 text-gray-400" />
+          <p class="text-xs font-semibold text-gray-900 dark:text-gray-300 uppercase tracking-wider">
+            Author
+          </p>
+        </div>
+        <p class="text-sm text-gray-700 dark:text-gray-400">
+          Erik Bjerke — TheProcedural Software Ltd
+        </p>
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <a
+            v-for="link in authorLinks"
+            :key="link.href"
+            :href="link.href"
+            :target="link.external ? '_blank' : undefined"
+            :rel="link.external ? 'noopener noreferrer' : undefined"
+            class="inline-flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400 hover:underline"
+          >
+            <Icon :name="link.icon" class="w-3 h-3" />
+            {{ link.label }}
+          </a>
+        </div>
+      </div>
+
+      <!-- Collaborators -->
+      <div
         class="rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-4 space-y-3"
       >
         <div class="flex items-center gap-2">
-          <Icon name="mdi:download-outline" class="w-4 h-4 text-gray-400" />
+          <Icon name="mdi:account-group-outline" class="w-4 h-4 text-gray-400" />
           <p class="text-xs font-semibold text-gray-900 dark:text-gray-300 uppercase tracking-wider">
-            Get the App
+            Collaborators
           </p>
         </div>
-        <div class="flex flex-wrap justify-center gap-2">
-          <a
-            v-for="dl in downloadLinks"
-            :key="dl.label"
-            :href="dl.url"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="group flex flex-col items-center gap-1.5 w-[5.5rem] px-2 py-2.5 rounded-lg border border-transparent hover:border-primary-300 dark:hover:border-primary-700 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
+        <div class="space-y-2">
+          <div
+            v-for="collab in collaborators"
+            :key="collab.name"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-white dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800"
           >
-            <Icon
-              :name="dl.icon"
-              class="w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors"
-            />
-            <span class="text-[11px] font-medium text-gray-600 dark:text-gray-400 group-hover:text-primary-700 dark:group-hover:text-primary-300 transition-colors">
-              {{ dl.label }}
-            </span>
-          </a>
+            <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
+              <Icon name="mdi:account" class="w-4 h-4 text-gray-400" />
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">{{ collab.name }}</p>
+              <a
+                v-if="collab.email"
+                :href="`mailto:${collab.email}`"
+                class="inline-flex items-center gap-1 text-[11px] text-primary-600 dark:text-primary-400 hover:underline mt-0.5"
+              >
+                <Icon name="mdi:email-outline" class="w-3 h-3" />
+                {{ collab.email }}
+              </a>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -273,19 +276,14 @@ const props = defineProps({
 
 defineEmits(['close'])
 
-const { isNative } = usePlatform()
 const toast = useToast()
 const appVersion = __APP_VERSION__
 const checking = ref(false)
 const showDeps = ref(false)
 const showDonate = ref(false)
 
-const downloadLinks = [
-  { label: 'Linux', icon: 'mdi:linux', url: 'https://numori.app/download/linux' },
-  { label: 'macOS', icon: 'mdi:apple', url: 'https://numori.app/download/macos' },
-  { label: 'Windows', icon: 'mdi:microsoft-windows', url: 'https://numori.app/download/windows' },
-  { label: 'Android', icon: 'mdi:android', url: 'https://numori.app/download/android' },
-  { label: 'iOS', icon: 'mdi:apple-ios', url: 'https://numori.app/download/ios' },
+const collaborators = [
+  { name: 'Yaiza Wadhwani Valderas', email: 'yaizawv@proton.me' },
 ]
 
 const donateLinks = [

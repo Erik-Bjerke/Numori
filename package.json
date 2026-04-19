@@ -16,6 +16,12 @@
       "url": "https://theprocedural.com"
     }
   ],
+  "collaborators": [
+    {
+      "name": "Yaiza Wadhwani Valderas",
+      "email": "yaizawv@proton.me"
+    }
+  ],
   "license": "AGPL-3.0",
   "homepage": "https://github.com/Numori-Ecosystem/Numori-Notes",
   "repository": {
