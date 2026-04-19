@@ -10,7 +10,7 @@
     </p>
     <div
       class="divide-y"
-      :class="[shapeClass, containerClass]"
+      :class="[shapeClass, containerClass, childRadiusClass]"
     >
       <slot />
     </div>
@@ -87,6 +87,15 @@ const props = defineProps({
 
 const shapeClass = computed(() => {
   const map = { xl: 'rounded-xl', lg: 'rounded-lg', none: '' }
+  return map[props.rounded] ?? map.xl
+})
+
+const childRadiusClass = computed(() => {
+  const map = {
+    xl: '[&>*:first-child]:rounded-t-xl [&>*:last-child]:rounded-b-xl',
+    lg: '[&>*:first-child]:rounded-t-lg [&>*:last-child]:rounded-b-lg',
+    none: '',
+  }
   return map[props.rounded] ?? map.xl
 })
 
