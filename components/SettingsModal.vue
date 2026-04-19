@@ -710,12 +710,6 @@
           </div><!-- /transition wrapper -->
         </div>
       </div>
-
-      <!-- Footer -->
-      <div class="flex-shrink-0 px-4 py-3 bg-gray-50 dark:bg-gray-925 border-t border-gray-200 dark:border-gray-800 flex justify-between items-center">
-        <UiButton variant="text" color="gray" size="sm" @click="resetAll">Reset to defaults</UiButton>
-        <p class="text-xs text-gray-500 dark:text-gray-400">Saved automatically</p>
-      </div>
     </div>
   </UiModal>
 </template>
@@ -966,7 +960,6 @@ const selectPreset = (name) => {
   props.save()
 }
 const onSettingChange = () => props.save()
-const resetAll = () => { props.reset() }
 
 // ── Profile state ──
 const toast = useToast()
