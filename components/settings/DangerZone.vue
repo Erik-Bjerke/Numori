@@ -66,15 +66,16 @@ const showFeedback = (msg, type = 'success') => {
 
 const handleDeleteData = async () => {
   saving.value = true
-  try { await props.onDeleteData(dangerPassword.value); showFeedback('All data deleted — account reset'); dangerPassword.value = ''; confirmingAction.value = null }
+  try { await props.onDeleteData(dangerPassword.value); showFeedback('All data deleted — account reset'); dangerPassword.value = '' }
   catch (err) { showFeedback(err?.data?.statusMessage || 'Failed to delete data', 'error') }
-  finally { saving.value = false }
+  finally { saving.value = false; confirmingAction.value = null }
 }
 
 const handleDeleteAccount = async () => {
   saving.value = true
   try { await props.onDeleteAccount(dangerPassword.value) }
-  catch (err) { showFeedback(err?.data?.statusMessage || 'Failed to delete account', 'error'); saving.value = false }
+  catch (err) { showFeedback(err?.data?.statusMessage || 'Failed to delete account', 'error') }
+  finally { saving.value = false; confirmingAction.value = null }
 }
 
 // Self-reset on mount (fresh state each time section is displayed)

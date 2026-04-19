@@ -87,7 +87,6 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'confirm'])
 
-const promptRef = ref(null)
 const confirmRef = ref(null)
 const hasCustomActions = computed(() => !!useSlots().actions)
 
